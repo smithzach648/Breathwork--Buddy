@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathwork Buddy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --primary: #60A5FA;
+            --primary-glow: rgba(96, 165, 250, 0.4);
+            --surface: #ffffff;
+            --surface-dim: #F3F4F6;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --meditation: #8B5CF6;
+            --journal: #F472B6;
+        }
+        
+        .dark {
+            --primary: #818CF8;
+            --primary-glow: rgba(129, 140, 248, 0.3);
+            --surface: #1e1e2e;
+            --surface-dim: #2a2a3e;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --meditation: #A78BFA;
+            --journal: #F9A8D4;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            touch-action: pan-y;
+            background: var(--surface-dim);
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        .dark body, body.dark {
+            background: #0f0f1a;
+        }
+        
+        .card {
+            background: var(--surface);
+            transition: background 0.3s;
+        }
+        
+        /* Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            width: 100%;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: var(--surface-dim);
+            border-radius: 2px;
+        }
+        input[type=range]:focus { outline: none; }
+        
+        /* Tabs */
+        .tab-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            white-space: nowrap;
+        }
+        .tab-btn[aria-selected="true"] {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+        .tab-btn[aria-selected="false"] {
+            background: var(--surface-dim);
+            color: var(--text-muted);
+        }
+        .tab-btn[aria-selected="false"]:hover {
+            background: var(--surface);
+        }
+        .tab-btn.journal-tab[aria-selected="true"] {
+            background: var(--journal);
+            box-shadow: 0 4px 12px rgba(244, 114, 182, 0.4);
+        }
+        
+        /* Canvas Container */
+        .canvas-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .countdown {
+            position: absolute;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 500;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        .countdown.visible { opacity: 1; }
+        
+        .round-info {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        
+        .tap-hint {
+            position: absolute;
+            bottom: 1rem;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.7);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* Control Sections */
+        .control-section {
+            display: none;
+        }
+        .control-section.active {
+            display: block;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px var(--primary-glow);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+        
+        .btn-stop {
+            background: #EF4444;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-meditation {
+            background: var(--meditation);
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+        }
+        
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            background: var(--surface-dim);
+            color: var(--text-muted);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 40px;
+            height: 40px;
+        }
+        .btn-icon:hover {
+            background: var(--surface);
+        }
+        .btn-icon.active {
+            color: var(--primary);
+        }
+        
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        /* Select & Input Styling */
+        select, input[type="text"], input[type="number"] {
+            padding: 0.5rem;
+            border: 1px solid var(--surface-dim);
+            border-radius: 0.5rem;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        /* Labels */
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        
+        /* Stats Panel */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+        .stat-card {
+            background: var(--surface-dim);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* History */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--surface-dim);
+            font-size: 0.8rem;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Pattern Builder */
+        .phase-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 40px;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--surface-dim);
+        }
+        .phase-row:last-child {
+            border-bottom: none;
+        }
+        
+        /* Binaural indicator */
+        .binaural-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .binaural-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Meditation indicator */
+        .meditation-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--meditation);
+        }
+        .meditation-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--meditation);
+            animation: pulse 3s infinite;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--surface-dim);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 3px;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        /* Meditation mode canvas */
+        .meditation-mode .canvas-wrap canvas {
+            box-shadow: 0 0 60px var(--meditation);
+        }
+        
+        /* Textarea */
+        textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--surface-dim);
+            border-radius: 0.75rem;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            line-height: 1.5;
+            width: 100%;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--journal);
+        }
+        
+        /* Journal Styles */
+        .prompt-card {
+            background: var(--surface-dim);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid var(--journal);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .prompt-card:hover {
+            border-left-width: 4px;
+        }
+        .prompt-category {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--journal);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+        .prompt-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text);
+        }
+        
+        .journal-entry {
+            background: var(--surface-dim);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .journal-entry-date {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+        }
+        .journal-entry-prompt {
+            font-size: 0.75rem;
+            color: var(--journal);
+            margin-bottom: 0.3rem;
+            font-style: italic;
+        }
+        .journal-entry-text {
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: var(--text);
+        }
+        
+        .time-greeting {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        
+        .post-session-journal {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface-dim) 100%);
+            border: 1px solid var(--journal);
+            border-radius: 1rem;
+            padding: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="min-h-screen flex flex-col items-center p-4">
+        <div id="mainCard" class="card rounded-3xl shadow-xl p-5 md:p-6 w-full max-w-xl flex flex-col items-center gap-5 mt-2">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between w-full">
+                <h1 class="text-xl font-light tracking-wide">Breathwork Buddy</h1>
+                <div class="flex gap-2">
+                    <button id="historyBtn" class="btn-icon" title="Session History">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v5h5"></path>
+                            <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path>
+                            <path d="M12 7v5l4 2"></path>
+                        </svg>
+                    </button>
+                    <button id="themeBtn" class="btn-icon" title="Toggle Theme">
+                        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg id="moonIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mode Tabs -->
+            <div class="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-full overflow-x-auto" role="tablist">
+                <button class="tab-btn" role="tab" aria-selected="true" data-mode="normal">Normal</button>
+                <button class="tab-btn" role="tab" aria-selected="false" data-mode="box">Box</button>
+                <button class="tab-btn" role="tab" aria-selected="false" data-mode="hormesis">Hormesis</button>
+                <button class="tab-btn" role="tab" aria-selected="false" data-mode="custom">Custom</button>
+                <button class="tab-btn journal-tab" role="tab" aria-selected="false" data-mode="journal">Journal</button>
+            </div>
+
+            <!-- Canvas -->
+            <div class="canvas-wrap w-full" id="canvasWrap">
+                <canvas id="canvas" class="rounded-2xl shadow-lg"></canvas>
+                <div id="countdown" class="countdown"></div>
+                <div id="roundInfo" class="round-info hidden"></div>
+                <div id="tapHint" class="tap-hint hidden">Tap to release breath</div>
+            </div>
+            
+            <!-- Live Stats (shown during hormesis) -->
+            <div id="liveStats" class="w-full hidden">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="currentRetention">0s</div>
+                        <div class="stat-label">Current Hold</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgRetention">--</div>
+                        <div class="stat-label">Avg Retention</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="bestRetention">--</div>
+                        <div class="stat-label">Best</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Meditation Timer Display (shown during meditation) -->
+            <div id="meditationStats" class="w-full hidden">
+                <div class="stat-card" style="background: transparent;">
+                    <div class="stat-value" id="meditationRemaining" style="font-size: 2rem; color: var(--meditation);">--:--</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+                <div class="meditation-indicator justify-center mt-2">
+                    <div class="meditation-dot"></div>
+                    <span>Meditation active — settle into stillness</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div id="controlsContainer" class="w-full space-y-4">
+
+                <!-- Normal Mode -->
+                <div id="normalControls" class="control-section active space-y-3">
+                    <h2 class="section-title">Cycle Speed</h2>
+                    <div class="flex justify-between text-xs" style="color: var(--text-muted)">
+                        <span>Faster (2s)</span>
+                        <span id="speedValue">4.0s Cycle</span>
+                        <span>Slower (10s)</span>
+                    </div>
+                    <input type="range" id="speedSlider" min="2" max="10" step="0.5" value="4">
+                </div>
+
+                <!-- Box Mode -->
+                <div id="boxControls" class="control-section space-y-3">
+                    <h2 class="section-title">Box Breathing</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Inhale (<span data-label="in">4</span>s)</span>
+                            <input type="range" data-phase="in" min="1" max="10" value="4" class="box-slider">
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Hold In (<span data-label="holdIn">4</span>s)</span>
+                            <input type="range" data-phase="holdIn" min="1" max="10" value="4" class="box-slider">
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Exhale (<span data-label="out">4</span>s)</span>
+                            <input type="range" data-phase="out" min="1" max="10" value="4" class="box-slider">
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Hold Out (<span data-label="holdOut">4</span>s)</span>
+                            <input type="range" data-phase="holdOut" min="1" max="10" value="4" class="box-slider">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Hormesis Mode -->
+                <div id="hormesisControls" class="control-section space-y-3">
+                    <h2 class="section-title">Hormesis Breathwork</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Breath Time</span>
+                            <select id="hormesisBreathTime">
+                                <option value="1">1 second</option>
+                                <option value="2" selected>2 seconds</option>
+                                <option value="3">3 seconds</option>
+                            </select>
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Rounds</span>
+                            <select id="hormesisRounds">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3" selected>3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Cycles/Round</span>
+                            <select id="hormesisCycles">
+                                <option value="20">20</option>
+                                <option value="30" selected>30</option>
+                                <option value="40">40</option>
+                            </select>
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Recovery Hold</span>
+                            <select id="hormesisRecovery">
+                                <option value="10">10 seconds</option>
+                                <option value="15" selected>15 seconds</option>
+                                <option value="20">20 seconds</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <!-- Meditation Timer -->
+                    <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Post-Session Meditation</span>
+                            <select id="meditationDuration">
+                                <option value="0" selected>None</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="20">20 minutes</option>
+                                <option value="30">30 minutes</option>
+                            </select>
+                        </label>
+                        <p class="text-xs mt-1" style="color: var(--text-muted)">
+                            Ambient soundscape with binaural beats after breathwork completes.
+                        </p>
+                    </div>
+                    
+                    <p class="text-xs" style="color: var(--text-muted)">
+                        Tap/spacebar to release retention. Binaural plays during holds only.
+                    </p>
+                </div>
+
+                <!-- Custom Pattern -->
+                <div id="customControls" class="control-section space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h2 class="section-title mb-0">Custom Pattern</h2>
+                        <button id="addPhaseBtn" class="btn-small" style="background: var(--primary); color: white;">+ Add Phase</button>
+                    </div>
+                    <div id="patternBuilder" class="max-h-48 overflow-y-auto">
+                        <!-- Phases will be added here -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="patternName" placeholder="Pattern name..." class="flex-1" style="font-size: 0.8rem;">
+                        <button id="savePatternBtn" class="btn-small" style="background: var(--success); color: white;">Save</button>
+                    </div>
+                    <div id="savedPatterns" class="space-y-1">
+                        <!-- Saved patterns appear here -->
+                    </div>
+                </div>
+                
+                <!-- Post-Session Journal Prompt -->
+                <div id="postSessionJournal" class="w-full hidden post-session-journal">
+                    <h3 class="text-sm font-semibold mb-3" style="color: var(--journal);">Session Integration</h3>
+                    <div class="prompt-card" style="cursor: default;">
+                        <div class="prompt-category">Reflection</div>
+                        <div class="prompt-text" id="postSessionPrompt"></div>
+                    </div>
+                    <textarea id="postSessionEntry" placeholder="What arose during your practice..."></textarea>
+                    <div class="flex gap-2 mt-3">
+                        <button id="savePostSessionBtn" class="btn-small flex-1" style="background: var(--journal); color: white;">Save Entry</button>
+                        <button id="skipPostSessionBtn" class="btn-small" style="background: var(--surface-dim); color: var(--text-muted);">Skip</button>
+                    </div>
+                </div>
+
+                <!-- Journal Mode -->
+                <div id="journalControls" class="control-section space-y-4">
+                    <div id="journalGreeting" class="time-greeting"></div>
+                    
+                    <div id="journalPrompts"></div>
+                    
+                    <div class="flex gap-2">
+                        <button id="shufflePromptsBtn" class="btn-small flex-1" style="background: var(--journal); color: white;">
+                            ↻ New Prompts
+                        </button>
+                        <select id="promptCategoryFilter" class="flex-1" style="font-size: 0.75rem;">
+                            <option value="all">All Categories</option>
+                            <option value="gratitude">Gratitude</option>
+                            <option value="introspection">Introspection</option>
+                            <option value="shadow">Shadow Work</option>
+                            <option value="intention">Intention</option>
+                            <option value="integration">Integration</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                        <textarea id="journalEntry" placeholder="Write your reflection here..."></textarea>
+                        <button id="saveJournalBtn" class="btn-small w-full mt-2" style="background: var(--success); color: white;">Save Entry</button>
+                    </div>
+                    
+                    <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-medium">Past Entries</h3>
+                            <button id="clearJournalBtn" class="text-xs" style="color: var(--text-muted);">Clear All</button>
+                        </div>
+                        <div id="journalEntries" class="max-h-48 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <!-- Audio Options -->
+                <div id="audioOptions" class="pt-3 border-t space-y-3" style="border-color: var(--surface-dim)">
+                    <h2 class="section-title">Audio</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Guide Tones</span>
+                            <select id="waveformSelect">
+                                <option value="off">Off</option>
+                                <option value="sine" selected>Warm (Sine)</option>
+                                <option value="triangle">Soft (Triangle)</option>
+                            </select>
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Binaural Beats</span>
+                            <select id="binauralSelect">
+                                <option value="off">Off</option>
+                                <option value="theta" selected>Theta (6Hz)</option>
+                                <option value="delta">Delta (2Hz)</option>
+                                <option value="alpha">Alpha (10Hz)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="binauralInfo" class="binaural-indicator hidden">
+                        <div class="binaural-dot"></div>
+                        <span>Binaural active during holds — use headphones</span>
+                    </div>
+                </div>
+
+                <!-- Visual Options -->
+                <div id="visualOptions" class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                    <label class="flex flex-col gap-1">
+                        <span class="field-label">Shape</span>
+                        <select id="shapeSelect">
+                            <option value="circle" selected>Circle</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                    </label>
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="actionButtons" class="pt-3 border-t flex justify-center gap-3" style="border-color: var(--surface-dim)">
+                    <button id="startBtn" class="btn-primary">Start Session</button>
+                    <button id="stopBtn" class="btn-primary btn-stop hidden">Stop Session</button>
+                    <button id="endMeditationBtn" class="btn-primary btn-meditation hidden">End Meditation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History Modal -->
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Session History</h2>
+                <button id="closeHistoryBtn" class="btn-icon" style="width: 32px; height: 32px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div id="historyList" class="space-y-2 max-h-96 overflow-y-auto">
+                <p class="text-sm" style="color: var(--text-muted)">No sessions recorded yet.</p>
+            </div>
+            <button id="clearHistoryBtn" class="btn-small mt-4 w-full" style="background: #EF4444; color: white;">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        'use strict';
+        
+        // ═══════════════════════════════════════════════════════════════
+        // JOURNAL PROMPTS DATABASE
+        // ═══════════════════════════════════════════════════════════════
+        
+        const PROMPTS = {
+            gratitude: [
+                "What simple pleasure brought you unexpected joy recently?",
+                "Who in your life deserves silent thanks today?",
+                "What challenge are you secretly grateful for?",
+                "What part of your body served you well today?",
+                "What skill or ability do you take for granted?",
+                "What moment from yesterday would you want to relive?",
+                "What aspect of your home brings you comfort?",
+                "Who taught you something valuable without knowing it?",
+                "What technology genuinely improves your life?",
+                "What mistake led to something good?",
+            ],
+            introspection: [
+                "What are you avoiding looking at directly?",
+                "Where in your life are you playing small?",
+                "What would you do if you knew you couldn't fail?",
+                "What story do you keep telling yourself that might not be true?",
+                "What does your resistance reveal about what matters to you?",
+                "When did you last surprise yourself?",
+                "What part of yourself have you abandoned?",
+                "What are you pretending not to know?",
+                "Where do you end and others' expectations begin?",
+                "What question are you afraid to answer honestly?",
+                "What is asking to be released?",
+                "When do you feel most like yourself?",
+            ],
+            shadow: [
+                "What quality in others irritates you most? Where might it live in you?",
+                "What do you judge in others that you haven't forgiven in yourself?",
+                "What part of yourself do you hide from those closest to you?",
+                "What would you never want anyone to know about you?",
+                "When did you last act against your own values? What drove that?",
+                "What emotion do you have the hardest time accepting in yourself?",
+                "Who do you envy, and what does that reveal about your unmet needs?",
+                "What mask do you wear most often? What's beneath it?",
+                "What are you most defensive about? Why does it need protecting?",
+                "What gift might be hiding in your greatest wound?",
+            ],
+            intention: [
+                "What is one thing you want to call into your life?",
+                "How do you want to feel at the end of today?",
+                "What quality do you want to embody this week?",
+                "What would make today meaningful?",
+                "What commitment to yourself are you ready to honor?",
+                "If today were a chapter, what would its title be?",
+                "What is one small act of courage you can take today?",
+                "What relationship deserves more of your presence?",
+                "What seed are you planting now for your future self?",
+                "What would it look like to fully show up today?",
+            ],
+            integration: [
+                "What surfaced during your practice that wants attention?",
+                "What did your breath reveal to you?",
+                "What sensations lingered after your session?",
+                "What emotion moved through you during practice?",
+                "What insight arose in the stillness?",
+                "What did you notice about your mind today?",
+                "Where in your body did you hold tension? What might it represent?",
+                "What image or thought kept returning during practice?",
+                "How did today's practice differ from yesterday's?",
+                "What are you carrying differently now than before you began?",
+                "What is your practice teaching you about yourself?",
+            ]
+        };
+        
+        const TIME_GREETINGS = {
+            morning: [
+                "The day is fresh. What intentions will you set?",
+                "A new morning, a new beginning.",
+                "The quiet hours are yours. What needs your attention?",
+                "Before the world asks anything of you — what do you need?",
+            ],
+            afternoon: [
+                "Pausing in the middle of things. What needs acknowledgment?",
+                "The day is half-spent. What's been meaningful so far?",
+                "Taking a breath between tasks. What's present right now?",
+            ],
+            evening: [
+                "The day is winding down. What will you carry forward?",
+                "As things quiet, what needs to be released?",
+                "Before rest, what deserves reflection?",
+                "What did today teach you?",
+            ]
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIGURATION
+        // ═══════════════════════════════════════════════════════════════
+        
+        // Warmer, more musical scale (pentatonic-ish, centered around A=432Hz tuning)
+        const CONFIG = {
+            scales: {
+                // A minor pentatonic at 432Hz tuning - warm and meditative
+                normal: [216, 243, 288, 324, 384, 432, 486, 512],
+                // Higher octave for final breath
+                extended: [324, 384, 432, 486]
+            },
+            tones: {
+                // Deeper, warmer signal tones
+                holdStart: 108,      // Low A (grounding)
+                restStart: 432,      // A4 at 432Hz (completion)
+                finalSignal: 324,    // E4 (gentle alert)
+                release: 432,        // A4 (release confirmation)
+                countdown: 486       // B4 (soft countdown)
+            },
+            binaural: {
+                // Lower base frequency for richer, less fatiguing tone
+                theta: { base: 144, beat: 6 },   // Deep theta
+                delta: { base: 108, beat: 2 },   // Delta for deep states
+                alpha: { base: 180, beat: 10 }   // Relaxed alpha
+            },
+            ambient: {
+                // Frequencies for meditation soundscape
+                drone1: 54,    // Sub bass
+                drone2: 108,   // Low octave
+                drone3: 162,   // Fifth
+                drone4: 216    // Octave
+            },
+            extendedDuration: 4000,
+            recoveryInhaleDuration: 2000, // 2 seconds for recovery inhale
+            visual: {
+                baseSize: 100,
+                expansion: 100,
+                cornerRadius: 20
+            },
+            colors: {
+                light: '#60A5FA',
+                dark: '#818CF8',
+                meditation: '#8B5CF6'
+            }
+        };
+        
+        const PHASES = {
+            box: ['Inhale', 'Hold In', 'Exhale', 'Hold Out'],
+            boxKeys: ['in', 'holdIn', 'out', 'holdOut'],
+            customTypes: ['Inhale', 'Exhale', 'Hold In', 'Hold Out']
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════
+        
+        const state = {
+            running: false,
+            mode: 'normal',
+            darkMode: false,
+            inMeditation: false,
+            
+            // Timing
+            cycleDuration: 4000,
+            phaseDuration: 4000,
+            phaseStart: 0,
+            currentSecond: -1,
+            
+            // Current phase
+            phase: 'Inhale',
+            
+            // Box settings
+            box: { in: 4, holdIn: 4, out: 4, holdOut: 4 },
+            
+            // Hormesis settings
+            hormesis: { breathTime: 2, rounds: 3, cycles: 30, recoveryHold: 15 },
+            hormesisState: { 
+                round: 1, 
+                cycle: 1, 
+                holding: false, 
+                resting: false, 
+                recovery: false,
+                recoveryInhale: false,
+                lastCycle: false,
+                manualHold: false,
+                holdStartTime: 0,
+                retentionTimes: []
+            },
+            
+            // Meditation
+            meditationDuration: 0, // minutes
+            meditationStart: 0,
+            meditationEnd: 0,
+            
+            // Custom pattern
+            customPattern: [
+                { type: 'Inhale', duration: 4 },
+                { type: 'Hold In', duration: 4 },
+                { type: 'Exhale', duration: 4 },
+                { type: 'Hold Out', duration: 4 }
+            ],
+            customPhaseIndex: 0,
+            savedPatterns: [],
+            
+            // Visual
+            shape: 'circle',
+            
+            // Audio
+            waveform: 'sine',
+            binauralType: 'theta',
+            binauralNodes: null,
+            ambientNodes: null,
+            
+            // Stats
+            sessionHistory: [],
+            currentSessionRetentions: [],
+            
+            // Journal
+            journalEntries: [],
+            currentPrompts: [],
+            selectedPrompt: null,
+            promptCategory: 'all'
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // DOM ELEMENTS
+        // ═══════════════════════════════════════════════════════════════
+        
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+        
+        const els = {
+            mainCard: $('#mainCard'),
+            canvas: $('#canvas'),
+            canvasWrap: $('#canvasWrap'),
+            countdown: $('#countdown'),
+            roundInfo: $('#roundInfo'),
+            tapHint: $('#tapHint'),
+            startBtn: $('#startBtn'),
+            stopBtn: $('#stopBtn'),
+            endMeditationBtn: $('#endMeditationBtn'),
+            themeBtn: $('#themeBtn'),
+            historyBtn: $('#historyBtn'),
+            sunIcon: $('#sunIcon'),
+            moonIcon: $('#moonIcon'),
+            speedSlider: $('#speedSlider'),
+            speedValue: $('#speedValue'),
+            shapeSelect: $('#shapeSelect'),
+            waveformSelect: $('#waveformSelect'),
+            binauralSelect: $('#binauralSelect'),
+            binauralInfo: $('#binauralInfo'),
+            meditationDuration: $('#meditationDuration'),
+            tabs: $$('[role="tab"]'),
+            controls: {
+                normal: $('#normalControls'),
+                box: $('#boxControls'),
+                hormesis: $('#hormesisControls'),
+                custom: $('#customControls'),
+                journal: $('#journalControls')
+            },
+            controlsContainer: $('#controlsContainer'),
+            audioOptions: $('#audioOptions'),
+            visualOptions: $('#visualOptions'),
+            actionButtons: $('#actionButtons'),
+            liveStats: $('#liveStats'),
+            meditationStats: $('#meditationStats'),
+            meditationRemaining: $('#meditationRemaining'),
+            currentRetention: $('#currentRetention'),
+            avgRetention: $('#avgRetention'),
+            bestRetention: $('#bestRetention'),
+            patternBuilder: $('#patternBuilder'),
+            addPhaseBtn: $('#addPhaseBtn'),
+            savePatternBtn: $('#savePatternBtn'),
+            patternName: $('#patternName'),
+            savedPatterns: $('#savedPatterns'),
+            historyModal: $('#historyModal'),
+            historyList: $('#historyList'),
+            closeHistoryBtn: $('#closeHistoryBtn'),
+            clearHistoryBtn: $('#clearHistoryBtn'),
+            // Journal elements
+            journalGreeting: $('#journalGreeting'),
+            journalPrompts: $('#journalPrompts'),
+            shufflePromptsBtn: $('#shufflePromptsBtn'),
+            promptCategoryFilter: $('#promptCategoryFilter'),
+            journalEntry: $('#journalEntry'),
+            saveJournalBtn: $('#saveJournalBtn'),
+            journalEntries: $('#journalEntries'),
+            clearJournalBtn: $('#clearJournalBtn'),
+            postSessionJournal: $('#postSessionJournal'),
+            postSessionPrompt: $('#postSessionPrompt'),
+            postSessionEntry: $('#postSessionEntry'),
+            savePostSessionBtn: $('#savePostSessionBtn'),
+            skipPostSessionBtn: $('#skipPostSessionBtn')
+        };
+        
+        const ctx = els.canvas.getContext('2d');
+        
+        // ═══════════════════════════════════════════════════════════════
+        // JOURNAL SYSTEM
+        // ═══════════════════════════════════════════════════════════════
+        
+        const journal = {
+            getTimeOfDay() {
+                const hour = new Date().getHours();
+                if (hour < 12) return 'morning';
+                if (hour < 17) return 'afternoon';
+                return 'evening';
+            },
+            
+            getGreeting() {
+                const time = this.getTimeOfDay();
+                const greetings = TIME_GREETINGS[time];
+                return greetings[Math.floor(Math.random() * greetings.length)];
+            },
+            
+            getRandomPrompts(count = 3, category = 'all') {
+                let pool = [];
+                
+                if (category === 'all') {
+                    const time = this.getTimeOfDay();
+                    const weights = {
+                        morning: { intention: 3, gratitude: 2, introspection: 1, shadow: 1, integration: 1 },
+                        afternoon: { introspection: 3, shadow: 2, gratitude: 1, intention: 1, integration: 1 },
+                        evening: { introspection: 3, gratitude: 2, shadow: 1, intention: 1, integration: 2 }
+                    };
+                    
+                    Object.entries(PROMPTS).forEach(([cat, prompts]) => {
+                        const weight = weights[time][cat] || 1;
+                        for (let i = 0; i < weight; i++) {
+                            prompts.forEach(p => pool.push({ category: cat, text: p }));
+                        }
+                    });
+                } else {
+                    pool = PROMPTS[category].map(p => ({ category, text: p }));
+                }
+                
+                const shuffled = pool.sort(() => Math.random() - 0.5);
+                return shuffled.slice(0, count);
+            },
+            
+            getIntegrationPrompt() {
+                const prompts = PROMPTS.integration;
+                return prompts[Math.floor(Math.random() * prompts.length)];
+            },
+            
+            renderPrompts() {
+                const prompts = this.getRandomPrompts(3, state.promptCategory);
+                state.currentPrompts = prompts;
+                state.selectedPrompt = prompts[0];
+                
+                els.journalPrompts.innerHTML = prompts.map((p, i) => `
+                    <div class="prompt-card" data-index="${i}" style="${i === 0 ? 'border-left-width: 4px; opacity: 1;' : 'opacity: 0.7;'}">
+                        <div class="prompt-category">${p.category}</div>
+                        <div class="prompt-text">${p.text}</div>
+                    </div>
+                `).join('');
+                
+                $$('.prompt-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const idx = parseInt(e.currentTarget.dataset.index);
+                        state.selectedPrompt = state.currentPrompts[idx];
+                        
+                        $$('.prompt-card').forEach((c, i) => {
+                            c.style.borderLeftWidth = i === idx ? '4px' : '3px';
+                            c.style.opacity = i === idx ? '1' : '0.7';
+                        });
+                    });
+                });
+            },
+            
+            renderGreeting() {
+                els.journalGreeting.textContent = this.getGreeting();
+            },
+            
+            saveEntry(promptText, entryText, isPostSession = false) {
+                if (!entryText.trim()) return false;
+                
+                const entry = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    prompt: promptText,
+                    text: entryText.trim(),
+                    isPostSession
+                };
+                
+                state.journalEntries.unshift(entry);
+                storage.save();
+                this.renderEntries();
+                return true;
+            },
+            
+            renderEntries() {
+                if (state.journalEntries.length === 0) {
+                    els.journalEntries.innerHTML = '<p class="text-xs" style="color: var(--text-muted)">No entries yet.</p>';
+                    return;
+                }
+                
+                els.journalEntries.innerHTML = state.journalEntries.slice(0, 20).map(entry => {
+                    const date = new Date(entry.date);
+                    const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                    
+                    return `
+                        <div class="journal-entry">
+                            <div class="journal-entry-date">${dateStr} ${timeStr}${entry.isPostSession ? ' • Post-Session' : ''}</div>
+                            <div class="journal-entry-prompt">"${entry.prompt.substring(0, 60)}..."</div>
+                            <div class="journal-entry-text">${entry.text.substring(0, 150)}${entry.text.length > 150 ? '...' : ''}</div>
+                        </div>
+                    `;
+                }).join('');
+            },
+            
+            showPostSession() {
+                els.postSessionPrompt.textContent = this.getIntegrationPrompt();
+                els.postSessionJournal.classList.remove('hidden');
+                els.postSessionEntry.value = '';
+            },
+            
+            hidePostSession() {
+                els.postSessionJournal.classList.add('hidden');
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // AUDIO ENGINE
+        // ═══════════════════════════════════════════════════════════════
+        
+        let audioCtx = null;
+        
+        const audio = {
+            init() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            },
+            
+            // Warmer tone with gentle attack/release
+            play(freq, duration = 0.3, type = 'sine', volume = 0.1) {
+                if (state.waveform === 'off' || !audioCtx || freq <= 0) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+                const now = audioCtx.currentTime;
+                
+                // Warm low-pass filter
+                filter.type = 'lowpass';
+                filter.frequency.value = 2000;
+                filter.Q.value = 0.5;
+                
+                osc.type = type;
+                osc.frequency.value = freq;
+                
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                // Gentle envelope
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(volume, now + 0.05);
+                gain.gain.setValueAtTime(volume, now + duration - 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                
+                osc.start(now);
+                osc.stop(now + duration + 0.05);
+            },
+            
+            // Play a softer countdown beep
+            playCountdown(remaining) {
+                if (state.waveform === 'off' || !audioCtx) return;
+                // Ascending pitch as countdown progresses
+                const pitches = [324, 364, 408, 432, 486];
+                const idx = 5 - remaining;
+                if (idx >= 0 && idx < pitches.length) {
+                    this.play(pitches[idx], 0.2, 'sine', 0.15);
+                }
+            },
+            
+            startBinaural() {
+                if (state.binauralType === 'off' || !audioCtx) return;
+                this.stopBinaural();
+                
+                const config = CONFIG.binaural[state.binauralType];
+                if (!config) return;
+                
+                const leftOsc = audioCtx.createOscillator();
+                const rightOsc = audioCtx.createOscillator();
+                const leftGain = audioCtx.createGain();
+                const rightGain = audioCtx.createGain();
+                const leftFilter = audioCtx.createBiquadFilter();
+                const rightFilter = audioCtx.createBiquadFilter();
+                const merger = audioCtx.createChannelMerger(2);
+                
+                // Warm filtering
+                leftFilter.type = rightFilter.type = 'lowpass';
+                leftFilter.frequency.value = rightFilter.frequency.value = 800;
+                
+                leftOsc.frequency.value = config.base;
+                rightOsc.frequency.value = config.base + config.beat;
+                leftOsc.type = rightOsc.type = 'sine';
+                
+                leftOsc.connect(leftFilter);
+                rightOsc.connect(rightFilter);
+                leftFilter.connect(leftGain);
+                rightFilter.connect(rightGain);
+                leftGain.connect(merger, 0, 0);
+                rightGain.connect(merger, 0, 1);
+                merger.connect(audioCtx.destination);
+                
+                // Fade in
+                const now = audioCtx.currentTime;
+                leftGain.gain.setValueAtTime(0, now);
+                rightGain.gain.setValueAtTime(0, now);
+                leftGain.gain.linearRampToValueAtTime(0.06, now + 1);
+                rightGain.gain.linearRampToValueAtTime(0.06, now + 1);
+                
+                leftOsc.start();
+                rightOsc.start();
+                
+                state.binauralNodes = { leftOsc, rightOsc, leftGain, rightGain, leftFilter, rightFilter };
+                els.binauralInfo.classList.remove('hidden');
+            },
+            
+            stopBinaural() {
+                if (state.binauralNodes) {
+                    const now = audioCtx.currentTime;
+                    try {
+                        // Fade out
+                        state.binauralNodes.leftGain.gain.linearRampToValueAtTime(0, now + 0.5);
+                        state.binauralNodes.rightGain.gain.linearRampToValueAtTime(0, now + 0.5);
+                        setTimeout(() => {
+                            try {
+                                state.binauralNodes.leftOsc.stop();
+                                state.binauralNodes.rightOsc.stop();
+                            } catch (e) {}
+                            state.binauralNodes = null;
+                        }, 600);
+                    } catch (e) {
+                        state.binauralNodes = null;
+                    }
+                }
+                els.binauralInfo.classList.add('hidden');
+            },
+            
+            // Ambient soundscape for meditation
+            startAmbient() {
+                if (!audioCtx) return;
+                this.stopAmbient();
+                
+                const nodes = [];
+                const masterGain = audioCtx.createGain();
+                const now = audioCtx.currentTime;
+                
+                masterGain.connect(audioCtx.destination);
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(1, now + 3);
+                
+                // Create layered drones
+                const createDrone = (freq, vol, detune = 0) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const filter = audioCtx.createBiquadFilter();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    osc.detune.value = detune;
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 400;
+                    filter.Q.value = 1;
+                    
+                    gain.gain.value = vol;
+                    
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(masterGain);
+                    
+                    osc.start();
+                    nodes.push({ osc, gain, filter });
+                };
+                
+                // Layered ambient drones
+                createDrone(CONFIG.ambient.drone1, 0.08);
+                createDrone(CONFIG.ambient.drone2, 0.06);
+                createDrone(CONFIG.ambient.drone2, 0.04, 3); // Slight detune for richness
+                createDrone(CONFIG.ambient.drone3, 0.03);
+                createDrone(CONFIG.ambient.drone4, 0.02);
+                
+                // Add binaural if selected
+                if (state.binauralType !== 'off') {
+                    const config = CONFIG.binaural[state.binauralType];
+                    
+                    const leftOsc = audioCtx.createOscillator();
+                    const rightOsc = audioCtx.createOscillator();
+                    const leftGain = audioCtx.createGain();
+                    const rightGain = audioCtx.createGain();
+                    const merger = audioCtx.createChannelMerger(2);
+                    const leftFilter = audioCtx.createBiquadFilter();
+                    const rightFilter = audioCtx.createBiquadFilter();
+                    
+                    leftFilter.type = rightFilter.type = 'lowpass';
+                    leftFilter.frequency.value = rightFilter.frequency.value = 600;
+                    
+                    leftOsc.frequency.value = config.base;
+                    rightOsc.frequency.value = config.base + config.beat;
+                    leftOsc.type = rightOsc.type = 'sine';
+                    
+                    leftGain.gain.value = 0.05;
+                    rightGain.gain.value = 0.05;
+                    
+                    leftOsc.connect(leftFilter);
+                    rightOsc.connect(rightFilter);
+                    leftFilter.connect(leftGain);
+                    rightFilter.connect(rightGain);
+                    leftGain.connect(merger, 0, 0);
+                    rightGain.connect(merger, 0, 1);
+                    merger.connect(masterGain);
+                    
+                    leftOsc.start();
+                    rightOsc.start();
+                    
+                    nodes.push({ osc: leftOsc, gain: leftGain });
+                    nodes.push({ osc: rightOsc, gain: rightGain });
+                }
+                
+                state.ambientNodes = { nodes, masterGain };
+            },
+            
+            stopAmbient() {
+                if (state.ambientNodes) {
+                    const now = audioCtx.currentTime;
+                    try {
+                        state.ambientNodes.masterGain.gain.linearRampToValueAtTime(0, now + 2);
+                        setTimeout(() => {
+                            try {
+                                state.ambientNodes.nodes.forEach(n => n.osc.stop());
+                            } catch (e) {}
+                            state.ambientNodes = null;
+                        }, 2500);
+                    } catch (e) {
+                        state.ambientNodes = null;
+                    }
+                }
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // STORAGE
+        // ═══════════════════════════════════════════════════════════════
+        
+        const storage = {
+            save() {
+                const data = {
+                    history: state.sessionHistory.slice(-50),
+                    patterns: state.savedPatterns,
+                    darkMode: state.darkMode,
+                    journal: state.journalEntries.slice(-100)
+                };
+                localStorage.setItem('breathwork_data', JSON.stringify(data));
+            },
+            
+            load() {
+                try {
+                    const data = JSON.parse(localStorage.getItem('breathwork_data') || '{}');
+                    if (data.history) state.sessionHistory = data.history;
+                    if (data.patterns) state.savedPatterns = data.patterns;
+                    if (data.journal) state.journalEntries = data.journal;
+                    if (data.darkMode) {
+                        state.darkMode = true;
+                        document.body.classList.add('dark');
+                        els.sunIcon.classList.add('hidden');
+                        els.moonIcon.classList.remove('hidden');
+                    }
+                } catch (e) {}
+            },
+            
+            clearHistory() {
+                state.sessionHistory = [];
+                this.save();
+                renderHistory();
+            },
+            
+            clearJournal() {
+                state.journalEntries = [];
+                this.save();
+                journal.renderEntries();
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // CANVAS
+        // ═══════════════════════════════════════════════════════════════
+        
+        const canvas = {
+            setup() {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = els.canvas.getBoundingClientRect();
+                const size = Math.min(rect.width, 350);
+                
+                els.canvas.width = size * dpr;
+                els.canvas.height = size * dpr;
+                els.canvas.style.width = `${size}px`;
+                els.canvas.style.height = `${size}px`;
+                ctx.scale(dpr, dpr);
+                
+                this.draw(0, 'Ready');
+            },
+            
+            getColor() {
+                if (state.inMeditation) return CONFIG.colors.meditation;
+                return state.darkMode ? CONFIG.colors.dark : CONFIG.colors.light;
+            },
+            
+            hexToRgba(hex, alpha) {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            },
+            
+            drawShape(cx, cy, size, factor) {
+                const color = this.getColor();
+                
+                ctx.fillStyle = color;
+                ctx.shadowBlur = 30 + factor * 25;
+                ctx.shadowColor = this.hexToRgba(color, 0.5);
+                ctx.beginPath();
+                
+                switch (state.shape) {
+                    case 'circle':
+                        ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+                        break;
+                        
+                    case 'triangle': {
+                        const h = size * (Math.sqrt(3) / 2);
+                        ctx.moveTo(cx, cy - h / 2);
+                        ctx.lineTo(cx + size / 2, cy + h / 2);
+                        ctx.lineTo(cx - size / 2, cy + h / 2);
+                        ctx.closePath();
+                        break;
+                    }
+                    
+                    default: {
+                        const x = cx - size / 2, y = cy - size / 2;
+                        const r = CONFIG.visual.cornerRadius;
+                        ctx.moveTo(x + r, y);
+                        ctx.lineTo(x + size - r, y);
+                        ctx.quadraticCurveTo(x + size, y, x + size, y + r);
+                        ctx.lineTo(x + size, y + size - r);
+                        ctx.quadraticCurveTo(x + size, y + size, x + size - r, y + size);
+                        ctx.lineTo(x + r, y + size);
+                        ctx.quadraticCurveTo(x, y + size, x, y + size - r);
+                        ctx.lineTo(x, y + r);
+                        ctx.quadraticCurveTo(x, y, x + r, y);
+                    }
+                }
+                
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            },
+            
+            draw(factor, text, seconds = 0) {
+                const dpr = window.devicePixelRatio || 1;
+                const w = els.canvas.width / dpr;
+                const h = els.canvas.height / dpr;
+                const cx = w / 2, cy = h / 2;
+                const size = CONFIG.visual.baseSize + factor * CONFIG.visual.expansion;
+                
+                ctx.clearRect(0, 0, w, h);
+                this.drawShape(cx, cy, size, factor);
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.font = "600 16px 'DM Sans', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, cx, cy + (seconds ? -28 : 0));
+                
+                els.countdown.textContent = seconds > 0 ? seconds : '';
+                els.countdown.classList.toggle('visible', seconds > 0);
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // SESSION LOGIC
+        // ═══════════════════════════════════════════════════════════════
+        
+        const session = {
+            start() {
+                state.running = true;
+                state.phaseStart = performance.now();
+                state.currentSecond = -1;
+                state.currentSessionRetentions = [];
+                state.inMeditation = false;
+                
+                audio.init();
+                
+                switch (state.mode) {
+                    case 'normal':
+                        state.phaseDuration = state.cycleDuration;
+                        state.phase = 'Breathe';
+                        break;
+                    case 'box':
+                        state.phase = 'Inhale';
+                        state.phaseDuration = state.box.in * 1000;
+                        break;
+                    case 'hormesis':
+                        state.phase = 'Prepare';
+                        state.phaseDuration = 5000;
+                        state.meditationDuration = parseInt(els.meditationDuration.value) || 0;
+                        state.hormesisState = { 
+                            round: 1, cycle: 1, 
+                            holding: false, resting: false, recovery: false, recoveryInhale: false,
+                            lastCycle: false, manualHold: false,
+                            holdStartTime: 0, retentionTimes: []
+                        };
+                        els.roundInfo.classList.remove('hidden');
+                        els.liveStats.classList.remove('hidden');
+                        break;
+                    case 'custom':
+                        state.customPhaseIndex = 0;
+                        const firstPhase = state.customPattern[0];
+                        state.phase = firstPhase.type;
+                        state.phaseDuration = firstPhase.duration * 1000;
+                        break;
+                }
+                
+                els.startBtn.classList.add('hidden');
+                els.stopBtn.classList.remove('hidden');
+                requestAnimationFrame(this.loop.bind(this));
+            },
+            
+            stop(completed = false) {
+                state.running = false;
+                state.currentSecond = -1;
+                const hadMeditation = state.inMeditation;
+                state.inMeditation = false;
+                
+                audio.stopBinaural();
+                audio.stopAmbient();
+                
+                // Save session if we have retention data
+                if (state.currentSessionRetentions.length > 0) {
+                    const avg = state.currentSessionRetentions.reduce((a, b) => a + b, 0) / state.currentSessionRetentions.length;
+                    const best = Math.max(...state.currentSessionRetentions);
+                    
+                    state.sessionHistory.push({
+                        date: new Date().toISOString(),
+                        mode: state.mode,
+                        rounds: state.currentSessionRetentions.length,
+                        avgRetention: Math.round(avg),
+                        bestRetention: best,
+                        completed
+                    });
+                    storage.save();
+                }
+                
+                els.countdown.textContent = '';
+                els.countdown.classList.remove('visible');
+                els.roundInfo.classList.add('hidden');
+                els.tapHint.classList.add('hidden');
+                els.liveStats.classList.add('hidden');
+                els.meditationStats.classList.add('hidden');
+                els.startBtn.classList.remove('hidden');
+                els.stopBtn.classList.add('hidden');
+                els.endMeditationBtn.classList.add('hidden');
+                els.mainCard.classList.remove('meditation-mode');
+                
+                canvas.draw(0, completed ? 'Complete!' : 'Ready');
+                
+                // Show post-session journal if meditation was completed
+                if (completed && hadMeditation && state.meditationDuration > 0) {
+                    setTimeout(() => journal.showPostSession(), 500);
+                }
+            },
+            
+            startMeditation() {
+                state.inMeditation = true;
+                state.meditationStart = performance.now();
+                state.meditationEnd = state.meditationStart + (state.meditationDuration * 60 * 1000);
+                
+                // UI changes
+                els.liveStats.classList.add('hidden');
+                els.meditationStats.classList.remove('hidden');
+                els.stopBtn.classList.add('hidden');
+                els.endMeditationBtn.classList.remove('hidden');
+                els.roundInfo.classList.add('hidden');
+                els.tapHint.classList.add('hidden');
+                els.mainCard.classList.add('meditation-mode');
+                
+                // Start ambient soundscape with binaural
+                audio.startAmbient();
+                
+                // Play gentle completion tone
+                audio.play(CONFIG.tones.restStart, 1.5, 'sine', 0.15);
+                
+                requestAnimationFrame(this.meditationLoop.bind(this));
+            },
+            
+            meditationLoop(ts) {
+                if (!state.running || !state.inMeditation) return;
+                
+                const remaining = Math.max(0, state.meditationEnd - ts);
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                
+                els.meditationRemaining.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (remaining <= 0) {
+                    // Meditation complete
+                    audio.play(CONFIG.tones.restStart, 2, 'sine', 0.2);
+                    setTimeout(() => audio.play(324, 1.5, 'sine', 0.15), 1500);
+                    setTimeout(() => audio.play(432, 2, 'sine', 0.12), 3000);
+                    this.stop(true);
+                    return;
+                }
+                
+                // Gentle pulsing visual
+                const pulse = Math.sin(ts * 0.001) * 0.15 + 0.5;
+                canvas.draw(pulse, 'Stillness');
+                
+                requestAnimationFrame(this.meditationLoop.bind(this));
+            },
+            
+            handleTap() {
+                if (!state.running) return;
+                
+                // End meditation early
+                if (state.inMeditation) {
+                    this.stop(true);
+                    return;
+                }
+                
+                const hs = state.hormesisState;
+                if (state.mode === 'hormesis' && hs.manualHold) {
+                    // Record retention time
+                    const retention = Math.round((performance.now() - hs.holdStartTime) / 1000);
+                    hs.retentionTimes.push(retention);
+                    state.currentSessionRetentions.push(retention);
+                    
+                    // Stop binaural (only plays during holds)
+                    audio.stopBinaural();
+                    
+                    // Play release tone
+                    audio.play(CONFIG.tones.release, 0.4, 'sine', 0.2);
+                    
+                    // Transition to recovery INHALE first
+                    hs.manualHold = false;
+                    hs.holding = false;
+                    hs.recoveryInhale = true;
+                    state.phase = 'Recovery Inhale';
+                    state.phaseDuration = CONFIG.recoveryInhaleDuration;
+                    state.phaseStart = performance.now();
+                    state.currentSecond = -1;
+                    
+                    els.tapHint.classList.add('hidden');
+                    
+                    this.updateLiveStats();
+                }
+            },
+            
+            updateLiveStats() {
+                const times = state.currentSessionRetentions;
+                if (times.length === 0) return;
+                
+                const avg = times.reduce((a, b) => a + b, 0) / times.length;
+                const best = Math.max(...times);
+                
+                els.avgRetention.textContent = `${Math.round(avg)}s`;
+                els.bestRetention.textContent = `${best}s`;
+            },
+            
+            transitionBox(ts) {
+                const idx = PHASES.box.indexOf(state.phase);
+                const nextIdx = (idx + 1) % 4;
+                
+                state.phase = PHASES.box[nextIdx];
+                state.phaseDuration = state.box[PHASES.boxKeys[nextIdx]] * 1000;
+                state.phaseStart = ts;
+                state.currentSecond = -1;
+            },
+            
+            transitionCustom(ts) {
+                state.customPhaseIndex = (state.customPhaseIndex + 1) % state.customPattern.length;
+                const phase = state.customPattern[state.customPhaseIndex];
+                state.phase = phase.type;
+                state.phaseDuration = phase.duration * 1000;
+                state.phaseStart = ts;
+                state.currentSecond = -1;
+            },
+            
+            transitionHormesis(ts) {
+                const s = state.hormesis;
+                const hs = state.hormesisState;
+                const regularMs = s.breathTime * 1000;
+                
+                state.phaseStart = ts;
+                state.currentSecond = -1;
+                
+                // Recovery Inhale -> Recovery Hold
+                if (hs.recoveryInhale) {
+                    hs.recoveryInhale = false;
+                    hs.recovery = true;
+                    state.phase = 'Recovery Hold';
+                    state.phaseDuration = s.recoveryHold * 1000;
+                    return;
+                }
+                
+                // Recovery Hold -> Next round or complete
+                if (hs.recovery) {
+                    hs.recovery = false;
+                    
+                    if (hs.round < s.rounds) {
+                        hs.round++;
+                        hs.cycle = 1;
+                        hs.lastCycle = false;
+                        state.phase = 'Prepare';
+                        state.phaseDuration = 5000;
+                        audio.play(CONFIG.tones.holdStart, 0.5, 'sine', 0.15);
+                    } else {
+                        // Session complete - start meditation or end
+                        if (state.meditationDuration > 0) {
+                            this.startMeditation();
+                        } else {
+                            this.stop(true);
+                            audio.play(CONFIG.tones.restStart, 1, 'sine', 0.2);
+                        }
+                    }
+                    return;
+                }
+                
+                if (hs.holding && !hs.manualHold) {
+                    return;
+                }
+                
+                // Cycling phases
+                switch (state.phase) {
+                    case 'Prepare':
+                        state.phase = 'Inhale';
+                        state.phaseDuration = regularMs;
+                        if (s.cycles === 1) hs.lastCycle = true;
+                        break;
+                        
+                    case 'Inhale':
+                        state.phase = 'Exhale';
+                        state.phaseDuration = hs.lastCycle ? CONFIG.extendedDuration : regularMs;
+                        break;
+                        
+                    case 'Exhale':
+                        if (hs.cycle < s.cycles) {
+                            hs.cycle++;
+                            if (hs.cycle === s.cycles && !hs.lastCycle) {
+                                hs.lastCycle = true;
+                                audio.play(CONFIG.tones.finalSignal, 0.4, 'sine', 0.15);
+                            }
+                            state.phase = 'Inhale';
+                            state.phaseDuration = hs.lastCycle ? CONFIG.extendedDuration : regularMs;
+                        } else {
+                            // Start manual hold
+                            state.phase = 'Hold';
+                            state.phaseDuration = 999999;
+                            hs.holding = true;
+                            hs.manualHold = true;
+                            hs.holdStartTime = ts;
+                            hs.lastCycle = false;
+                            
+                            els.tapHint.classList.remove('hidden');
+                            audio.play(CONFIG.tones.holdStart, 0.6, 'sine', 0.15);
+                            
+                            // Start binaural during hold
+                            if (state.binauralType !== 'off') {
+                                audio.startBinaural();
+                            }
+                        }
+                        break;
+                }
+            },
+            
+            loop(ts) {
+                if (!state.running || state.inMeditation) return;
+                
+                const elapsed = ts - state.phaseStart;
+                
+                // Manual hold - update timer
+                if (state.mode === 'hormesis' && state.hormesisState.manualHold) {
+                    const holdTime = Math.round(elapsed / 1000);
+                    els.currentRetention.textContent = `${holdTime}s`;
+                    
+                    // Visual pulsing during hold
+                    const pulse = Math.sin(ts * 0.002) * 0.08 + 0.08;
+                    canvas.draw(pulse, 'Hold', holdTime);
+                    
+                    const hs = state.hormesisState;
+                    els.roundInfo.textContent = `Round ${hs.round}/${state.hormesis.rounds} | Retention`;
+                    
+                    requestAnimationFrame(this.loop.bind(this));
+                    return;
+                }
+                
+                // Phase transitions
+                if (state.mode !== 'normal' && elapsed >= state.phaseDuration) {
+                    if (state.mode === 'box') {
+                        this.transitionBox(ts);
+                    } else if (state.mode === 'hormesis') {
+                        this.transitionHormesis(ts);
+                    } else if (state.mode === 'custom') {
+                        this.transitionCustom(ts);
+                    }
+                    return requestAnimationFrame(this.loop.bind(this));
+                }
+                
+                // Calculate visuals
+                let factor = 0, text = state.phase, seconds = 0;
+                
+                if (state.mode === 'normal') {
+                    const progress = (elapsed % state.cycleDuration) / state.cycleDuration;
+                    const sine = Math.sin(progress * Math.PI * 2 - Math.PI / 2);
+                    factor = (sine + 1) / 2;
+                    text = progress < 0.5 ? 'Breathe In' : 'Breathe Out';
+                    
+                } else {
+                    const progress = elapsed / state.phaseDuration;
+                    seconds = Math.max(0, Math.ceil((state.phaseDuration - elapsed) / 1000));
+                    
+                    const phaseType = state.phase;
+                    
+                    if (phaseType === 'Inhale' || phaseType === 'Recovery Inhale') {
+                        factor = progress;
+                        if (phaseType === 'Recovery Inhale') text = 'Breathe In';
+                    } else if (phaseType === 'Recovery Hold') {
+                        factor = 1;
+                        text = 'Hold';
+                    } else if (phaseType === 'Exhale') {
+                        factor = 1 - progress;
+                    } else if (phaseType === 'Hold In') {
+                        factor = 1;
+                    } else if (phaseType === 'Hold Out' || phaseType === 'Hold') {
+                        factor = 0;
+                    } else if (phaseType === 'Prepare') {
+                        factor = Math.sin(ts * 0.004) * 0.1 + 0.5;
+                        text = 'Prepare...';
+                    }
+                    
+                    // Round info for hormesis
+                    if (state.mode === 'hormesis') {
+                        const hs = state.hormesisState;
+                        const s = state.hormesis;
+                        
+                        if (!hs.holding && !hs.recovery && !hs.recoveryInhale && state.phase !== 'Prepare') {
+                            const cycleText = hs.lastCycle ? 'FINAL' : `${hs.cycle}/${s.cycles}`;
+                            els.roundInfo.textContent = `Round ${hs.round}/${s.rounds} | Cycle ${cycleText}`;
+                            els.roundInfo.classList.remove('hidden');
+                        } else if (hs.recovery || hs.recoveryInhale) {
+                            els.roundInfo.textContent = `Round ${hs.round} | Recovery`;
+                        } else if (!hs.manualHold) {
+                            els.roundInfo.textContent = '';
+                            els.roundInfo.classList.add('hidden');
+                        }
+                    }
+                }
+                
+                // Audio tones
+                const sec = Math.floor(elapsed / 1000);
+                if (state.waveform !== 'off' && sec !== state.currentSecond && elapsed < state.phaseDuration) {
+                    state.currentSecond = sec;
+                    this.playPhaseTone(sec, seconds);
+                }
+                
+                canvas.draw(factor, text, seconds);
+                requestAnimationFrame(this.loop.bind(this));
+            },
+            
+            playPhaseTone(secIdx, remaining) {
+                if (state.waveform === 'off') return;
+                
+                const hs = state.hormesisState;
+                const isLast = state.mode === 'hormesis' && hs.lastCycle;
+                const scale = isLast ? CONFIG.scales.extended : CONFIG.scales.normal;
+                const waveform = state.waveform;
+                
+                let freq = 0;
+                const phaseType = state.phase;
+                
+                switch (phaseType) {
+                    case 'Inhale':
+                    case 'Recovery Inhale':
+                        if (secIdx < scale.length) freq = scale[secIdx];
+                        break;
+                        
+                    case 'Exhale': {
+                        const total = Math.ceil(state.phaseDuration / 1000);
+                        const revIdx = total - 1 - secIdx;
+                        if (revIdx >= 0 && revIdx < scale.length) freq = scale[revIdx];
+                        break;
+                    }
+                    
+                    case 'Hold In':
+                    case 'Hold Out':
+                    case 'Prepare':
+                        freq = CONFIG.tones.holdStart;
+                        audio.play(freq, 0.2, 'sine', 0.08);
+                        return;
+                        
+                    case 'Recovery Hold':
+                        // Countdown tones for last 5 seconds
+                        if (remaining > 0 && remaining <= 5) {
+                            audio.playCountdown(remaining);
+                        }
+                        return;
+                }
+                
+                if (freq > 0) audio.play(freq, 0.25, waveform, 0.12);
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // PATTERN BUILDER
+        // ═══════════════════════════════════════════════════════════════
+        
+        const patternBuilder = {
+            render() {
+                els.patternBuilder.innerHTML = state.customPattern.map((phase, i) => `
+                    <div class="phase-row">
+                        <select data-index="${i}" class="phase-type" style="font-size: 0.8rem;">
+                            ${PHASES.customTypes.map(t => 
+                                `<option value="${t}" ${t === phase.type ? 'selected' : ''}>${t}</option>`
+                            ).join('')}
+                        </select>
+                        <input type="number" data-index="${i}" class="phase-duration" 
+                               value="${phase.duration}" min="1" max="60" 
+                               style="font-size: 0.8rem; width: 70px;">
+                        <button data-index="${i}" class="remove-phase btn-icon" 
+                                style="width: 28px; height: 28px; ${state.customPattern.length <= 1 ? 'opacity: 0.3; pointer-events: none;' : ''}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                `).join('');
+                
+                $$('.phase-type').forEach(sel => {
+                    sel.addEventListener('change', (e) => {
+                        state.customPattern[e.target.dataset.index].type = e.target.value;
+                    });
+                });
+                
+                $$('.phase-duration').forEach(inp => {
+                    inp.addEventListener('change', (e) => {
+                        state.customPattern[e.target.dataset.index].duration = parseInt(e.target.value) || 4;
+                    });
+                });
+                
+                $$('.remove-phase').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (state.customPattern.length > 1) {
+                            state.customPattern.splice(parseInt(e.currentTarget.dataset.index), 1);
+                            this.render();
+                        }
+                    });
+                });
+            },
+            
+            addPhase() {
+                if (state.customPattern.length < 12) {
+                    state.customPattern.push({ type: 'Inhale', duration: 4 });
+                    this.render();
+                }
+            },
+            
+            savePattern() {
+                const name = els.patternName.value.trim();
+                if (!name || state.customPattern.length === 0) return;
+                
+                state.savedPatterns.push({
+                    name,
+                    pattern: JSON.parse(JSON.stringify(state.customPattern))
+                });
+                
+                storage.save();
+                els.patternName.value = '';
+                this.renderSaved();
+            },
+            
+            loadPattern(index) {
+                state.customPattern = JSON.parse(JSON.stringify(state.savedPatterns[index].pattern));
+                this.render();
+            },
+            
+            deletePattern(index) {
+                state.savedPatterns.splice(index, 1);
+                storage.save();
+                this.renderSaved();
+            },
+            
+            renderSaved() {
+                if (state.savedPatterns.length === 0) {
+                    els.savedPatterns.innerHTML = '';
+                    return;
+                }
+                
+                els.savedPatterns.innerHTML = `
+                    <p class="text-xs mb-2" style="color: var(--text-muted)">Saved Patterns:</p>
+                    ${state.savedPatterns.map((p, i) => `
+                        <div class="flex justify-between items-center py-1">
+                            <button class="load-pattern text-sm hover:underline" data-index="${i}" style="color: var(--primary)">${p.name}</button>
+                            <button class="delete-pattern btn-icon" data-index="${i}" style="width: 24px; height: 24px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    `).join('')}
+                `;
+                
+                $$('.load-pattern').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.loadPattern(parseInt(e.target.dataset.index)));
+                });
+                
+                $$('.delete-pattern').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.deletePattern(parseInt(e.currentTarget.dataset.index)));
+                });
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // HISTORY
+        // ═══════════════════════════════════════════════════════════════
+        
+        function renderHistory() {
+            if (state.sessionHistory.length === 0) {
+                els.historyList.innerHTML = '<p class="text-sm" style="color: var(--text-muted)">No sessions recorded yet.</p>';
+                return;
+            }
+            
+            const sorted = [...state.sessionHistory].reverse();
+            els.historyList.innerHTML = sorted.map(s => {
+                const date = new Date(s.date);
+                const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                
+                return `
+                    <div class="history-item">
+                        <div>
+                            <div class="font-medium">${s.mode.charAt(0).toUpperCase() + s.mode.slice(1)}</div>
+                            <div class="text-xs" style="color: var(--text-muted)">${dateStr} ${timeStr}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-medium" style="color: var(--primary)">${s.avgRetention}s avg</div>
+                            <div class="text-xs" style="color: var(--text-muted)">${s.rounds} rounds • Best: ${s.bestRetention}s</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // UI HANDLERS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function switchMode(mode) {
+            if (state.running) return;
+            
+            state.mode = mode;
+            state.phase = mode === 'normal' ? 'Breathe' : 'Inhale';
+            state.currentSecond = -1;
+            
+            els.tabs.forEach(tab => {
+                tab.setAttribute('aria-selected', tab.dataset.mode === mode);
+            });
+            
+            Object.entries(els.controls).forEach(([key, el]) => {
+                el.classList.toggle('active', key === mode);
+            });
+            
+            // Hide/show elements for journal mode
+            const isJournal = mode === 'journal';
+            els.canvasWrap.classList.toggle('hidden', isJournal);
+            els.audioOptions.classList.toggle('hidden', isJournal);
+            els.visualOptions.classList.toggle('hidden', isJournal);
+            els.actionButtons.classList.toggle('hidden', isJournal);
+            
+            if (isJournal) {
+                journal.renderGreeting();
+                journal.renderPrompts();
+                journal.renderEntries();
+            } else {
+                canvas.draw(0, 'Ready');
+            }
+        }
+        
+        function toggleTheme() {
+            state.darkMode = !state.darkMode;
+            document.body.classList.toggle('dark', state.darkMode);
+            els.sunIcon.classList.toggle('hidden', state.darkMode);
+            els.moonIcon.classList.toggle('hidden', !state.darkMode);
+            storage.save();
+            if (state.mode !== 'journal') {
+                canvas.draw(0, state.running ? state.phase : 'Ready');
+            }
+        }
+        
+        function setupListeners() {
+            // Tabs
+            els.tabs.forEach(tab => {
+                tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+            });
+            
+            // Speed slider
+            els.speedSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                state.cycleDuration = val * 1000;
+                els.speedValue.textContent = `${val.toFixed(1)}s Cycle`;
+            });
+            
+            // Box sliders
+            $$('.box-slider').forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const phase = e.target.dataset.phase;
+                    const val = parseInt(e.target.value);
+                    state.box[phase] = val;
+                    $(`[data-label="${phase}"]`).textContent = val;
+                });
+            });
+            
+            // Hormesis selects
+            const hormesisMap = {
+                hormesisBreathTime: 'breathTime',
+                hormesisRounds: 'rounds',
+                hormesisCycles: 'cycles',
+                hormesisRecovery: 'recoveryHold'
+            };
+            
+            Object.entries(hormesisMap).forEach(([id, key]) => {
+                $(`#${id}`).addEventListener('change', (e) => {
+                    state.hormesis[key] = parseInt(e.target.value);
+                });
+            });
+            
+            // Shape & audio
+            els.shapeSelect.addEventListener('change', (e) => state.shape = e.target.value);
+            els.waveformSelect.addEventListener('change', (e) => state.waveform = e.target.value);
+            els.binauralSelect.addEventListener('change', (e) => {
+                state.binauralType = e.target.value;
+            });
+            
+            // Session controls
+            els.startBtn.addEventListener('click', () => session.start());
+            els.stopBtn.addEventListener('click', () => session.stop(false));
+            els.endMeditationBtn.addEventListener('click', () => session.stop(true));
+            els.canvasWrap.addEventListener('click', () => session.handleTap());
+            
+            // Theme
+            els.themeBtn.addEventListener('click', toggleTheme);
+            
+            // History modal
+            els.historyBtn.addEventListener('click', () => {
+                renderHistory();
+                els.historyModal.classList.add('visible');
+            });
+            els.closeHistoryBtn.addEventListener('click', () => {
+                els.historyModal.classList.remove('visible');
+            });
+            els.historyModal.addEventListener('click', (e) => {
+                if (e.target === els.historyModal) {
+                    els.historyModal.classList.remove('visible');
+                }
+            });
+            els.clearHistoryBtn.addEventListener('click', () => {
+                if (confirm('Clear all session history?')) {
+                    storage.clearHistory();
+                }
+            });
+            
+            // Pattern builder
+            els.addPhaseBtn.addEventListener('click', () => patternBuilder.addPhase());
+            els.savePatternBtn.addEventListener('click', () => patternBuilder.savePattern());
+            
+            // Journal controls
+            els.shufflePromptsBtn.addEventListener('click', () => journal.renderPrompts());
+            els.promptCategoryFilter.addEventListener('change', (e) => {
+                state.promptCategory = e.target.value;
+                journal.renderPrompts();
+            });
+            els.saveJournalBtn.addEventListener('click', () => {
+                if (state.selectedPrompt && els.journalEntry.value.trim()) {
+                    journal.saveEntry(state.selectedPrompt.text, els.journalEntry.value);
+                    els.journalEntry.value = '';
+                }
+            });
+            els.clearJournalBtn.addEventListener('click', () => {
+                if (confirm('Clear all journal entries?')) {
+                    storage.clearJournal();
+                }
+            });
+            
+            // Post-session journal
+            els.savePostSessionBtn.addEventListener('click', () => {
+                const promptText = els.postSessionPrompt.textContent;
+                if (journal.saveEntry(promptText, els.postSessionEntry.value, true)) {
+                    journal.hidePostSession();
+                }
+            });
+            els.skipPostSessionBtn.addEventListener('click', () => journal.hidePostSession());
+            
+            // Resize
+            window.addEventListener('resize', () => {
+                if (state.mode !== 'journal') canvas.setup();
+            });
+            
+            // Keyboard
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && state.running) {
+                    e.preventDefault();
+                    session.handleTap();
+                }
+            });
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+        
+        storage.load();
+        canvas.setup();
+        patternBuilder.render();
+        patternBuilder.renderSaved();
+        journal.renderEntries();
+        setupListeners();
+        
+    })();
+    </script>
+</body>
+</html>
