@@ -460,6 +460,93 @@
             border-radius: 1rem;
             padding: 1.25rem;
         }
+        
+        /* Orientation Modal */
+        .orientation-modal {
+            max-width: 420px;
+        }
+        .orientation-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        .orientation-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.25rem 0;
+        }
+        .orientation-step {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+        .step-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .orientation-tip {
+            background: var(--surface-dim);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .orientation-tip strong {
+            color: var(--warning);
+        }
+        .orientation-remember {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .orientation-remember input {
+            cursor: pointer;
+        }
+        
+        /* Hold encouragement text */
+        .hold-subtext {
+            position: absolute;
+            bottom: 2.5rem;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .hold-subtext.visible {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -512,6 +599,7 @@
                 <div id="countdown" class="countdown"></div>
                 <div id="roundInfo" class="round-info hidden"></div>
                 <div id="tapHint" class="tap-hint hidden">Tap to release breath</div>
+                <div id="holdSubtext" class="hold-subtext"></div>
             </div>
             
             <!-- Live Stats (shown during hormesis) -->
@@ -732,6 +820,28 @@
                             </select>
                         </label>
                     </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Breath Sound Guide</span>
+                            <select id="breathSoundSelect">
+                                <option value="off">Off</option>
+                                <option value="gentle">Gentle Whoosh</option>
+                                <option value="ocean">Ocean Wave</option>
+                            </select>
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Hold Ambience</span>
+                            <select id="holdAmbienceSelect">
+                                <option value="off">Off</option>
+                                <option value="signal_1">Track 1 (Deep)</option>
+                                <option value="signal_2">Track 2 (Light)</option>
+                                <option value="signal_3">Track 3 (Drift)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p class="text-xs" style="color: var(--text-muted)">
+                        Hold Ambience plays meditative audio during breath retention phases.
+                    </p>
                     <div id="binauralInfo" class="binaural-indicator hidden">
                         <div class="binaural-dot"></div>
                         <span>Binaural active during holds — use headphones</span>
@@ -776,6 +886,58 @@
                 <p class="text-sm" style="color: var(--text-muted)">No sessions recorded yet.</p>
             </div>
             <button id="clearHistoryBtn" class="btn-small mt-4 w-full" style="background: #EF4444; color: white;">Clear History</button>
+        </div>
+    </div>
+    
+    <!-- Orientation Modal -->
+    <div id="orientationModal" class="modal-overlay">
+        <div class="modal orientation-modal">
+            <div class="orientation-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold mb-2 text-center">Hormesis Breathwork</h2>
+            <p class="text-sm mb-4 text-center" style="color: var(--text-muted)">Here's what to expect</p>
+            
+            <div class="orientation-steps">
+                <div class="orientation-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Deep Breathing</div>
+                        <div class="step-desc">You'll take <span id="orientCycles">30</span> deep breaths. Inhale fully into your belly, then let the exhale fall out naturally — don't force it.</div>
+                    </div>
+                </div>
+                <div class="orientation-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Breath Retention</div>
+                        <div class="step-desc">After the final exhale, hold on empty lungs. Stay relaxed. When you need to breathe, tap the screen or press spacebar.</div>
+                    </div>
+                </div>
+                <div class="orientation-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Recovery Breath</div>
+                        <div class="step-desc">Take a deep breath in and hold for <span id="orientRecovery">15</span> seconds. This completes one round. You'll do <span id="orientRounds">3</span> rounds total.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="orientation-tip">
+                <strong>Tip:</strong> The tingling and lightheadedness are normal. If you feel uncomfortable, simply resume normal breathing.
+            </div>
+            
+            <div class="flex gap-2 mt-5">
+                <button id="skipOrientationBtn" class="btn-small flex-1" style="background: var(--surface-dim); color: var(--text-muted);">Skip Intro</button>
+                <button id="startFromOrientationBtn" class="btn-primary flex-1">Begin Session</button>
+            </div>
+            
+            <label class="orientation-remember">
+                <input type="checkbox" id="dontShowAgain">
+                <span>Don't show this again</span>
+            </label>
         </div>
     </div>
 
@@ -926,6 +1088,20 @@
             customTypes: ['Inhale', 'Exhale', 'Hold In', 'Hold Out']
         };
         
+        // Hold encouragement messages at different time thresholds
+        const HOLD_ENCOURAGEMENT = [
+            { time: 15, text: "Settling in..." },
+            { time: 30, text: "Body relaxing..." },
+            { time: 45, text: "Finding stillness..." },
+            { time: 60, text: "One minute — well done" },
+            { time: 75, text: "Deep into the quiet..." },
+            { time: 90, text: "Ninety seconds — strong" },
+            { time: 105, text: "Witnessing the stillness..." },
+            { time: 120, text: "Two minutes — remarkable" },
+            { time: 150, text: "Deep state achieved" },
+            { time: 180, text: "Three minutes — mastery" }
+        ];
+        
         // ═══════════════════════════════════════════════════════════════
         // STATE
         // ═══════════════════════════════════════════════════════════════
@@ -954,7 +1130,6 @@
                 round: 1, 
                 cycle: 1, 
                 holding: false, 
-                resting: false, 
                 recovery: false,
                 recoveryInhale: false,
                 lastCycle: false,
@@ -984,8 +1159,15 @@
             // Audio
             waveform: 'sine',
             binauralType: 'theta',
+            breathSound: 'off',
+            holdAmbience: 'off',
             binauralNodes: null,
             ambientNodes: null,
+            breathSoundNodes: null,
+            holdAmbienceAudio: null,
+            
+            // Preferences
+            skipOrientation: false,
             
             // Stats
             sessionHistory: [],
@@ -1066,7 +1248,18 @@
             postSessionPrompt: $('#postSessionPrompt'),
             postSessionEntry: $('#postSessionEntry'),
             savePostSessionBtn: $('#savePostSessionBtn'),
-            skipPostSessionBtn: $('#skipPostSessionBtn')
+            skipPostSessionBtn: $('#skipPostSessionBtn'),
+            // New elements
+            holdSubtext: $('#holdSubtext'),
+            breathSoundSelect: $('#breathSoundSelect'),
+            holdAmbienceSelect: $('#holdAmbienceSelect'),
+            orientationModal: $('#orientationModal'),
+            orientCycles: $('#orientCycles'),
+            orientRecovery: $('#orientRecovery'),
+            orientRounds: $('#orientRounds'),
+            skipOrientationBtn: $('#skipOrientationBtn'),
+            startFromOrientationBtn: $('#startFromOrientationBtn'),
+            dontShowAgain: $('#dontShowAgain')
         };
         
         const ctx = els.canvas.getContext('2d');
@@ -1421,6 +1614,134 @@
                         state.ambientNodes = null;
                     }
                 }
+            },
+            
+            // Breath sound guide - creates a whoosh-like sound for inhale/exhale
+            playBreathSound(isInhale, duration) {
+                if (state.breathSound === 'off' || !audioCtx) return;
+                
+                const now = audioCtx.currentTime;
+                const durationSec = duration / 1000;
+                
+                // Create noise source using oscillators for a breath-like texture
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const osc3 = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+                const filter2 = audioCtx.createBiquadFilter();
+                
+                // Different character based on sound type
+                const isOcean = state.breathSound === 'ocean';
+                
+                // Base frequencies create a breathy texture
+                osc1.type = 'sine';
+                osc2.type = 'triangle';
+                osc3.type = 'sine';
+                
+                if (isInhale) {
+                    // Rising pitch for inhale
+                    osc1.frequency.setValueAtTime(isOcean ? 80 : 120, now);
+                    osc1.frequency.linearRampToValueAtTime(isOcean ? 150 : 200, now + durationSec);
+                    osc2.frequency.setValueAtTime(isOcean ? 160 : 240, now);
+                    osc2.frequency.linearRampToValueAtTime(isOcean ? 300 : 400, now + durationSec);
+                    osc3.frequency.setValueAtTime(isOcean ? 40 : 60, now);
+                    osc3.frequency.linearRampToValueAtTime(isOcean ? 75 : 100, now + durationSec);
+                } else {
+                    // Falling pitch for exhale
+                    osc1.frequency.setValueAtTime(isOcean ? 150 : 200, now);
+                    osc1.frequency.linearRampToValueAtTime(isOcean ? 60 : 80, now + durationSec);
+                    osc2.frequency.setValueAtTime(isOcean ? 300 : 400, now);
+                    osc2.frequency.linearRampToValueAtTime(isOcean ? 120 : 160, now + durationSec);
+                    osc3.frequency.setValueAtTime(isOcean ? 75 : 100, now);
+                    osc3.frequency.linearRampToValueAtTime(isOcean ? 30 : 40, now + durationSec);
+                }
+                
+                // Bandpass filter for breath-like quality
+                filter.type = 'bandpass';
+                filter.frequency.value = isOcean ? 400 : 600;
+                filter.Q.value = isOcean ? 0.5 : 0.8;
+                
+                // Low-pass to soften
+                filter2.type = 'lowpass';
+                filter2.frequency.value = isOcean ? 800 : 1200;
+                
+                // Connect
+                osc1.connect(filter);
+                osc2.connect(filter);
+                osc3.connect(filter);
+                filter.connect(filter2);
+                filter2.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                // Envelope - gentle swell
+                const peakVol = isOcean ? 0.06 : 0.04;
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(peakVol, now + durationSec * 0.3);
+                gainNode.gain.setValueAtTime(peakVol, now + durationSec * 0.7);
+                gainNode.gain.linearRampToValueAtTime(0, now + durationSec);
+                
+                osc1.start(now);
+                osc2.start(now);
+                osc3.start(now);
+                osc1.stop(now + durationSec + 0.1);
+                osc2.stop(now + durationSec + 0.1);
+                osc3.stop(now + durationSec + 0.1);
+            },
+            
+            // Hold ambience - plays uploaded audio tracks during breath holds
+            startHoldAmbience() {
+                if (state.holdAmbience === 'off') return;
+                this.stopHoldAmbience();
+                
+                const trackMap = {
+                    'signal_1': 'signal_1.mp3',
+                    'signal_2': 'signal_2.mp3',
+                    'signal_3': 'signal_3.mp3'
+                };
+                
+                const filename = trackMap[state.holdAmbience];
+                if (!filename) return;
+                
+                const audio = new Audio(filename);
+                audio.loop = true;
+                audio.volume = 0;
+                
+                // Fade in
+                audio.play().then(() => {
+                    let vol = 0;
+                    const fadeIn = setInterval(() => {
+                        vol += 0.05;
+                        if (vol >= 0.7) {
+                            vol = 0.7;
+                            clearInterval(fadeIn);
+                        }
+                        if (state.holdAmbienceAudio) {
+                            state.holdAmbienceAudio.volume = vol;
+                        }
+                    }, 100);
+                }).catch(e => console.log('Audio play failed:', e));
+                
+                state.holdAmbienceAudio = audio;
+            },
+            
+            stopHoldAmbience() {
+                if (state.holdAmbienceAudio) {
+                    const audio = state.holdAmbienceAudio;
+                    // Fade out
+                    let vol = audio.volume;
+                    const fadeOut = setInterval(() => {
+                        vol -= 0.05;
+                        if (vol <= 0) {
+                            vol = 0;
+                            clearInterval(fadeOut);
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }
+                        audio.volume = Math.max(0, vol);
+                    }, 50);
+                    state.holdAmbienceAudio = null;
+                }
             }
         };
         
@@ -1434,7 +1755,8 @@
                     history: state.sessionHistory.slice(-50),
                     patterns: state.savedPatterns,
                     darkMode: state.darkMode,
-                    journal: state.journalEntries.slice(-100)
+                    journal: state.journalEntries.slice(-100),
+                    skipOrientation: state.skipOrientation
                 };
                 localStorage.setItem('breathwork_data', JSON.stringify(data));
             },
@@ -1445,6 +1767,7 @@
                     if (data.history) state.sessionHistory = data.history;
                     if (data.patterns) state.savedPatterns = data.patterns;
                     if (data.journal) state.journalEntries = data.journal;
+                    if (data.skipOrientation) state.skipOrientation = true;
                     if (data.darkMode) {
                         state.darkMode = true;
                         document.body.classList.add('dark');
@@ -1565,7 +1888,22 @@
         // ═══════════════════════════════════════════════════════════════
         
         const session = {
-            start() {
+            // Show orientation modal for hormesis mode
+            showOrientation() {
+                // Update the modal with current settings
+                els.orientCycles.textContent = state.hormesis.cycles;
+                els.orientRecovery.textContent = state.hormesis.recoveryHold;
+                els.orientRounds.textContent = state.hormesis.rounds;
+                els.dontShowAgain.checked = false;
+                els.orientationModal.classList.add('visible');
+            },
+            
+            hideOrientation() {
+                els.orientationModal.classList.remove('visible');
+            },
+            
+            beginSession() {
+                // Called either directly or after orientation
                 state.running = true;
                 state.phaseStart = performance.now();
                 state.currentSecond = -1;
@@ -1589,12 +1927,14 @@
                         state.meditationDuration = parseInt(els.meditationDuration.value) || 0;
                         state.hormesisState = { 
                             round: 1, cycle: 1, 
-                            holding: false, resting: false, recovery: false, recoveryInhale: false,
+                            holding: false, recovery: false, recoveryInhale: false,
                             lastCycle: false, manualHold: false,
                             holdStartTime: 0, retentionTimes: []
                         };
                         els.roundInfo.classList.remove('hidden');
                         els.liveStats.classList.remove('hidden');
+                        els.holdSubtext.classList.remove('visible');
+                        els.holdSubtext.textContent = '';
                         break;
                     case 'custom':
                         state.customPhaseIndex = 0;
@@ -1609,6 +1949,15 @@
                 requestAnimationFrame(this.loop.bind(this));
             },
             
+            start() {
+                // For hormesis mode, show orientation first (unless skipped)
+                if (state.mode === 'hormesis' && !state.skipOrientation) {
+                    this.showOrientation();
+                } else {
+                    this.beginSession();
+                }
+            },
+            
             stop(completed = false) {
                 state.running = false;
                 state.currentSecond = -1;
@@ -1617,6 +1966,7 @@
                 
                 audio.stopBinaural();
                 audio.stopAmbient();
+                audio.stopHoldAmbience();
                 
                 // Save session if we have retention data
                 if (state.currentSessionRetentions.length > 0) {
@@ -1638,6 +1988,8 @@
                 els.countdown.classList.remove('visible');
                 els.roundInfo.classList.add('hidden');
                 els.tapHint.classList.add('hidden');
+                els.holdSubtext.classList.remove('visible');
+                els.holdSubtext.textContent = '';
                 els.liveStats.classList.add('hidden');
                 els.meditationStats.classList.add('hidden');
                 els.startBtn.classList.remove('hidden');
@@ -1720,8 +2072,15 @@
                     // Stop binaural (only plays during holds)
                     audio.stopBinaural();
                     
+                    // Stop hold ambience
+                    audio.stopHoldAmbience();
+                    
                     // Play release tone
                     audio.play(CONFIG.tones.release, 0.4, 'sine', 0.2);
+                    
+                    // Clear hold encouragement
+                    els.holdSubtext.classList.remove('visible');
+                    els.holdSubtext.textContent = '';
                     
                     // Transition to recovery INHALE first
                     hs.manualHold = false;
@@ -1733,6 +2092,9 @@
                     state.currentSecond = -1;
                     
                     els.tapHint.classList.add('hidden');
+                    
+                    // Play breath sound for recovery inhale
+                    audio.playBreathSound(true, CONFIG.recoveryInhaleDuration);
                     
                     this.updateLiveStats();
                 }
@@ -1816,13 +2178,20 @@
                 switch (state.phase) {
                     case 'Prepare':
                         state.phase = 'Inhale';
-                        state.phaseDuration = regularMs;
-                        if (s.cycles === 1) hs.lastCycle = true;
+                        if (s.cycles === 1) {
+                            hs.lastCycle = true;
+                            state.phaseDuration = CONFIG.extendedDuration;
+                            audio.playBreathSound(true, CONFIG.extendedDuration);
+                        } else {
+                            state.phaseDuration = regularMs;
+                            audio.playBreathSound(true, regularMs);
+                        }
                         break;
                         
                     case 'Inhale':
                         state.phase = 'Exhale';
                         state.phaseDuration = hs.lastCycle ? CONFIG.extendedDuration : regularMs;
+                        audio.playBreathSound(false, state.phaseDuration);
                         break;
                         
                     case 'Exhale':
@@ -1834,6 +2203,7 @@
                             }
                             state.phase = 'Inhale';
                             state.phaseDuration = hs.lastCycle ? CONFIG.extendedDuration : regularMs;
+                            audio.playBreathSound(true, state.phaseDuration);
                         } else {
                             // Start manual hold
                             state.phase = 'Hold';
@@ -1850,6 +2220,9 @@
                             if (state.binauralType !== 'off') {
                                 audio.startBinaural();
                             }
+                            
+                            // Start hold ambience
+                            audio.startHoldAmbience();
                         }
                         break;
                 }
@@ -1862,8 +2235,19 @@
                 
                 // Manual hold - update timer
                 if (state.mode === 'hormesis' && state.hormesisState.manualHold) {
-                    const holdTime = Math.round(elapsed / 1000);
+                    const holdTime = Math.round((ts - state.hormesisState.holdStartTime) / 1000);
                     els.currentRetention.textContent = `${holdTime}s`;
+                    
+                    // Hold encouragement messages
+                    const encouragement = HOLD_ENCOURAGEMENT.find((msg, i, arr) => {
+                        const next = arr[i + 1];
+                        return holdTime >= msg.time && (!next || holdTime < next.time);
+                    });
+                    
+                    if (encouragement && els.holdSubtext.textContent !== encouragement.text) {
+                        els.holdSubtext.textContent = encouragement.text;
+                        els.holdSubtext.classList.add('visible');
+                    }
                     
                     // Visual pulsing during hold
                     const pulse = Math.sin(ts * 0.002) * 0.08 + 0.08;
@@ -2223,6 +2607,12 @@
             els.binauralSelect.addEventListener('change', (e) => {
                 state.binauralType = e.target.value;
             });
+            els.breathSoundSelect.addEventListener('change', (e) => {
+                state.breathSound = e.target.value;
+            });
+            els.holdAmbienceSelect.addEventListener('change', (e) => {
+                state.holdAmbience = e.target.value;
+            });
             
             // Session controls
             els.startBtn.addEventListener('click', () => session.start());
@@ -2232,6 +2622,28 @@
             
             // Theme
             els.themeBtn.addEventListener('click', toggleTheme);
+            
+            // Orientation modal
+            els.skipOrientationBtn.addEventListener('click', () => {
+                if (els.dontShowAgain.checked) {
+                    state.skipOrientation = true;
+                    storage.save();
+                }
+                session.hideOrientation();
+            });
+            els.startFromOrientationBtn.addEventListener('click', () => {
+                if (els.dontShowAgain.checked) {
+                    state.skipOrientation = true;
+                    storage.save();
+                }
+                session.hideOrientation();
+                session.beginSession();
+            });
+            els.orientationModal.addEventListener('click', (e) => {
+                if (e.target === els.orientationModal) {
+                    session.hideOrientation();
+                }
+            });
             
             // History modal
             els.historyBtn.addEventListener('click', () => {
