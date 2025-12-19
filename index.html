@@ -789,7 +789,7 @@
                             </select>
                         </label>
                         <p class="text-xs mt-1" style="color: var(--text-muted)">
-                            Ambient soundscape after breathwork completes.
+                            Gateway signal plays after breathwork — use headphones.
                         </p>
                     </div>
                     
@@ -1613,104 +1613,48 @@
                 els.binauralInfo.classList.add('hidden');
             },
             
-            // Ambient soundscape for meditation
+            // Gateway audio for meditation
             startAmbient() {
-                if (!audioCtx) return;
                 this.stopAmbient();
                 
-                const nodes = [];
-                const masterGain = audioCtx.createGain();
-                const now = audioCtx.currentTime;
+                const audio = new Audio('gateway.mp3');
+                audio.loop = true;
+                audio.volume = 0;
                 
-                masterGain.connect(audioCtx.destination);
-                masterGain.gain.setValueAtTime(0, now);
-                masterGain.gain.linearRampToValueAtTime(1, now + 3);
+                // Fade in
+                audio.play().then(() => {
+                    let vol = 0;
+                    const fadeIn = setInterval(() => {
+                        vol += 0.02;
+                        if (vol >= 0.8) {
+                            vol = 0.8;
+                            clearInterval(fadeIn);
+                        }
+                        if (state.ambientNodes && state.ambientNodes.audio) {
+                            state.ambientNodes.audio.volume = vol;
+                        }
+                    }, 100);
+                }).catch(e => console.log('Gateway audio play failed:', e));
                 
-                // Create layered drones
-                const createDrone = (freq, vol, detune = 0) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    const filter = audioCtx.createBiquadFilter();
-                    
-                    osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    osc.detune.value = detune;
-                    
-                    filter.type = 'lowpass';
-                    filter.frequency.value = 400;
-                    filter.Q.value = 1;
-                    
-                    gain.gain.value = vol;
-                    
-                    osc.connect(filter);
-                    filter.connect(gain);
-                    gain.connect(masterGain);
-                    
-                    osc.start();
-                    nodes.push({ osc, gain, filter });
-                };
-                
-                // Layered ambient drones
-                createDrone(CONFIG.ambient.drone1, 0.08);
-                createDrone(CONFIG.ambient.drone2, 0.06);
-                createDrone(CONFIG.ambient.drone2, 0.04, 3); // Slight detune for richness
-                createDrone(CONFIG.ambient.drone3, 0.03);
-                createDrone(CONFIG.ambient.drone4, 0.02);
-                
-                // Add binaural if selected
-                if (state.binauralType !== 'off') {
-                    const config = CONFIG.binaural[state.binauralType];
-                    
-                    const leftOsc = audioCtx.createOscillator();
-                    const rightOsc = audioCtx.createOscillator();
-                    const leftGain = audioCtx.createGain();
-                    const rightGain = audioCtx.createGain();
-                    const merger = audioCtx.createChannelMerger(2);
-                    const leftFilter = audioCtx.createBiquadFilter();
-                    const rightFilter = audioCtx.createBiquadFilter();
-                    
-                    leftFilter.type = rightFilter.type = 'lowpass';
-                    leftFilter.frequency.value = rightFilter.frequency.value = 600;
-                    
-                    leftOsc.frequency.value = config.base;
-                    rightOsc.frequency.value = config.base + config.beat;
-                    leftOsc.type = rightOsc.type = 'sine';
-                    
-                    leftGain.gain.value = 0.05;
-                    rightGain.gain.value = 0.05;
-                    
-                    leftOsc.connect(leftFilter);
-                    rightOsc.connect(rightFilter);
-                    leftFilter.connect(leftGain);
-                    rightFilter.connect(rightGain);
-                    leftGain.connect(merger, 0, 0);
-                    rightGain.connect(merger, 0, 1);
-                    merger.connect(masterGain);
-                    
-                    leftOsc.start();
-                    rightOsc.start();
-                    
-                    nodes.push({ osc: leftOsc, gain: leftGain });
-                    nodes.push({ osc: rightOsc, gain: rightGain });
-                }
-                
-                state.ambientNodes = { nodes, masterGain };
+                state.ambientNodes = { audio };
             },
             
             stopAmbient() {
-                if (state.ambientNodes) {
-                    const now = audioCtx.currentTime;
-                    try {
-                        state.ambientNodes.masterGain.gain.linearRampToValueAtTime(0, now + 2);
-                        setTimeout(() => {
-                            try {
-                                state.ambientNodes.nodes.forEach(n => n.osc.stop());
-                            } catch (e) {}
-                            state.ambientNodes = null;
-                        }, 2500);
-                    } catch (e) {
-                        state.ambientNodes = null;
-                    }
+                if (state.ambientNodes && state.ambientNodes.audio) {
+                    const audio = state.ambientNodes.audio;
+                    // Fade out
+                    let vol = audio.volume;
+                    const fadeOut = setInterval(() => {
+                        vol -= 0.04;
+                        if (vol <= 0) {
+                            vol = 0;
+                            clearInterval(fadeOut);
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }
+                        audio.volume = Math.max(0, vol);
+                    }, 100);
+                    state.ambientNodes = null;
                 }
             },
             
