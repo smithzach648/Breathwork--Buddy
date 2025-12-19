@@ -428,12 +428,19 @@
             background: var(--surface-dim);
             border-radius: 0.75rem;
             padding: 0.75rem;
-            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .journal-entry:hover {
+            background: var(--surface);
         }
         .journal-entry-date {
             font-size: 0.65rem;
             color: var(--text-muted);
             margin-bottom: 0.3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .journal-entry-prompt {
             font-size: 0.75rem;
@@ -443,8 +450,21 @@
         }
         .journal-entry-text {
             font-size: 0.8rem;
-            line-height: 1.4;
+            line-height: 1.5;
             color: var(--text);
+        }
+        .journal-entry-text.collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .journal-entry-text.expanded {
+            white-space: pre-wrap;
+        }
+        .journal-expand-hint {
+            font-size: 0.65rem;
+            color: var(--text-muted);
         }
         
         .time-greeting {
@@ -649,23 +669,53 @@
                 <!-- Box Mode -->
                 <div id="boxControls" class="control-section space-y-3">
                     <h2 class="section-title">Box Breathing</h2>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col gap-1">
-                            <span class="field-label">Inhale (<span data-label="in">4</span>s)</span>
-                            <input type="range" data-phase="in" min="1" max="10" value="4" class="box-slider">
-                        </label>
-                        <label class="flex flex-col gap-1">
-                            <span class="field-label">Hold In (<span data-label="holdIn">4</span>s)</span>
-                            <input type="range" data-phase="holdIn" min="1" max="10" value="4" class="box-slider">
-                        </label>
-                        <label class="flex flex-col gap-1">
-                            <span class="field-label">Exhale (<span data-label="out">4</span>s)</span>
-                            <input type="range" data-phase="out" min="1" max="10" value="4" class="box-slider">
-                        </label>
-                        <label class="flex flex-col gap-1">
-                            <span class="field-label">Hold Out (<span data-label="holdOut">4</span>s)</span>
-                            <input type="range" data-phase="holdOut" min="1" max="10" value="4" class="box-slider">
-                        </label>
+                    
+                    <!-- Quick Presets -->
+                    <div class="space-y-2">
+                        <span class="field-label">Quick Patterns</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="box-preset btn-small" data-in="4" data-holdin="4" data-out="4" data-holdout="4" style="background: var(--primary); color: white;">
+                                Box 4-4-4-4
+                            </button>
+                            <button class="box-preset btn-small" data-in="4" data-holdin="7" data-out="8" data-holdout="0" style="background: var(--surface-dim); color: var(--text);">
+                                4-7-8 Sleep
+                            </button>
+                            <button class="box-preset btn-small" data-in="4" data-holdin="4" data-out="6" data-holdout="2" style="background: var(--surface-dim); color: var(--text);">
+                                Calm 4-4-6-2
+                            </button>
+                            <button class="box-preset btn-small" data-in="5" data-holdin="5" data-out="5" data-holdout="5" style="background: var(--surface-dim); color: var(--text);">
+                                Deep 5-5-5-5
+                            </button>
+                            <button class="box-preset btn-small" data-in="6" data-holdin="0" data-out="6" data-holdout="0" style="background: var(--surface-dim); color: var(--text);">
+                                Coherent 6-6
+                            </button>
+                        </div>
+                        <p class="text-xs" style="color: var(--text-muted)">
+                            4-7-8: Sleep & relaxation • Calm: Anxiety relief • Coherent: Heart rate variability
+                        </p>
+                    </div>
+                    
+                    <!-- Custom Sliders -->
+                    <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                        <span class="field-label">Custom Timing</span>
+                        <div class="grid grid-cols-2 gap-3 mt-2">
+                            <label class="flex flex-col gap-1">
+                                <span class="text-xs" style="color: var(--text-muted)">Inhale (<span data-label="in">4</span>s)</span>
+                                <input type="range" data-phase="in" min="0" max="10" value="4" class="box-slider">
+                            </label>
+                            <label class="flex flex-col gap-1">
+                                <span class="text-xs" style="color: var(--text-muted)">Hold In (<span data-label="holdIn">4</span>s)</span>
+                                <input type="range" data-phase="holdIn" min="0" max="10" value="4" class="box-slider">
+                            </label>
+                            <label class="flex flex-col gap-1">
+                                <span class="text-xs" style="color: var(--text-muted)">Exhale (<span data-label="out">4</span>s)</span>
+                                <input type="range" data-phase="out" min="0" max="10" value="4" class="box-slider">
+                            </label>
+                            <label class="flex flex-col gap-1">
+                                <span class="text-xs" style="color: var(--text-muted)">Hold Out (<span data-label="holdOut">4</span>s)</span>
+                                <input type="range" data-phase="holdOut" min="0" max="10" value="4" class="box-slider">
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -709,6 +759,22 @@
                         </label>
                     </div>
                     
+                    <!-- Hold Ambience -->
+                    <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Hold Ambience</span>
+                            <select id="holdAmbienceSelect">
+                                <option value="off">Off</option>
+                                <option value="signal_1">Track 1 (Deep)</option>
+                                <option value="signal_2">Track 2 (Light)</option>
+                                <option value="signal_3">Track 3 (Drift)</option>
+                            </select>
+                        </label>
+                        <p class="text-xs mt-1" style="color: var(--text-muted)">
+                            Plays during breath retention — use headphones for best experience.
+                        </p>
+                    </div>
+                    
                     <!-- Meditation Timer -->
                     <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
                         <label class="flex flex-col gap-1">
@@ -723,12 +789,12 @@
                             </select>
                         </label>
                         <p class="text-xs mt-1" style="color: var(--text-muted)">
-                            Ambient soundscape with binaural beats after breathwork completes.
+                            Ambient soundscape after breathwork completes.
                         </p>
                     </div>
                     
                     <p class="text-xs" style="color: var(--text-muted)">
-                        Tap/spacebar to release retention. Binaural plays during holds only.
+                        Tap or press spacebar to release breath retention.
                     </p>
                 </div>
 
@@ -792,9 +858,12 @@
                     <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-sm font-medium">Past Entries</h3>
-                            <button id="clearJournalBtn" class="text-xs" style="color: var(--text-muted);">Clear All</button>
+                            <div class="flex gap-2">
+                                <button id="exportJournalBtn" class="text-xs" style="color: var(--primary);">Export</button>
+                                <button id="clearJournalBtn" class="text-xs" style="color: var(--text-muted);">Clear All</button>
+                            </div>
                         </div>
-                        <div id="journalEntries" class="max-h-48 overflow-y-auto"></div>
+                        <div id="journalEntries" class="max-h-64 overflow-y-auto space-y-2"></div>
                     </div>
                 </div>
 
@@ -811,17 +880,6 @@
                             </select>
                         </label>
                         <label class="flex flex-col gap-1">
-                            <span class="field-label">Binaural Beats</span>
-                            <select id="binauralSelect">
-                                <option value="off">Off</option>
-                                <option value="theta" selected>Theta (6Hz)</option>
-                                <option value="delta">Delta (2Hz)</option>
-                                <option value="alpha">Alpha (10Hz)</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col gap-1">
                             <span class="field-label">Breath Sound Guide</span>
                             <select id="breathSoundSelect">
                                 <option value="off">Off</option>
@@ -829,22 +887,6 @@
                                 <option value="ocean">Ocean Wave</option>
                             </select>
                         </label>
-                        <label class="flex flex-col gap-1">
-                            <span class="field-label">Hold Ambience</span>
-                            <select id="holdAmbienceSelect">
-                                <option value="off">Off</option>
-                                <option value="signal_1">Track 1 (Deep)</option>
-                                <option value="signal_2">Track 2 (Light)</option>
-                                <option value="signal_3">Track 3 (Drift)</option>
-                            </select>
-                        </label>
-                    </div>
-                    <p class="text-xs" style="color: var(--text-muted)">
-                        Hold Ambience plays meditative audio during breath retention phases.
-                    </p>
-                    <div id="binauralInfo" class="binaural-indicator hidden">
-                        <div class="binaural-dot"></div>
-                        <span>Binaural active during holds — use headphones</span>
                     </div>
                 </div>
 
@@ -1205,8 +1247,6 @@
             speedValue: $('#speedValue'),
             shapeSelect: $('#shapeSelect'),
             waveformSelect: $('#waveformSelect'),
-            binauralSelect: $('#binauralSelect'),
-            binauralInfo: $('#binauralInfo'),
             meditationDuration: $('#meditationDuration'),
             tabs: $$('[role="tab"]'),
             controls: {
@@ -1244,6 +1284,7 @@
             saveJournalBtn: $('#saveJournalBtn'),
             journalEntries: $('#journalEntries'),
             clearJournalBtn: $('#clearJournalBtn'),
+            exportJournalBtn: $('#exportJournalBtn'),
             postSessionJournal: $('#postSessionJournal'),
             postSessionPrompt: $('#postSessionPrompt'),
             postSessionEntry: $('#postSessionEntry'),
@@ -1364,19 +1405,76 @@
                     return;
                 }
                 
-                els.journalEntries.innerHTML = state.journalEntries.slice(0, 20).map(entry => {
+                els.journalEntries.innerHTML = state.journalEntries.slice(0, 50).map((entry, idx) => {
                     const date = new Date(entry.date);
-                    const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
                     const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                    const isLong = entry.text.length > 100;
                     
                     return `
-                        <div class="journal-entry">
-                            <div class="journal-entry-date">${dateStr} ${timeStr}${entry.isPostSession ? ' • Post-Session' : ''}</div>
-                            <div class="journal-entry-prompt">"${entry.prompt.substring(0, 60)}..."</div>
-                            <div class="journal-entry-text">${entry.text.substring(0, 150)}${entry.text.length > 150 ? '...' : ''}</div>
+                        <div class="journal-entry" data-entry-id="${entry.id}">
+                            <div class="journal-entry-date">
+                                <span>${dateStr} ${timeStr}${entry.isPostSession ? ' • Post-Session' : ''}</span>
+                                ${isLong ? '<span class="journal-expand-hint">tap to expand</span>' : ''}
+                            </div>
+                            <div class="journal-entry-prompt">"${entry.prompt}"</div>
+                            <div class="journal-entry-text ${isLong ? 'collapsed' : ''}">${entry.text}</div>
                         </div>
                     `;
                 }).join('');
+                
+                // Add click handlers for expanding entries
+                $$('.journal-entry').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const textEl = el.querySelector('.journal-entry-text');
+                        const hintEl = el.querySelector('.journal-expand-hint');
+                        if (textEl.classList.contains('collapsed')) {
+                            textEl.classList.remove('collapsed');
+                            textEl.classList.add('expanded');
+                            if (hintEl) hintEl.textContent = 'tap to collapse';
+                        } else if (textEl.classList.contains('expanded')) {
+                            textEl.classList.remove('expanded');
+                            textEl.classList.add('collapsed');
+                            if (hintEl) hintEl.textContent = 'tap to expand';
+                        }
+                    });
+                });
+            },
+            
+            exportEntries() {
+                if (state.journalEntries.length === 0) {
+                    alert('No journal entries to export.');
+                    return;
+                }
+                
+                let markdown = '# Breathwork Buddy Journal\n\n';
+                markdown += `Exported: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n\n`;
+                markdown += '---\n\n';
+                
+                state.journalEntries.forEach(entry => {
+                    const date = new Date(entry.date);
+                    const dateStr = date.toLocaleDateString(undefined, { 
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                    });
+                    const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                    
+                    markdown += `## ${dateStr} at ${timeStr}\n\n`;
+                    if (entry.isPostSession) markdown += `*Post-Session Reflection*\n\n`;
+                    markdown += `**Prompt:** ${entry.prompt}\n\n`;
+                    markdown += `${entry.text}\n\n`;
+                    markdown += '---\n\n';
+                });
+                
+                // Create and download file
+                const blob = new Blob([markdown], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `breathwork-journal-${new Date().toISOString().split('T')[0]}.md`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             },
             
             showPostSession() {
@@ -1964,7 +2062,6 @@
                 const hadMeditation = state.inMeditation;
                 state.inMeditation = false;
                 
-                audio.stopBinaural();
                 audio.stopAmbient();
                 audio.stopHoldAmbience();
                 
@@ -2068,9 +2165,6 @@
                     const retention = Math.round((performance.now() - hs.holdStartTime) / 1000);
                     hs.retentionTimes.push(retention);
                     state.currentSessionRetentions.push(retention);
-                    
-                    // Stop binaural (only plays during holds)
-                    audio.stopBinaural();
                     
                     // Stop hold ambience
                     audio.stopHoldAmbience();
@@ -2215,11 +2309,6 @@
                             
                             els.tapHint.classList.remove('hidden');
                             audio.play(CONFIG.tones.holdStart, 0.6, 'sine', 0.15);
-                            
-                            // Start binaural during hold
-                            if (state.binauralType !== 'off') {
-                                audio.startBinaural();
-                            }
                             
                             // Start hold ambience
                             audio.startHoldAmbience();
@@ -2604,14 +2693,43 @@
             // Shape & audio
             els.shapeSelect.addEventListener('change', (e) => state.shape = e.target.value);
             els.waveformSelect.addEventListener('change', (e) => state.waveform = e.target.value);
-            els.binauralSelect.addEventListener('change', (e) => {
-                state.binauralType = e.target.value;
-            });
             els.breathSoundSelect.addEventListener('change', (e) => {
                 state.breathSound = e.target.value;
             });
             els.holdAmbienceSelect.addEventListener('change', (e) => {
                 state.holdAmbience = e.target.value;
+            });
+            
+            // Box breathing presets
+            $$('.box-preset').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const preset = e.target;
+                    const values = {
+                        in: parseInt(preset.dataset.in),
+                        holdIn: parseInt(preset.dataset.holdin),
+                        out: parseInt(preset.dataset.out),
+                        holdOut: parseInt(preset.dataset.holdout)
+                    };
+                    
+                    // Update state
+                    state.box = values;
+                    
+                    // Update sliders and labels
+                    Object.entries(values).forEach(([key, val]) => {
+                        const slider = $(`.box-slider[data-phase="${key}"]`);
+                        const label = $(`[data-label="${key}"]`);
+                        if (slider) slider.value = val;
+                        if (label) label.textContent = val;
+                    });
+                    
+                    // Update button styles
+                    $$('.box-preset').forEach(b => {
+                        b.style.background = 'var(--surface-dim)';
+                        b.style.color = 'var(--text)';
+                    });
+                    preset.style.background = 'var(--primary)';
+                    preset.style.color = 'white';
+                });
             });
             
             // Session controls
@@ -2685,6 +2803,7 @@
                     storage.clearJournal();
                 }
             });
+            els.exportJournalBtn.addEventListener('click', () => journal.exportEntries());
             
             // Post-session journal
             els.savePostSessionBtn.addEventListener('click', () => {
