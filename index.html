@@ -1617,12 +1617,15 @@
             startAmbient() {
                 this.stopAmbient();
                 
-                const audio = new Audio('gateway.mp3');
-                audio.loop = true;
-                audio.volume = 0;
+                const audioEl = new Audio('gateway.mp3');
+                audioEl.loop = true;
+                audioEl.volume = 0;
+                
+                // Store reference first
+                state.ambientNodes = { audio: audioEl };
                 
                 // Fade in
-                audio.play().then(() => {
+                audioEl.play().then(() => {
                     let vol = 0;
                     const fadeIn = setInterval(() => {
                         vol += 0.02;
@@ -1632,27 +1635,27 @@
                         }
                         if (state.ambientNodes && state.ambientNodes.audio) {
                             state.ambientNodes.audio.volume = vol;
+                        } else {
+                            clearInterval(fadeIn);
                         }
                     }, 100);
                 }).catch(e => console.log('Gateway audio play failed:', e));
-                
-                state.ambientNodes = { audio };
             },
             
             stopAmbient() {
                 if (state.ambientNodes && state.ambientNodes.audio) {
-                    const audio = state.ambientNodes.audio;
+                    const audioEl = state.ambientNodes.audio;
                     // Fade out
-                    let vol = audio.volume;
+                    let vol = audioEl.volume;
                     const fadeOut = setInterval(() => {
                         vol -= 0.04;
                         if (vol <= 0) {
-                            vol = 0;
                             clearInterval(fadeOut);
-                            audio.pause();
-                            audio.currentTime = 0;
+                            audioEl.pause();
+                            audioEl.currentTime = 0;
+                        } else {
+                            audioEl.volume = vol;
                         }
-                        audio.volume = Math.max(0, vol);
                     }, 100);
                     state.ambientNodes = null;
                 }
