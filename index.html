@@ -758,6 +758,25 @@
                             </select>
                         </label>
                     </div>
+
+                    <!-- Retention Timer -->
+                    <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
+                        <label class="flex flex-col gap-1">
+                            <span class="field-label">Retention Hold</span>
+                            <select id="hormesisRetention">
+                                <option value="45">45 seconds</option>
+                                <option value="60">60 seconds</option>
+                                <option value="90" selected>90 seconds</option>
+                                <option value="120">120 seconds</option>
+                                <option value="150">150 seconds</option>
+                                <option value="180">180 seconds</option>
+                                <option value="manual">Until I tap (manual)</option>
+                            </select>
+                        </label>
+                        <p class="text-xs mt-1" style="color: var(--text-muted)">
+                            Timed hold auto-advances to the recovery breath — no need to open your eyes. Tap anytime to release early.
+                        </p>
+                    </div>
                     
                     <!-- Hold Ambience -->
                     <div class="pt-3 border-t" style="border-color: var(--surface-dim)">
@@ -794,7 +813,7 @@
                     </div>
                     
                     <p class="text-xs" style="color: var(--text-muted)">
-                        Tap or press spacebar to release breath retention.
+                        Retention is timed by default. Tap the screen or press spacebar only if you want to release early.
                     </p>
                 </div>
 
@@ -955,7 +974,7 @@
                     <div class="step-number">2</div>
                     <div class="step-content">
                         <div class="step-title">Breath Retention</div>
-                        <div class="step-desc">After the final exhale, hold on empty lungs. Stay relaxed. When you need to breathe, tap the screen or press spacebar.</div>
+                        <div class="step-desc">After the final exhale, hold on empty lungs and stay relaxed. The hold is timed — when it ends, you'll be guided into the recovery breath automatically. You can tap the screen anytime to release early.</div>
                     </div>
                 </div>
                 <div class="orientation-step">
@@ -1167,7 +1186,7 @@
             box: { in: 4, holdIn: 4, out: 4, holdOut: 4 },
             
             // Hormesis settings
-            hormesis: { breathTime: 2, rounds: 3, cycles: 30, recoveryHold: 15 },
+            hormesis: { breathTime: 2, rounds: 3, cycles: 30, recoveryHold: 15, retention: 90 },
             hormesisState: { 
                 round: 1, 
                 cycle: 1, 
@@ -1207,6 +1226,7 @@
             ambientNodes: null,
             breathSoundNodes: null,
             holdAmbienceAudio: null,
+            wakeLock: null,
             
             // Preferences
             skipOrientation: false,
@@ -1248,6 +1268,7 @@
             shapeSelect: $('#shapeSelect'),
             waveformSelect: $('#waveformSelect'),
             meditationDuration: $('#meditationDuration'),
+            hormesisRetention: $('#hormesisRetention'),
             tabs: $$('[role="tab"]'),
             controls: {
                 normal: $('#normalControls'),
@@ -1504,15 +1525,16 @@
                 }
             },
             
-            // Warmer tone with gentle attack/release
-            play(freq, duration = 0.3, type = 'sine', volume = 0.1) {
+            // Warmer tone with gentle attack/release.
+            // `when` lets callers schedule the tone on the audio clock for jitter-free beats.
+            play(freq, duration = 0.3, type = 'sine', volume = 0.1, when = null) {
                 if (state.waveform === 'off' || !audioCtx || freq <= 0) return;
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 const filter = audioCtx.createBiquadFilter();
-                const now = audioCtx.currentTime;
+                const now = (when != null) ? when : audioCtx.currentTime;
                 
                 // Warm low-pass filter
                 filter.type = 'lowpass';
@@ -1544,6 +1566,38 @@
                 const idx = 5 - remaining;
                 if (idx >= 0 && idx < pitches.length) {
                     this.play(pitches[idx], 0.2, 'sine', 0.15);
+                }
+            },
+            
+            // Pre-schedule a phase's per-second tones on the audio clock.
+            // Because each beat is placed at an exact audioCtx time (not fired from
+            // requestAnimationFrame), the beats stay perfectly in time even if the
+            // screen dims and the animation loop throttles. Called once at phase start.
+            schedulePhaseTones(phase, durationMs, lastCycle) {
+                if (state.waveform === 'off' || !audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const startT = audioCtx.currentTime;
+                const totalSec = Math.floor(durationMs / 1000);
+                const scale = lastCycle ? CONFIG.scales.extended : CONFIG.scales.normal;
+
+                for (let i = 0; i < totalSec; i++) {
+                    if (phase === 'Inhale' || phase === 'Recovery Inhale') {
+                        if (i < scale.length) this.play(scale[i], 0.25, state.waveform, 0.12, startT + i);
+                    } else if (phase === 'Exhale') {
+                        const revIdx = totalSec - 1 - i;
+                        if (revIdx >= 0 && revIdx < scale.length) this.play(scale[revIdx], 0.25, state.waveform, 0.12, startT + i);
+                    } else if (phase === 'Hold In' || phase === 'Hold Out' || phase === 'Prepare') {
+                        this.play(CONFIG.tones.holdStart, 0.2, 'sine', 0.08, startT + i);
+                    } else if (phase === 'Recovery Hold' || phase === 'Hold') {
+                        // Soft ascending cue in the final 5 seconds so the recovery
+                        // breath never catches you off guard with your eyes closed.
+                        const remaining = totalSec - i;
+                        if (remaining > 0 && remaining <= 5) {
+                            const pitches = [324, 364, 408, 432, 486];
+                            const idx = 5 - remaining;
+                            if (idx >= 0 && idx < pitches.length) this.play(pitches[idx], 0.2, 'sine', 0.15, startT + i);
+                        }
+                    }
                 }
             },
             
@@ -1613,50 +1667,94 @@
                 els.binauralInfo.classList.add('hidden');
             },
             
-            // Gateway audio for meditation
+            // ---- Gapless looped playback ----
+            // <audio loop> re-seeks to 0 at the end of the file, which leaves an
+            // audible gap on most browsers (worse on mobile). Decoding the file once
+            // into a buffer and looping THAT is sample-accurate and seamless.
+            // Falls back to HTMLAudio looping if decode/fetch isn't available.
+            buffers: {},
+            
+            async loadBuffer(url) {
+                if (this.buffers[url]) return this.buffers[url];
+                const resp = await fetch(url);
+                const arr = await resp.arrayBuffer();
+                const buf = await audioCtx.decodeAudioData(arr);
+                this.buffers[url] = buf;
+                return buf;
+            },
+            
+            async startLoop(url, targetVol, fadeSec) {
+                if (!audioCtx) this.init();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                try {
+                    const buf = await this.loadBuffer(url);
+                    const src = audioCtx.createBufferSource();
+                    src.buffer = buf;
+                    src.loop = true;
+                    const gain = audioCtx.createGain();
+                    src.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    const now = audioCtx.currentTime;
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.exponentialRampToValueAtTime(targetVol, now + fadeSec);
+                    src.start(now);
+                    return { src, gain, type: 'buffer' };
+                } catch (e) {
+                    console.log('Buffer loop unavailable, using HTMLAudio fallback:', e);
+                    const el = new Audio(url);
+                    el.loop = true;
+                    el.volume = 0;
+                    el.play().then(() => {
+                        let v = 0;
+                        const stepN = Math.max(1, Math.round(fadeSec * 20));
+                        const inc = targetVol / stepN;
+                        const fade = setInterval(() => {
+                            v = Math.min(targetVol, v + inc);
+                            el.volume = v;
+                            if (v >= targetVol) clearInterval(fade);
+                        }, 50);
+                    }).catch(err => console.log('HTMLAudio fallback failed:', err));
+                    return { el, type: 'html' };
+                }
+            },
+            
+            stopLoop(handle, fadeSec) {
+                if (!handle) return;
+                if (handle.type === 'buffer') {
+                    try {
+                        const now = audioCtx.currentTime;
+                        handle.gain.gain.cancelScheduledValues(now);
+                        handle.gain.gain.setValueAtTime(Math.max(0.0001, handle.gain.gain.value), now);
+                        handle.gain.gain.exponentialRampToValueAtTime(0.0001, now + fadeSec);
+                        handle.src.stop(now + fadeSec + 0.05);
+                    } catch (e) {}
+                } else if (handle.type === 'html' && handle.el) {
+                    const el = handle.el;
+                    let v = el.volume;
+                    const stepN = Math.max(1, Math.round(fadeSec * 20));
+                    const dec = v / stepN;
+                    const fade = setInterval(() => {
+                        v = Math.max(0, v - dec);
+                        el.volume = v;
+                        if (v <= 0) { clearInterval(fade); el.pause(); el.currentTime = 0; }
+                    }, 50);
+                }
+            },
+            
+            // Gateway audio for meditation — now seamless
             startAmbient() {
                 this.stopAmbient();
-                
-                const audioEl = new Audio('gateway.mp3');
-                audioEl.loop = true;
-                audioEl.volume = 0;
-                
-                // Store reference first
-                state.ambientNodes = { audio: audioEl };
-                
-                // Fade in
-                audioEl.play().then(() => {
-                    let vol = 0;
-                    const fadeIn = setInterval(() => {
-                        vol += 0.02;
-                        if (vol >= 0.8) {
-                            vol = 0.8;
-                            clearInterval(fadeIn);
-                        }
-                        if (state.ambientNodes && state.ambientNodes.audio) {
-                            state.ambientNodes.audio.volume = vol;
-                        } else {
-                            clearInterval(fadeIn);
-                        }
-                    }, 100);
-                }).catch(e => console.log('Gateway audio play failed:', e));
+                state._ambientWanted = true;
+                this.startLoop('gateway.mp3', 0.8, 2).then(handle => {
+                    if (!state._ambientWanted) { this.stopLoop(handle, 0.1); return; }
+                    state.ambientNodes = handle;
+                });
             },
             
             stopAmbient() {
-                if (state.ambientNodes && state.ambientNodes.audio) {
-                    const audioEl = state.ambientNodes.audio;
-                    // Fade out
-                    let vol = audioEl.volume;
-                    const fadeOut = setInterval(() => {
-                        vol -= 0.04;
-                        if (vol <= 0) {
-                            clearInterval(fadeOut);
-                            audioEl.pause();
-                            audioEl.currentTime = 0;
-                        } else {
-                            audioEl.volume = vol;
-                        }
-                    }, 100);
+                state._ambientWanted = false;
+                if (state.ambientNodes) {
+                    this.stopLoop(state.ambientNodes, 1.2);
                     state.ambientNodes = null;
                 }
             },
@@ -1734,7 +1832,7 @@
                 osc3.stop(now + durationSec + 0.1);
             },
             
-            // Hold ambience - plays uploaded audio tracks during breath holds
+            // Hold ambience - plays uploaded audio tracks during breath holds (seamless)
             startHoldAmbience() {
                 if (state.holdAmbience === 'off') return;
                 this.stopHoldAmbience();
@@ -1748,43 +1846,17 @@
                 const filename = trackMap[state.holdAmbience];
                 if (!filename) return;
                 
-                const audio = new Audio(filename);
-                audio.loop = true;
-                audio.volume = 0;
-                
-                // Fade in
-                audio.play().then(() => {
-                    let vol = 0;
-                    const fadeIn = setInterval(() => {
-                        vol += 0.05;
-                        if (vol >= 0.7) {
-                            vol = 0.7;
-                            clearInterval(fadeIn);
-                        }
-                        if (state.holdAmbienceAudio) {
-                            state.holdAmbienceAudio.volume = vol;
-                        }
-                    }, 100);
-                }).catch(e => console.log('Audio play failed:', e));
-                
-                state.holdAmbienceAudio = audio;
+                state._holdWanted = true;
+                this.startLoop(filename, 0.7, 1.5).then(handle => {
+                    if (!state._holdWanted) { this.stopLoop(handle, 0.1); return; }
+                    state.holdAmbienceAudio = handle;
+                });
             },
             
             stopHoldAmbience() {
+                state._holdWanted = false;
                 if (state.holdAmbienceAudio) {
-                    const audio = state.holdAmbienceAudio;
-                    // Fade out
-                    let vol = audio.volume;
-                    const fadeOut = setInterval(() => {
-                        vol -= 0.05;
-                        if (vol <= 0) {
-                            vol = 0;
-                            clearInterval(fadeOut);
-                            audio.pause();
-                            audio.currentTime = 0;
-                        }
-                        audio.volume = Math.max(0, vol);
-                    }, 50);
+                    this.stopLoop(state.holdAmbienceAudio, 1);
                     state.holdAmbienceAudio = null;
                 }
             }
@@ -1929,6 +2001,39 @@
         };
         
         // ═══════════════════════════════════════════════════════════════
+        // SCREEN WAKE LOCK
+        // Keeps the screen awake during a session so the OS doesn't throttle
+        // the animation loop or suspend audio mid-practice (the usual cause of
+        // beats drifting / dropping on mobile when the screen dims).
+        // ═══════════════════════════════════════════════════════════════
+        
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    state.wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (e) {
+                // Not supported or denied — non-fatal, session still runs.
+            }
+        }
+        
+        function releaseWakeLock() {
+            try {
+                if (state.wakeLock) {
+                    state.wakeLock.release();
+                    state.wakeLock = null;
+                }
+            } catch (e) {}
+        }
+        
+        // If the page is hidden then re-shown mid-session, re-acquire the lock.
+        document.addEventListener('visibilitychange', () => {
+            if (state.running && document.visibilityState === 'visible' && !state.wakeLock) {
+                requestWakeLock();
+            }
+        });
+        
+        // ═══════════════════════════════════════════════════════════════
         // SESSION LOGIC
         // ═══════════════════════════════════════════════════════════════
         
@@ -1991,6 +2096,15 @@
                 
                 els.startBtn.classList.add('hidden');
                 els.stopBtn.classList.remove('hidden');
+                
+                // Lock the beats to the audio clock from the very first phase.
+                if (state.mode !== 'normal') {
+                    audio.schedulePhaseTones(state.phase, state.phaseDuration, false);
+                }
+                
+                // Keep the screen awake so the timer and audio don't get throttled mid-session.
+                requestWakeLock();
+                
                 requestAnimationFrame(this.loop.bind(this));
             },
             
@@ -2009,6 +2123,7 @@
                 const hadMeditation = state.inMeditation;
                 state.inMeditation = false;
                 
+                releaseWakeLock();
                 audio.stopAmbient();
                 audio.stopHoldAmbience();
                 
@@ -2107,8 +2222,8 @@
                 }
                 
                 const hs = state.hormesisState;
-                if (state.mode === 'hormesis' && hs.manualHold) {
-                    // Record retention time
+                if (state.mode === 'hormesis' && hs.holding) {
+                    // Record retention time (works for both timed and manual holds)
                     const retention = Math.round((performance.now() - hs.holdStartTime) / 1000);
                     hs.retentionTimes.push(retention);
                     state.currentSessionRetentions.push(retention);
@@ -2134,8 +2249,9 @@
                     
                     els.tapHint.classList.add('hidden');
                     
-                    // Play breath sound for recovery inhale
+                    // Play breath sound + scheduled tones for recovery inhale
                     audio.playBreathSound(true, CONFIG.recoveryInhaleDuration);
+                    audio.schedulePhaseTones('Recovery Inhale', CONFIG.recoveryInhaleDuration, false);
                     
                     this.updateLiveStats();
                 }
@@ -2160,6 +2276,7 @@
                 state.phaseDuration = state.box[PHASES.boxKeys[nextIdx]] * 1000;
                 state.phaseStart = ts;
                 state.currentSecond = -1;
+                audio.schedulePhaseTones(state.phase, state.phaseDuration, false);
             },
             
             transitionCustom(ts) {
@@ -2169,6 +2286,7 @@
                 state.phaseDuration = phase.duration * 1000;
                 state.phaseStart = ts;
                 state.currentSecond = -1;
+                audio.schedulePhaseTones(state.phase, state.phaseDuration, false);
             },
             
             transitionHormesis(ts) {
@@ -2179,12 +2297,35 @@
                 state.phaseStart = ts;
                 state.currentSecond = -1;
                 
+                // Timed retention hold complete -> Recovery Inhale
+                if (hs.holding && !hs.manualHold) {
+                    const retention = Math.round((ts - hs.holdStartTime) / 1000);
+                    hs.retentionTimes.push(retention);
+                    state.currentSessionRetentions.push(retention);
+                    this.updateLiveStats();
+                    
+                    audio.stopHoldAmbience();
+                    audio.play(CONFIG.tones.release, 0.4, 'sine', 0.2);
+                    els.holdSubtext.classList.remove('visible');
+                    els.holdSubtext.textContent = '';
+                    els.tapHint.classList.add('hidden');
+                    
+                    hs.holding = false;
+                    hs.recoveryInhale = true;
+                    state.phase = 'Recovery Inhale';
+                    state.phaseDuration = CONFIG.recoveryInhaleDuration;
+                    audio.playBreathSound(true, CONFIG.recoveryInhaleDuration);
+                    audio.schedulePhaseTones('Recovery Inhale', CONFIG.recoveryInhaleDuration, false);
+                    return;
+                }
+                
                 // Recovery Inhale -> Recovery Hold
                 if (hs.recoveryInhale) {
                     hs.recoveryInhale = false;
                     hs.recovery = true;
                     state.phase = 'Recovery Hold';
                     state.phaseDuration = s.recoveryHold * 1000;
+                    audio.schedulePhaseTones('Recovery Hold', state.phaseDuration, false);
                     return;
                 }
                 
@@ -2199,6 +2340,7 @@
                         state.phase = 'Prepare';
                         state.phaseDuration = 5000;
                         audio.play(CONFIG.tones.holdStart, 0.5, 'sine', 0.15);
+                        audio.schedulePhaseTones('Prepare', state.phaseDuration, false);
                     } else {
                         // Session complete - start meditation or end
                         if (state.meditationDuration > 0) {
@@ -2211,10 +2353,6 @@
                     return;
                 }
                 
-                if (hs.holding && !hs.manualHold) {
-                    return;
-                }
-                
                 // Cycling phases
                 switch (state.phase) {
                     case 'Prepare':
@@ -2222,17 +2360,18 @@
                         if (s.cycles === 1) {
                             hs.lastCycle = true;
                             state.phaseDuration = CONFIG.extendedDuration;
-                            audio.playBreathSound(true, CONFIG.extendedDuration);
                         } else {
                             state.phaseDuration = regularMs;
-                            audio.playBreathSound(true, regularMs);
                         }
+                        audio.playBreathSound(true, state.phaseDuration);
+                        audio.schedulePhaseTones('Inhale', state.phaseDuration, hs.lastCycle);
                         break;
                         
                     case 'Inhale':
                         state.phase = 'Exhale';
                         state.phaseDuration = hs.lastCycle ? CONFIG.extendedDuration : regularMs;
                         audio.playBreathSound(false, state.phaseDuration);
+                        audio.schedulePhaseTones('Exhale', state.phaseDuration, hs.lastCycle);
                         break;
                         
                     case 'Exhale':
@@ -2245,19 +2384,27 @@
                             state.phase = 'Inhale';
                             state.phaseDuration = hs.lastCycle ? CONFIG.extendedDuration : regularMs;
                             audio.playBreathSound(true, state.phaseDuration);
+                            audio.schedulePhaseTones('Inhale', state.phaseDuration, hs.lastCycle);
                         } else {
-                            // Start manual hold
+                            // Begin retention hold — timed unless set to "manual"
                             state.phase = 'Hold';
-                            state.phaseDuration = 999999;
                             hs.holding = true;
-                            hs.manualHold = true;
                             hs.holdStartTime = ts;
                             hs.lastCycle = false;
                             
-                            els.tapHint.classList.remove('hidden');
-                            audio.play(CONFIG.tones.holdStart, 0.6, 'sine', 0.15);
+                            const ret = s.retention;
+                            if (ret === 'manual' || !(ret > 0)) {
+                                hs.manualHold = true;
+                                state.phaseDuration = 999999;
+                                els.tapHint.classList.remove('hidden');
+                            } else {
+                                hs.manualHold = false;
+                                state.phaseDuration = ret * 1000;
+                                els.tapHint.classList.add('hidden');
+                                audio.schedulePhaseTones('Hold', state.phaseDuration, false);
+                            }
                             
-                            // Start hold ambience
+                            audio.play(CONFIG.tones.holdStart, 0.6, 'sine', 0.15);
                             audio.startHoldAmbience();
                         }
                         break;
@@ -2268,6 +2415,22 @@
                 if (!state.running || state.inMeditation) return;
                 
                 const elapsed = ts - state.phaseStart;
+                
+                // Timed retention hold: update the counter + encouragement, but do NOT
+                // early-return — the transition check below auto-advances to the recovery
+                // breath when the timer runs out, so the eyes can stay closed.
+                if (state.mode === 'hormesis' && state.hormesisState.holding && !state.hormesisState.manualHold) {
+                    const holdTime = Math.round((ts - state.hormesisState.holdStartTime) / 1000);
+                    els.currentRetention.textContent = `${holdTime}s`;
+                    const encouragement = HOLD_ENCOURAGEMENT.find((msg, i, arr) => {
+                        const next = arr[i + 1];
+                        return holdTime >= msg.time && (!next || holdTime < next.time);
+                    });
+                    if (encouragement && els.holdSubtext.textContent !== encouragement.text) {
+                        els.holdSubtext.textContent = encouragement.text;
+                        els.holdSubtext.classList.add('visible');
+                    }
+                }
                 
                 // Manual hold - update timer
                 if (state.mode === 'hormesis' && state.hormesisState.manualHold) {
@@ -2333,8 +2496,11 @@
                         factor = 1 - progress;
                     } else if (phaseType === 'Hold In') {
                         factor = 1;
-                    } else if (phaseType === 'Hold Out' || phaseType === 'Hold') {
+                    } else if (phaseType === 'Hold Out') {
                         factor = 0;
+                    } else if (phaseType === 'Hold') {
+                        // Timed retention — gentle pulse on empty lungs so it feels alive
+                        factor = Math.sin(ts * 0.002) * 0.06 + 0.06;
                     } else if (phaseType === 'Prepare') {
                         factor = Math.sin(ts * 0.004) * 0.1 + 0.5;
                         text = 'Prepare...';
@@ -2351,19 +2517,17 @@
                             els.roundInfo.classList.remove('hidden');
                         } else if (hs.recovery || hs.recoveryInhale) {
                             els.roundInfo.textContent = `Round ${hs.round} | Recovery`;
-                        } else if (!hs.manualHold) {
-                            els.roundInfo.textContent = '';
-                            els.roundInfo.classList.add('hidden');
+                            els.roundInfo.classList.remove('hidden');
+                        } else if (hs.holding) {
+                            els.roundInfo.textContent = `Round ${hs.round}/${s.rounds} | Retention`;
+                            els.roundInfo.classList.remove('hidden');
                         }
                     }
                 }
                 
-                // Audio tones
-                const sec = Math.floor(elapsed / 1000);
-                if (state.waveform !== 'off' && sec !== state.currentSecond && elapsed < state.phaseDuration) {
-                    state.currentSecond = sec;
-                    this.playPhaseTone(sec, seconds);
-                }
+                // (Phase tones are pre-scheduled on the audio clock at each phase
+                // start — see schedulePhaseTones — so they stay perfectly in time even
+                // if this animation loop throttles. Nothing to trigger here.)
                 
                 canvas.draw(factor, text, seconds);
                 requestAnimationFrame(this.loop.bind(this));
@@ -2635,6 +2799,12 @@
                 $(`#${id}`).addEventListener('change', (e) => {
                     state.hormesis[key] = parseInt(e.target.value);
                 });
+            });
+
+            // Retention can be a number of seconds or 'manual'
+            els.hormesisRetention.addEventListener('change', (e) => {
+                const v = e.target.value;
+                state.hormesis.retention = (v === 'manual') ? 'manual' : parseInt(v);
             });
             
             // Shape & audio
