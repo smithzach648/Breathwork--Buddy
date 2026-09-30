@@ -39,12 +39,12 @@ Database `breathwork-buddy-v2`, schema version 1: `preferences` (id), `routines`
 
 ## Offline and installation
 
-The generated manifest uses standalone display and local 192/512 PNG icons, including a maskable icon. Workbox explicitly precaches built HTML, JS, CSS, PNGs, and the manifest. Navigation falls back to cached `index.html`. No nonexistent audio is fetched or precached. Old precaches are cleaned up. New workers wait for the user to choose **Update app**; Phase 2 must additionally gate updates while sessions run.
+The generated manifest uses standalone display and local 192/512 PNG icons, including a maskable icon. Vite base, manifest start URL/scope/identity, and service-worker scope are `/Breathwork--Buddy/`. Workbox explicitly precaches built HTML, JS, CSS, PNGs, and the manifest. Navigation falls back to cached `/Breathwork--Buddy/index.html`. No nonexistent audio is fetched or precached. Old precaches are cleaned up. New workers wait for the user to choose **Update app**; Phase 2 must additionally gate updates while sessions run.
 
 To verify offline operation:
 
 1. Build and serve with `pnpm build` then `pnpm preview`.
-2. Open the preview URL, allow the worker to finish installing, then reload once so it controls the page. Confirm an active worker and precache in browser developer tools.
+2. Open the preview URL at `/Breathwork--Buddy/`, allow the worker to finish installing, then reload once so it controls the page. Confirm an active worker and precache in browser developer tools.
 3. Install where supported. Deployment requires HTTPS; localhost is permitted for development.
 4. Disable ordinary HTTP caching and set the browser to offline, or enable airplane mode on a phone.
 5. Reload and close/reopen the installed app. Navigate all five screens and change theme.
@@ -54,7 +54,13 @@ Automated production verification passed in headless Chrome at 390×844: offline
 
 ## Optional audio conventions
 
-`public/audio/{voice,breath,ambience,signals}/` contains `.gitkeep` only. All 19 catalog entries are unavailable. Paths describe future MP3 files; other formats can be selected when real assets arrive. Components must use catalog IDs rather than hard-coded URLs. Resolve paths relative to the app deployment base when playback is implemented. Add real assets and availability/source/license/duration metadata together; do not fetch unavailable entries. Adopt an explicit size/offline caching policy for real audio later.
+`public/audio/{voice,breath,ambience,signals}/` contains `.gitkeep` only. All 19 catalog entries are unavailable. Paths describe future MP3 files; other formats can be selected when real assets arrive. Components must use catalog IDs rather than hard-coded URLs. Resolve paths relative to `import.meta.env.BASE_URL` when playback is implemented. Add real assets and availability/source/license/duration metadata together; do not fetch unavailable entries. Adopt an explicit size/offline caching policy for real audio later.
+
+## GitHub Pages deployment
+
+`.github/workflows/pages.yml` builds and deploys only pushes to `breathwork-buddy-2`. It installs the lockfile, runs type checking and tests, builds the production PWA, validates project-path assets with `scripts/check-pwa-build.mjs`, uploads `dist`, and deploys through the `github-pages` environment. It never writes or merges `main`.
+
+Repository Settings → Pages must use **GitHub Actions** as its publishing source. The `github-pages` environment must allow deployments from `breathwork-buddy-2`. Do not change the default branch. The project site is `https://smithzach648.github.io/Breathwork--Buddy/`. GitHub Pages publishes one site per repository, so this workflow supplies the live site while `main` remains the legacy source reference.
 
 ## Legacy data
 
