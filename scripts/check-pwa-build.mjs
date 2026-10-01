@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access,readdir } from 'node:fs/promises';
 
 const base = '/Breathwork--Buddy/';
 const html = await readFile('dist/index.html', 'utf8');
@@ -27,5 +27,10 @@ for (const path of shellPaths) {
 }
 assert.ok(worker.includes(`${base}index.html`), 'Offline navigation fallback must use project path');
 assert.ok(worker.includes('precacheAndRoute'), 'Shell must be service-worker precached');
-assert.ok(!worker.includes('.mp3'), 'Do not precache missing audio');
+for(const category of ['voice','breath']){
+  const files=(await readdir(`dist/audio/${category}`)).filter(file=>file.endsWith('.mp3'));
+  assert.ok(files.length>0,`Real ${category} assets must be published`);
+  for(const file of files)assert.ok(worker.includes(`audio/${category}/${file}`),`Practice audio must be precached: ${file}`);
+}
+assert.ok(!worker.includes('audio/ambience/'),'Personal ambience is published but excluded from the practice precache');
 console.log('Project-path shell, manifest, icons, and offline fallback checks passed.');

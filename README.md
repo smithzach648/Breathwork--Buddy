@@ -1,16 +1,12 @@
 # Breathwork Buddy 2.0
 
-A calm, personal space for daily breathwork. Audio guidance, concise text, and reflection are the product direction; no breath animation, gamification, accounts, or cloud dependency.
+A personal, local-first breathwork PWA. Phase 2 adds guided practice and recent session history to the Phase 1 shell. No accounts, runtime cloud services, external fonts, breath animation, or gamification.
 
-## Current status
+The modernization branch is `breathwork-buddy-2`. Preserve legacy `main` at `ea409acd59ecb440530d9c4938139720b7aecada`; do not merge or change it during this phased build.
 
-Phase 1 foundation: five navigable screens, local theme preferences, optional audio catalog, versioned IndexedDB, and an offline application shell. Practice, Journal, and History are honest previews. Session execution is not implemented.
+## Development and checks
 
-Legacy reference: `main` at `ea409acd59ecb440530d9c4938139720b7aecada`. The modernization branch is `breathwork-buddy-2`. Git history preserves the original implementation and its four MP3s. Do not merge over or alter the reference branch during this phased build.
-
-## Development
-
-Use Node.js 22.12+ (or a supported newer LTS) and pnpm 11. The lockfile records exact versions. `pnpm-workspace.yaml` explicitly allows only esbuild's dependency build script.
+Use Node.js 24 and pnpm 11.19.0. The lockfile records exact dependencies; the workspace permits only esbuild's dependency build script.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -18,56 +14,85 @@ pnpm dev
 pnpm typecheck
 pnpm test
 pnpm build
+node scripts/check-pwa-build.mjs
 pnpm preview
 ```
 
-The stack is React, TypeScript, Vite, local CSS, Dexie, Vitest, and vite-plugin-pwa/Workbox. No shell assets, fonts, APIs, or libraries load from external domains at runtime. The production service worker is not enabled in the development server.
+Open `/Breathwork--Buddy/`. Production service workers are disabled in the development server. Tests use Vitest, Testing Library, jsdom, and fake-indexeddb. Injected timing covers transitions, both retention sequences, release, cancellation, delayed callbacks, snapshots, and background reconciliation. Audio mocks verify native scheduling, deduplicated loads, stale-load rejection, failures, fades, and independent gain buses. Integration tests cover UI, history, volume persistence, result retry, version-1 database upgrade, update gating, and wake-lock races.
 
-## Architecture
+## Supported practice
 
-- `src/app`: shell, startup, themes, update prompt, navigation state.
-- `src/components` and `src/features`: shared accessible controls and five screen components.
-- `src/session`: engine and observable-state contracts only. React observes future engine state; it must never own timing.
-- `src/types`, `src/routines`, `src/journal`, `src/history`: domain definitions, including readonly Start-time session configuration and results for all practice types.
-- `src/audio`: optional asset catalog and Master/Voice/Breath/Ambience/Signals bus contract. No playback, mixer, or scheduling.
-- `src/settings`: defaults and preference validation.
-- `src/storage`: Dexie database, preference services, typed table repositories, legacy detection/migration boundary.
-- `src/styles`: calm light/dark design tokens, system fonts, mobile touch targets, focus and reduced-motion rules.
-- `src/test`: behavioral tests with jsdom and fake-indexeddb.
+| Preset | Stages in seconds |
+| --- | --- |
+| Box | Inhale 4 → hold in 4 → exhale 4 → hold out 4 |
+| 4-7-8 | Inhale 4 → hold in 7 → exhale 8 |
+| Calm | Inhale 4 → hold in 4 → exhale 6 → hold out 2 |
+| Coherent | Inhale 6 → exhale 6 |
 
-Database `breathwork-buddy-v2`, schema version 1: `preferences` (id), `routines` (id, updatedAt), `journal` (id, createdAt, sessionId), `history` (id, startedAt, routineId), and `migrations` (id). Only preferences are written by the shell. Storage failures are visible; the app can still navigate.
+Patterned sessions offer 3, 5, or 10 minutes, defaulting to 5. Zero stages are omitted and the final stage is clipped at the total deadline.
 
-## Offline and installation
+Hormesis offers 2- or 3-second inhale/exhale intervals; 20, 30, or 40 breaths per round; and three retentions of either 60/60/60 or 60/90/90 seconds. Defaults are 2-second intervals, 30 breaths, and a 15-second recovery hold. Recovery is always a 2-second inhale followed by a 10/15/20-second hold. The legacy extended final breath is intentionally omitted: every breathing cycle uses the selected interval.
 
-The generated manifest uses standalone display and local 192/512 PNG icons, including a maskable icon. Vite base, manifest start URL/scope/identity, and service-worker scope are `/Breathwork--Buddy/`. Workbox explicitly precaches built HTML, JS, CSS, PNGs, and the manifest. Navigation falls back to cached `/Breathwork--Buddy/index.html`. No nonexistent audio is fetched or precached. Old precaches are cleaned up. New workers wait for the user to choose **Update app**; Phase 2 must additionally gate updates while sessions run.
+**Release retention** records actual elapsed hold time, cancels its countdown/deadline, and starts recovery immediately. **Stop practice** saves a cancelled result; **Start again** creates a fresh session. Hormesis includes a concise seated/lying-down safety note. Practice should never occur while driving or in/near water.
 
-To verify offline operation:
+## Engine and audio architecture
 
-1. Build and serve with `pnpm build` then `pnpm preview`.
-2. Open the preview URL at `/Breathwork--Buddy/`, allow the worker to finish installing, then reload once so it controls the page. Confirm an active worker and precache in browser developer tools.
-3. Install where supported. Deployment requires HTTPS; localhost is permitted for development.
-4. Disable ordinary HTTP caching and set the browser to offline, or enable airplane mode on a phone.
-5. Reload and close/reopen the installed app. Navigate all five screens and change theme.
-6. Confirm no failed required shell requests and that the app starts without the server/network.
+- `src/session/config.ts`: validated configuration, compiled stages, and cloned recursively frozen Start-time snapshots.
+- `src/session/clock.ts`: injected clock/scheduler. Browser timing uses `performance.now()` and deadline-driven timeout wakeups.
+- `src/session/engine.ts`: non-React session authority. Each stage starts from the prior absolute deadline, rather than callback arrival. Observable remaining time is derived from the deadline. A 100 ms wakeup refreshes observation; it does not define elapsed time.
+- Session identity combines a snapshot UUID with a runtime generation; stage identity includes the stage index. Old callbacks verify both, and cancellation invalidates scheduled work.
+- `src/session/runtime.ts`: audio, wake lock, preferences, and result persistence. React observes stable state with `useSyncExternalStore`; component effects never determine transitions.
+- `src/audio/web-audio.ts`: gesture-created AudioContext, decoded-buffer Promise cache, independent Master/Voice/Breath gains, diagnostics, and cancellable non-looping sources.
+- Engine milliseconds map to AudioContext seconds using an offset measured at initialization/resume. Native sources schedule against mapped absolute times. Audio events never advance the engine.
+- Every stage entry has an audio epoch plus session/stage identity. Late loads cannot attach to an old scope. Cues more than 250 ms overdue are dropped. Missing/decode-failed assets are optional; timing continues.
+- Retention schedules five/four/three/two/one at deadline minus 5/4/3/2/1 seconds. Release and Stop cancel all remaining sources. Breath sources use a short attack and up to a 60 ms end fade, bounded by the stage deadline. Stop/release immediately mute and stop obsolete sources.
 
-Automated production verification passed in headless Chrome at 390×844: offline reload, fresh offline tab, all navigation, persisted theme, no horizontal overflow, no external requests, no page errors. The server sent `Cache-Control: no-store` and HTTP cache was disabled. Physical phone installation/relaunch is still a manual check.
+## Local audio
 
-## Optional audio conventions
+All filenames are preserved. URLs encode each path segment and use Vite's project base.
 
-`public/audio/{voice,breath,ambience,signals}/` contains `.gitkeep` only. All 19 catalog entries are unavailable. Paths describe future MP3 files; other formats can be selected when real assets arrive. Components must use catalog IDs rather than hard-coded URLs. Resolve paths relative to `import.meta.env.BASE_URL` when playback is implemented. Add real assets and availability/source/license/duration metadata together; do not fetch unavailable entries. Adopt an explicit size/offline caching policy for real audio later.
+| Logical ID | Actual filename |
+| --- | --- |
+| `voice.in`, `voice.out` | `breath-in.mp3`, `breath-out.mp3` |
+| `voice.hold60`, `voice.hold90` | `60 second hold.mp3`, `90 second hold.mp3` |
+| `voice.recoveryBreath`, `voice.hold` | `Recovery Breath.mp3`, `Hold.mp3` |
+| `voice.one` through `voice.five` | `count-1.mp3` through `count-5.mp3` |
+| `breath.in4`, `breath.in6` | `Inhale 4 second.mp3`, `Inhale 6 second.mp3` |
+| `breath.out4`, `breath.out8` | `Exhale 4 seconds.mp3`, `Exhale 8 seconds.mp3` |
+| `ambience.floating`, `ambience.homeAgain` | `Floating.mp3`, `Home Again.mp3` |
 
-## GitHub Pages deployment
+There is no six-second exhale recording. The user approved the four-second file for four-second phases and the eight-second file faded at six seconds for six-second phases. Hormesis uses the four-second sources cut/faded at two or three seconds. Samples never loop inside a phase. The physical file duration never sets practice timing.
 
-`.github/workflows/pages.yml` builds and deploys only pushes to `breathwork-buddy-2`. It installs the lockfile, runs type checking and tests, builds the production PWA, validates project-path assets with `scripts/check-pwa-build.mjs`, uploads `dist`, and deploys through the `github-pages` environment. It never writes or merges `main`.
+Both user-supplied ambient tracks are tracked and published with explicit user authorization. They are catalogued for future use, excluded from automatic preload/precache, and have no playback/mixer controls in Phase 2. Voice/breath files are all precached. Master/Voice/Breath sliders update independently during a running session and persist locally; future Ambience/Signals preferences remain preserved.
 
-Repository Settings → Pages must use **GitHub Actions** as its publishing source. The `github-pages` environment must allow deployments from `breathwork-buddy-2`. Do not change the default branch. The project site is `https://smithzach648.github.io/Breathwork--Buddy/`. GitHub Pages publishes one site per repository, so this workflow supplies the live site while `main` remains the legacy source reference.
+## Results and storage
 
-## Legacy data
+Dexie database `breathwork-buddy-v2` preserves the original version-1 tables: preferences, routines, journal, history, migrations. Explicit version 2 adds the history `outcome` index. Existing rows and settings survive the upgrade; added result fields are optional for old rows.
 
-Phase 1 checks only presence of `localStorage["breathwork_data"]`. It never parses, imports, rewrites, or deletes that record. Storage is origin-specific: a local preview cannot see data on the old hosted origin. Migration must validate journal, saved patterns, retention history, dark mode, and orientation, and account for the legacy `unshift()` / `slice(-100)` journal retention bug. Plan a user-reviewed backup/preview and idempotent migration before writing data.
+Every completed/cancelled practice writes an idempotent result containing preset/name, timestamps, planned/actual duration, completed stages, and Hormesis rounds/actual retentions with completed/released/cancelled outcome. History shows the 30 most recent results. Failed writes remain available for explicit retry while the page remains open; closing before a write finishes cannot guarantee persistence. No legacy import occurs. `localStorage["breathwork_data"]` is only checked for presence and remains untouched.
 
-## Next boundary
+## Visibility, wake lock, and updates
 
-No session timers, audio playback/mixing, AI, routine builder, journal editor, advanced history, haptics, notifications, accounts, backend, sync, or native packaging exist. Phase 2 should start with an independently tested deterministic engine, immutable runtime snapshots, explicit transitions/cancellation, a few presets, and results for every practice type. Runtime snapshot cloning/freezing is future work; readonly types alone do not enforce runtime immutability.
+Timing continues logically while hidden. Audio is cancelled on hiding; on return the engine reconciles elapsed deadlines, skips expired phases/cues, and schedules only future retention countdowns. It never extends a hold to accommodate a late callback. Returning after the final deadline records completion at that deadline.
 
-Physical phone checks: Safari/iOS and Chrome/Android installation, airplane-mode cold relaunch, device-theme changes, portrait/landscape, large text, screen-reader focus, safe-area navigation, storage restrictions, and update behavior.
+Screen wake lock is optional and requested only during an active visible practice. Stop/completion/hiding release it; visibility return reacquires it. A generation check immediately releases stale grants. Denial/unsupported browsers do not affect practice.
+
+Mobile operating systems can suspend pages, audio, and timers. Wake lock cannot guarantee background execution; monotonic clock behavior across device sleep varies by platform. Foreground use remains the intended workflow. Hard closing the page ends in-memory execution; sessions do not automatically resume across a reload.
+
+New service workers wait for user activation. During practice the update notice explains deferral and hides **Update app**. The activation handler also checks the live engine state before proceeding. Completion or Stop restores the button.
+
+## Pages and offline
+
+Live: <https://smithzach648.github.io/Breathwork--Buddy/>.
+
+`.github/workflows/pages.yml` runs locked install, type checks, tests, production build, and artifact validation on pushes to `breathwork-buddy-2`, then deploys through GitHub Actions/Pages. It never writes/merges `main`. Pages uses Actions as its source and the environment permits the modernization branch.
+
+Vite base, manifest identity/start URL/scope, and worker scope are `/Breathwork--Buddy/`. The worker precaches shell, icons, manifest, and all 15 voice/breath files. Navigation falls back to the project-path index. Large ambient MP3s are deployed but excluded from the practice cache. Allow initial installation to finish, then reload once under the worker before testing offline.
+
+Production browser validation covers every preset's start/transition/Stop/restart, offline reload and practice, decoding all cached recordings with HTTP cache disabled, saved History, mobile overflow, and absence of external requests/page errors. An isolated test-only clock build exercises full Hormesis flows and update protection; its debug controls and shortened execution are never part of `dist` or Pages.
+
+## Phone review and next boundary
+
+Check Chrome/Android and Safari/iOS installation, airplane-mode cold relaunch, audible phase/countdown timing, early release, rapid Stop/restart, background return, wake lock, volume persistence, History, large text, screen-reader stage announcements, landscape, and an update during practice. Listen specifically to two- and three-second breaths: dedicated short recordings are recommended only if the truncation sounds abrupt or unnatural. Check the two-second recovery phrase for clarity too.
+
+Phase 3 remains deferred. Recommended next scope is phone feedback first, then simple local journal/reflection and carefully designed routine composition. Legacy migration should have a backup/preview and idempotent validation before any data writes. No routine builder, journal editor, advanced analytics, AI/TTS, cloud/backend, notifications, haptics, native packaging, or ambience mixer is implemented here.

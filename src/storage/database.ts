@@ -13,6 +13,11 @@ export class BuddyDatabase extends Dexie {
     journal!: Table<JournalEntry, string>;
     history!: Table<SessionResult, string>;
     migrations!: Table<MigrationMetadata, string>;
-    constructor(name = 'breathwork-buddy-v2') { super(name); this.version(1).stores({ preferences: 'id', routines: 'id,updatedAt', journal: 'id,createdAt,sessionId', history: 'id,startedAt,routineId', migrations: 'id' }); }
+    constructor(name = 'breathwork-buddy-v2') {
+        super(name);
+        this.version(1).stores({ preferences: 'id', routines: 'id,updatedAt', journal: 'id,createdAt,sessionId', history: 'id,startedAt,routineId', migrations: 'id' });
+        // Version 1 remains intact. New index only; existing rows and preferences are preserved.
+        this.version(2).stores({ history: 'id,startedAt,routineId,outcome' });
+    }
 }
 export const database = new BuddyDatabase();

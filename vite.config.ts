@@ -27,7 +27,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png}'],
+        globPatterns: ['**/*.{js,css,html,png}', 'audio/voice/*.mp3', 'audio/breath/*.mp3'],
         cleanupOutdatedCaches: true,
         navigateFallback: `${base}index.html`,
       },

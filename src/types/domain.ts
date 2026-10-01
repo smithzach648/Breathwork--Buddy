@@ -22,14 +22,18 @@ export interface SessionSnapshot {
 export interface SessionResult {
     id: string;
     routineId: string;
+    practiceName?: string;
     startedAt: string;
     endedAt: string;
     plannedDurationSeconds?: number;
     actualDurationSeconds: number;
     outcome: 'completed' | 'cancelled';
     stagesCompleted: number;
+    roundsCompleted?: number;
     retentions?: {
         stageId: string;
         durationSeconds: number;
+        round?: number;
+        outcome?: 'completed' | 'released' | 'cancelled';
     }[];
 }

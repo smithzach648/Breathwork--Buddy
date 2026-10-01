@@ -1,0 +1,124 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import Dexie from 'dexie';
+import type { SessionResult } from '../types/domain';
+import { App } from '../app/App';
+import { PracticeRuntime, canActivateUpdate, type RuntimeAudio } from '../session/runtime';
+import { WakeLockController, type ScreenLock } from '../session/wake-lock';
+import { BuddyDatabase, database } from '../storage/database';
+import { defaultPreferences } from '../settings/preferences';
+import { FakeTiming } from './fake-time';
+const sw = vi.hoisted(() => ({ refresh: true, update: vi.fn() }));
+vi.mock('virtual:pwa-register/react', () => ({ useRegisterSW: () => ({ needRefresh: [sw.refresh], offlineReady: [true], updateServiceWorker: sw.update }) }));
+const flush = () => new Promise(resolve => setTimeout(resolve, 0));
+function fixture(persist?: ConstructorParameters<typeof PracticeRuntime>[4]) {
+    const timing = new FakeTiming();
+    const audio: RuntimeAudio = { enter: vi.fn(), cancelStage: vi.fn(), cancelSession: vi.fn(), unlock: vi.fn(async () => { }), setPreferences: vi.fn(), resynchronize: vi.fn(), diagnostics: () => ({ scheduled: 0, skipped: 0, failures: [], playing: 0, state: 'running' }), subscribe: () => () => { } };
+    const runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), persist);
+    return { timing, audio, runtime };
+}
+describe('runtime and UI', () => {
+    it('protects an active practice from updates, saves completion, and shows real History', async () => {
+        await database.history.clear();
+        const f = fixture();
+        render(<App runtime={f.runtime}/>);
+        fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
+        fireEvent.change(screen.getByLabelText('Duration'), { target: { value: '180' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
+        expect(screen.getByRole('timer')).toHaveAttribute('aria-live', 'off');
+        expect(screen.queryByRole('button', { name: 'Update app' })).not.toBeInTheDocument();
+        expect(screen.getByText(/Finish or stop your practice/)).toBeInTheDocument();
+        act(() => f.timing.advance(180000));
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Completed');
+        await waitFor(() => expect(f.runtime.getState().saving).toBe(false));
+        expect(await database.history.count()).toBe(1);
+        fireEvent.click(screen.getByRole('button', { name: /^History/ }));
+        await screen.findByText('Box 4-4-4-4');
+        expect(screen.getByText(/Completed/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Update app' }));
+        expect(sw.update).toHaveBeenCalledWith(true);
+    });
+    it('releases retention into recovery and cancels a rapid restart', async () => {
+        const save = vi.fn(async (_result: SessionResult) => { });
+        const f = fixture(save);
+        render(<App runtime={f.runtime}/>);
+        fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
+        fireEvent.change(screen.getByLabelText('Practice'), { target: { value: 'hormesis-progressive' } });
+        fireEvent.change(screen.getByLabelText('Breaths per round'), { target: { value: '20' } });
+        expect(screen.getByText(/Never while driving/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
+        expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
+        act(() => f.timing.advance(92000));
+        fireEvent.click(screen.getByRole('button', { name: 'Release retention' }));
+        expect(screen.getAllByText('Recovery inhale').length).toBeGreaterThan(0);
+        act(() => f.timing.advance(2000));
+        expect(f.runtime.engine.getState().stage?.phase).toBe('recovery-hold');
+        fireEvent.click(screen.getByRole('button', { name: 'Stop practice' }));
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cancelled');
+        const first = f.runtime.engine.getState().sessionId;
+        fireEvent.click(screen.getByRole('button', { name: 'Start again' }));
+        expect(f.runtime.engine.getState().sessionId).not.toBe(first);
+        fireEvent.click(screen.getByRole('button', { name: 'Stop practice' }));
+        await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+        expect(save.mock.calls[0][0].retentions![0].durationSeconds).toBe(12);
+    });
+    it('saves volume independently and restores it after remount', async () => {
+        await database.preferences.clear();
+        const f = fixture();
+        const view = render(<App runtime={f.runtime}/>);
+        fireEvent.click(screen.getByRole('button', { name: /^Settings/ }));
+        const slider = await screen.findByLabelText(/Master volume/);
+        await waitFor(() => expect(slider).toBeEnabled());
+        fireEvent.change(slider, { target: { value: '0.24' } });
+        await waitFor(async () => expect((await database.preferences.get('preferences'))?.volumes.master).toBe(0.24));
+        expect(f.audio.setPreferences).toHaveBeenLastCalledWith(expect.objectContaining({ volumes: expect.objectContaining({ master: 0.24 }) }));
+        view.unmount();
+        render(<App runtime={fixture().runtime}/>);
+        fireEvent.click(screen.getByRole('button', { name: /^Settings/ }));
+        await waitFor(() => expect(screen.getByLabelText(/Master volume/)).toHaveValue('0.24'));
+    });
+    it('keeps failed result available for retry without duplicate writes', async () => {
+        const persist = vi.fn().mockRejectedValueOnce(new Error('full')).mockResolvedValue(undefined);
+        const f = fixture(persist);
+        f.runtime.start({ kind: 'patterned', presetId: 'box', durationSeconds: 1 });
+        f.timing.advance(1000);
+        await flush();
+        expect(f.runtime.getState().saveError).toMatch(/could not be saved/);
+        f.runtime.engine.reconcile();
+        expect(persist).toHaveBeenCalledTimes(1);
+        f.runtime.retrySaving();
+        await flush();
+        expect(persist).toHaveBeenCalledTimes(2);
+        expect(f.runtime.getState().saveError).toBe('');
+        expect(persist.mock.calls[0][0].id).toBe(persist.mock.calls[1][0].id);
+    });
+    it('allows update activation only outside running state', () => { expect(canActivateUpdate('running')).toBe(false); for (const s of ['idle', 'completed', 'cancelled'] as const)
+        expect(canActivateUpdate(s)).toBe(true); });
+});
+describe('wake lock lifecycle', () => {
+    const lock = (): ScreenLock => ({ released: false, release: vi.fn(async () => { }), addEventListener: vi.fn() });
+    it('releases a late grant after Stop', async () => { let resolve!: (l: ScreenLock) => void; const request = vi.fn(() => new Promise<ScreenLock>(r => { resolve = r; })); const wake = new WakeLockController(request, () => true); wake.setSession('one'); wake.setSession(null); const stale = lock(); resolve(stale); await flush(); expect(stale.release).toHaveBeenCalledOnce(); });
+    it('releases on hiding and reacquires only for the active session', async () => { let visible = true; const a = lock(), b = lock(); const request = vi.fn().mockResolvedValueOnce(a).mockResolvedValueOnce(b); const wake = new WakeLockController(request, () => visible); wake.setSession('one'); await flush(); visible = false; wake.visibilityChanged(); expect(a.release).toHaveBeenCalledOnce(); visible = true; wake.visibilityChanged(); await flush(); expect(request).toHaveBeenCalledTimes(2); wake.setSession(null); expect(b.release).toHaveBeenCalledOnce(); wake.visibilityChanged(); expect(request).toHaveBeenCalledTimes(2); });
+    it('does not let an older session grant replace the new session', async () => { const resolves: ((l: ScreenLock) => void)[] = []; const request = vi.fn(() => new Promise<ScreenLock>(r => resolves.push(r))); const wake = new WakeLockController(request, () => true); wake.setSession('old'); wake.setSession('new'); const old = lock(), current = lock(); resolves[1](current); resolves[0](old); await flush(); expect(old.release).toHaveBeenCalledOnce(); expect(current.release).not.toHaveBeenCalled(); wake.setSession(null); expect(current.release).toHaveBeenCalledOnce(); });
+    it('tolerates unsupported and rejected requests', async () => { new WakeLockController(undefined, () => true).setSession('one'); const wake = new WakeLockController(async () => { throw new Error('denied'); }, () => true); wake.setSession('one'); await flush(); wake.setSession(null); });
+});
+describe('versioned local persistence', () => {
+    it('upgrades real version-1 rows without losing preferences or history', async () => {
+        const name = 'upgrade-' + crypto.randomUUID();
+        const old = new Dexie(name);
+        old.version(1).stores({ preferences: 'id', routines: 'id,updatedAt', journal: 'id,createdAt,sessionId', history: 'id,startedAt,routineId', migrations: 'id' });
+        const prefs = defaultPreferences();
+        prefs.theme = 'dark';
+        await old.table('preferences').put(prefs);
+        const result = { id: 'legacy-result', routineId: 'old', startedAt: '2026-01-01T00:00:00Z', endedAt: '2026-01-01T00:01:00Z', actualDurationSeconds: 60, outcome: 'completed', stagesCompleted: 1 };
+        await old.table('history').put(result);
+        old.close();
+        const upgraded = new BuddyDatabase(name);
+        await upgraded.open();
+        expect(upgraded.verno).toBe(2);
+        expect(await upgraded.preferences.get('preferences')).toEqual(prefs);
+        expect(await upgraded.history.get(result.id)).toEqual(result);
+        expect(upgraded.history.schema.indexes.map(i => i.name)).toContain('outcome');
+        await upgraded.delete();
+    });
+});

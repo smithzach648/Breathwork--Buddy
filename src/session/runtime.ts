@@ -1,0 +1,82 @@
+import { BrowserTiming, type Clock, type Scheduler } from './clock';
+import { createSnapshot, type PracticeConfig } from './config';
+import { DeterministicSessionEngine, type SessionState } from './engine';
+import { BrowserAudio, type AudioDiagnostics } from '../audio/web-audio';
+import { defaultPreferences, type Preferences } from '../settings/preferences';
+import { saveSessionResult } from '../storage/repositories';
+import { WakeLockController } from './wake-lock';
+import type { SessionResult } from '../types/domain';
+import type { SessionAudio } from './audio-port';
+export interface RuntimeAudio extends SessionAudio {
+    unlock(): Promise<void>;
+    setPreferences(p: Preferences): void;
+    resynchronize(): void;
+    diagnostics(): AudioDiagnostics;
+    subscribe(listener: () => void): () => void;
+}
+export interface RuntimeState {
+    session: SessionState;
+    audio: AudioDiagnostics;
+    saveError: string;
+    saving: boolean;
+    historyVersion: number;
+}
+export function canActivateUpdate(status: SessionState['status']) { return status !== 'running'; }
+export class PracticeRuntime {
+    readonly engine: DeterministicSessionEngine;
+    private listeners = new Set<() => void>();
+    private seen = new Set<string>();
+    private pending = new Set<string>();
+    private unsaved = new Map<string, SessionResult>();
+    private state: RuntimeState;
+    constructor(clock: Clock, scheduler: Scheduler, readonly audio: RuntimeAudio, private wake: WakeLockController, private persist: (result: SessionResult) => Promise<unknown> = saveSessionResult) {
+        this.engine = new DeterministicSessionEngine(clock, scheduler, audio);
+        this.state = { session: this.engine.getState(), audio: audio.diagnostics(), saveError: '', saving: false, historyVersion: 0 };
+        this.engine.subscribe(() => {
+            const session = this.engine.getState();
+            this.wake.setSession(session.status === 'running' ? session.sessionId! : null);
+            this.publish();
+            if (session.result && !this.seen.has(session.result.id))
+                void this.save(session.result);
+        });
+        audio.subscribe(() => this.publish());
+    }
+    getState = () => this.state;
+    subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+    private publish() { this.state = { ...this.state, session: this.engine.getState(), audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
+    start(config: PracticeConfig) {
+        const snapshot = createSnapshot(config);
+        void this.audio.unlock();
+        this.engine.start(snapshot);
+    }
+    preferencesChanged(p: Preferences) { this.audio.setPreferences(p); }
+    visibilityChanged(visible: boolean) { this.audio.resynchronize(); this.engine.setVisible(visible); this.wake.visibilityChanged(); }
+    private async save(result: SessionResult) {
+        if (this.pending.has(result.id))
+            return;
+        this.seen.add(result.id);
+        this.pending.add(result.id);
+        this.publish();
+        try {
+            await this.persist(structuredClone(result));
+            this.unsaved.delete(result.id);
+            this.state = { ...this.state, historyVersion: this.state.historyVersion + 1, saveError: this.unsaved.size ? 'Some session results could not be saved.' : '' };
+        }
+        catch {
+            this.unsaved.set(result.id, result);
+            this.state = { ...this.state, saveError: 'Your session result could not be saved on this device.' };
+        }
+        finally {
+            this.pending.delete(result.id);
+            this.publish();
+        }
+    }
+    retrySaving() { for (const result of this.unsaved.values())
+        void this.save(result); }
+}
+export function createBrowserRuntime() {
+    const timing = new BrowserTiming();
+    const audio = new BrowserAudio(timing, defaultPreferences());
+    const wake = new WakeLockController(typeof navigator !== 'undefined' && 'wakeLock' in navigator ? () => navigator.wakeLock.request('screen') : undefined, () => document.visibilityState === 'visible');
+    return new PracticeRuntime(timing, timing, audio, wake);
+}
