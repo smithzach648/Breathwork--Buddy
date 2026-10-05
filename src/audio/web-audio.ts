@@ -7,6 +7,7 @@ interface Track {
     source: AudioBufferSourceNode;
     gain: GainNode;
     scope: StageAudio;
+    continuesInto?: AudioCue['continuesInto'];
 }
 export interface AudioDiagnostics {
     scheduled: number;
@@ -52,7 +53,7 @@ export class BrowserAudio implements SessionAudio {
                         this.mapClock();
                         const scope = this.active?.scope;
                         if (scope)
-                            this.enter({ ...scope, resuming: true });
+                            this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
                     }
                     this.notify();
                 });
@@ -61,7 +62,9 @@ export class BrowserAudio implements SessionAudio {
             this.mapClock();
             const scope = this.active?.scope;
             if (scope)
-                this.enter(scope);
+                // Initial resume also emits statechange, which marks the scope as resuming.
+                // A newly started stage still needs its entry cues; later resumes skip them.
+                this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
             void Promise.all(audioCatalog.filter(a => a.category === 'voice' || a.category === 'breath').map(a => this.load(a.id)));
         }
         catch {
@@ -69,13 +72,18 @@ export class BrowserAudio implements SessionAudio {
             this.notify();
         }
     }
-    private mapClock() { if (this.context)
-        this.offset = this.context.currentTime - this.clock.now() / 1000; }
-    setPreferences(preferences: Preferences) { this.preferences = structuredClone(preferences); for (const bus of ['master', 'voice', 'breath'] as const) {
-        const node = this.buses[bus];
-        if (node && this.context)
-            node.gain.setTargetAtTime(preferences.volumes[bus], this.context.currentTime, 0.015);
-    } }
+    private mapClock() {
+        if (this.context)
+            this.offset = this.context.currentTime - this.clock.now() / 1000;
+    }
+    setPreferences(preferences: Preferences) {
+        this.preferences = structuredClone(preferences);
+        for (const bus of ['master', 'voice', 'breath'] as const) {
+            const node = this.buses[bus];
+            if (node && this.context)
+                node.gain.setTargetAtTime(preferences.volumes[bus], this.context.currentTime, 0.015);
+        }
+    }
     load(id: string): Promise<AudioBuffer | undefined> {
         const existing = this.loads.get(id);
         if (existing)
@@ -102,7 +110,7 @@ export class BrowserAudio implements SessionAudio {
         return loading;
     }
     enter(scope: StageAudio) {
-        this.stopTracks();
+        this.stopTracks(track => !(track.scope.sessionId === scope.sessionId && track.continuesInto === scope.stage.phase && track.scope.deadline === scope.start));
         const epoch = ++this.epoch;
         this.active = { scope, epoch };
         if (!this.context || this.context.state !== 'running')
@@ -143,7 +151,7 @@ export class BrowserAudio implements SessionAudio {
             gain.gain.linearRampToValueAtTime(1, when + Math.min(0.02, fade));
             gain.gain.setValueAtTime(1, when + duration - fade);
             gain.gain.linearRampToValueAtTime(0, when + duration);
-            const track: Track = { source, gain, scope };
+            const track: Track = { source, gain, scope, continuesInto: cue.continuesInto };
             this.tracks.add(track);
             source.onended = () => { this.tracks.delete(track); source.disconnect(); gain.disconnect(); this.notify(); };
             source.start(when, offset, duration);
@@ -156,9 +164,11 @@ export class BrowserAudio implements SessionAudio {
             this.notify();
         }
     }
-    private stopTracks() {
+    private stopTracks(shouldStop: (track: Track) => boolean = () => true) {
         const context = this.context;
         for (const track of this.tracks) {
+            if (!shouldStop(track))
+                continue;
             try {
                 if (context) {
                     track.gain.gain.cancelScheduledValues(context.currentTime);
@@ -170,13 +180,25 @@ export class BrowserAudio implements SessionAudio {
             catch { /* Already ended. */ }
             track.source.disconnect();
             track.gain.disconnect();
+            this.tracks.delete(track);
         }
-        this.tracks.clear();
     }
-    cancelStage(stageId: string) { if (this.active?.scope.stageId !== stageId)
-        return; this.epoch++; this.active = undefined; this.stopTracks(); this.notify(); }
-    cancelSession(sessionId: string) { if (this.active?.scope.sessionId !== sessionId)
-        return; this.epoch++; this.active = undefined; this.stopTracks(); this.notify(); }
+    cancelStage(stageId: string) {
+        if (this.active?.scope.stageId !== stageId)
+            return;
+        this.epoch++;
+        this.active = undefined;
+        this.stopTracks(track => !(track.scope.stageId === stageId && track.continuesInto));
+        this.notify();
+    }
+    cancelSession(sessionId: string) {
+        if (this.active?.scope.sessionId === sessionId) {
+            this.epoch++;
+            this.active = undefined;
+        }
+        this.stopTracks(track => track.scope.sessionId === sessionId);
+        this.notify();
+    }
     /** Visibility or audio suspension changes the clock mapping; engine truth does not pause. */
     resynchronize() { this.mapClock(); }
 }

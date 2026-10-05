@@ -37,10 +37,12 @@ export class DeterministicSessionEngine {
     getState = () => this.state;
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify() { this.listeners.forEach(listener => listener()); }
-    private sound(action: () => void) { try {
-        action();
+    private sound(action: () => void) {
+        try {
+            action();
+        }
+        catch { /* Audio cannot affect session truth. */ }
     }
-    catch { /* Audio cannot affect session truth. */ } }
     private stageToken() { return `${this.state.sessionId}/stage-${this.index}`; }
     start(input: PracticeSnapshot) {
         if (this.state.status === 'running')
@@ -64,18 +66,23 @@ export class DeterministicSessionEngine {
         this.state = Object.freeze({ ...this.state, stageId: this.stageToken(), stage, stageStart: this.stageStart, deadline: this.deadline, remainingMs: Math.max(0, this.deadline - now), elapsedMs: Math.max(0, now - this.startTime), stagesCompleted: this.stagesCompleted, roundsCompleted: this.roundsCompleted, releaseAvailable: stage.phase === 'retention' });
         this.notify();
     }
-    private enterAudio(resuming = false) { if (this.audioEnabled) {
-        const { sessionId, stageId, stage } = this.state;
-        this.sound(() => this.audio.enter({ sessionId: sessionId!, stageId: stageId!, stage: stage!, start: this.stageStart, deadline: this.deadline, resuming }));
-    } }
+    private enterAudio(resuming = false) {
+        if (this.audioEnabled) {
+            const { sessionId, stageId, stage } = this.state;
+            this.sound(() => this.audio.enter({ sessionId: sessionId!, stageId: stageId!, stage: stage!, start: this.stageStart, deadline: this.deadline, resuming }));
+        }
+    }
     private arm() {
         this.cancelWakeup?.();
         if (this.state.status !== 'running')
             return;
         const generation = this.generation;
         const stageId = this.state.stageId;
-        this.cancelWakeup = this.scheduler.at(Math.min(this.deadline, this.clock.now() + 100), () => { if (generation !== this.generation || stageId !== this.state.stageId || this.state.status !== 'running')
-            return; this.reconcile(); });
+        this.cancelWakeup = this.scheduler.at(Math.min(this.deadline, this.clock.now() + 100), () => {
+            if (generation !== this.generation || stageId !== this.state.stageId || this.state.status !== 'running')
+                return;
+            this.reconcile();
+        });
     }
     private finishStage(end: number, outcome: 'completed' | 'released' | 'cancelled' = 'completed') {
         const stage = this.state.snapshot!.stages[this.index];
@@ -83,7 +90,7 @@ export class DeterministicSessionEngine {
             this.retentions.push({ stageId: this.stageToken(), round: stage.round, durationSeconds: Math.max(0, end - this.stageStart) / 1000, outcome });
         if (outcome !== 'cancelled') {
             this.stagesCompleted++;
-            if (stage.phase === 'recovery-hold')
+            if (stage.phase === 'round-settle')
                 this.roundsCompleted++;
         }
     }
@@ -127,8 +134,14 @@ export class DeterministicSessionEngine {
         this.enterAudio();
         this.arm();
     }
-    stop() { this.reconcile(); if (this.state.status !== 'running')
-        return; const now = this.clock.now(); this.finishStage(now, 'cancelled'); this.finish('cancelled', now); }
+    stop() {
+        this.reconcile();
+        if (this.state.status !== 'running')
+            return;
+        const now = this.clock.now();
+        this.finishStage(now, 'cancelled');
+        this.finish('cancelled', now);
+    }
     private finish(outcome: 'completed' | 'cancelled', end: number) {
         const sessionId = this.state.sessionId!;
         const snapshot = this.state.snapshot!;
@@ -139,9 +152,19 @@ export class DeterministicSessionEngine {
         this.state = deepFreeze({ ...this.state, status: outcome, remainingMs: 0, elapsedMs: Math.max(0, end - this.startTime), stagesCompleted: this.stagesCompleted, roundsCompleted: this.roundsCompleted, releaseAvailable: false, result });
         this.notify();
     }
-    setVisible(visible: boolean) { const wasVisible = this.audioEnabled; this.audioEnabled = visible; if (!visible && this.state.sessionId)
-        this.sound(() => this.audio.cancelSession(this.state.sessionId!)); this.reconcile(); if (visible && !wasVisible && this.state.status === 'running')
-        this.enterAudio(true); }
-    reset() { if (this.state.status === 'running')
-        throw new Error('Cannot reset active practice.'); this.state = idle; this.notify(); }
+    setVisible(visible: boolean) {
+        const wasVisible = this.audioEnabled;
+        this.audioEnabled = visible;
+        if (!visible && this.state.sessionId)
+            this.sound(() => this.audio.cancelSession(this.state.sessionId!));
+        this.reconcile();
+        if (visible && !wasVisible && this.state.status === 'running')
+            this.enterAudio(true);
+    }
+    reset() {
+        if (this.state.status === 'running')
+            throw new Error('Cannot reset active practice.');
+        this.state = idle;
+        this.notify();
+    }
 }

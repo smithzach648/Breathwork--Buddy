@@ -28,7 +28,7 @@ for (const path of shellPaths) {
 assert.ok(worker.includes(`${base}index.html`), 'Offline navigation fallback must use project path');
 assert.ok(worker.includes('precacheAndRoute'), 'Shell must be service-worker precached');
 for(const category of ['voice','breath']){
-  const files=(await readdir(`dist/audio/${category}`)).filter(file=>file.endsWith('.mp3'));
+  const files=(await readdir(`dist/audio/${category}`)).filter(file=>/\.(mp3|wav)$/i.test(file));
   assert.ok(files.length>0,`Real ${category} assets must be published`);
   for(const file of files)assert.ok(worker.includes(`audio/${category}/${file}`),`Practice audio must be precached: ${file}`);
 }

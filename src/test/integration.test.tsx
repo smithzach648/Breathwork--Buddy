@@ -28,7 +28,7 @@ describe('runtime and UI', () => {
         expect(screen.getByRole('timer')).toHaveAttribute('aria-live', 'off');
         expect(screen.queryByRole('button', { name: 'Update app' })).not.toBeInTheDocument();
         expect(screen.getByText(/Finish or stop your practice/)).toBeInTheDocument();
-        act(() => f.timing.advance(180000));
+        act(() => f.timing.advance(193000));
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Completed');
         await waitFor(() => expect(f.runtime.getState().saving).toBe(false));
         expect(await database.history.count()).toBe(1);
@@ -48,10 +48,10 @@ describe('runtime and UI', () => {
         expect(screen.getByText(/Never while driving/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
         expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
-        act(() => f.timing.advance(92000));
+        act(() => f.timing.advance(108326));
         fireEvent.click(screen.getByRole('button', { name: 'Release retention' }));
         expect(screen.getAllByText('Recovery inhale').length).toBeGreaterThan(0);
-        act(() => f.timing.advance(2000));
+        act(() => f.timing.advance(4000));
         expect(f.runtime.engine.getState().stage?.phase).toBe('recovery-hold');
         fireEvent.click(screen.getByRole('button', { name: 'Stop practice' }));
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cancelled');
@@ -81,7 +81,7 @@ describe('runtime and UI', () => {
         const persist = vi.fn().mockRejectedValueOnce(new Error('full')).mockResolvedValue(undefined);
         const f = fixture(persist);
         f.runtime.start({ kind: 'patterned', presetId: 'box', durationSeconds: 1 });
-        f.timing.advance(1000);
+        f.timing.advance(14000);
         await flush();
         expect(f.runtime.getState().saveError).toMatch(/could not be saved/);
         f.runtime.engine.reconcile();
@@ -92,8 +92,11 @@ describe('runtime and UI', () => {
         expect(f.runtime.getState().saveError).toBe('');
         expect(persist.mock.calls[0][0].id).toBe(persist.mock.calls[1][0].id);
     });
-    it('allows update activation only outside running state', () => { expect(canActivateUpdate('running')).toBe(false); for (const s of ['idle', 'completed', 'cancelled'] as const)
-        expect(canActivateUpdate(s)).toBe(true); });
+    it('allows update activation only outside running state', () => {
+        expect(canActivateUpdate('running')).toBe(false);
+        for (const s of ['idle', 'completed', 'cancelled'] as const)
+            expect(canActivateUpdate(s)).toBe(true);
+    });
 });
 describe('wake lock lifecycle', () => {
     const lock = (): ScreenLock => ({ released: false, release: vi.fn(async () => { }), addEventListener: vi.fn() });

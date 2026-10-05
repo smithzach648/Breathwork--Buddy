@@ -1,6 +1,6 @@
 # Breathwork Buddy 2.0
 
-A personal, local-first breathwork PWA. Phase 2 adds guided practice and recent session history to the Phase 1 shell. No accounts, runtime cloud services, external fonts, breath animation, or gamification.
+A personal, local-first breathwork PWA. Phase 2.1 polishes preparation, round boundaries, and recovery using the user's edited local recordings. The Phase 2 deterministic engine and recent History remain intact. No accounts, runtime cloud services, external fonts, breath animation, or gamification.
 
 The modernization branch is `breathwork-buddy-2`. Preserve legacy `main` at `ea409acd59ecb440530d9c4938139720b7aecada`; do not merge or change it during this phased build.
 
@@ -29,9 +29,11 @@ Open `/Breathwork--Buddy/`. Production service workers are disabled in the devel
 | Calm | Inhale 4 → hold in 4 → exhale 6 → hold out 2 |
 | Coherent | Inhale 6 → exhale 6 |
 
-Patterned sessions offer 3, 5, or 10 minutes, defaulting to 5. Zero stages are omitted and the final stage is clipped at the total deadline.
+Every preset starts with Prepare: welcome voice over a 4-second inhale, a 6-second exhale without the normal In/Out voice cues, then 3 seconds of silence. Patterned sessions then offer 3, 5, or 10 minutes of repeating breathing, defaulting to 5. These selections exclude the 13-second preparation. Zero stages are omitted and the final stage is clipped at the breathing deadline.
 
-Hormesis offers 2- or 3-second inhale/exhale intervals; 20, 30, or 40 breaths per round; and three retentions of either 60/60/60 or 60/90/90 seconds. Defaults are 2-second intervals, 30 breaths, and a 15-second recovery hold. Recovery is always a 2-second inhale followed by a 10/15/20-second hold. The legacy extended final breath is intentionally omitted: every breathing cycle uses the selected interval.
+Hormesis offers 2- or 3-second inhale/exhale intervals; 20, 30, or 40 breaths per round; and three retentions of either 60/60/60 or 60/90/90 seconds. Defaults remain 2-second intervals and 30 breaths. After Prepare, each round has a spoken announcement followed by a deterministic 400 ms margin before rapid breathing. Round windows are 3.326 / 2.046 / 2.203 seconds, computed from decoded clip lengths rounded up to milliseconds plus the margin. The final cue says **Final round**.
+
+Recovery after natural retention or Release is always **4-second inhale → 15-second hold → 6-second exhale → 3-second silent settle**. The guided hold is now fixed at 15 seconds; the 10/20 selector was removed to match the spoken instruction. New inhale/hold and exhale instructions overlap their breath sources. Recovery hold has no redundant generic Hold cue. The full recovery and quiet settle also close the final round, with no extra announcement. The legacy extended final breath remains omitted.
 
 **Release retention** records actual elapsed hold time, cancels its countdown/deadline, and starts recovery immediately. **Stop practice** saves a cancelled result; **Start again** creates a fresh session. Hormesis includes a concise seated/lying-down safety note. Practice should never occur while driving or in/near water.
 
@@ -46,6 +48,8 @@ Hormesis offers 2- or 3-second inhale/exhale intervals; 20, 30, or 40 breaths pe
 - Engine milliseconds map to AudioContext seconds using an offset measured at initialization/resume. Native sources schedule against mapped absolute times. Audio events never advance the engine.
 - Every stage entry has an audio epoch plus session/stage identity. Late loads cannot attach to an old scope. Cues more than 250 ms overdue are dropped. Missing/decode-failed assets are optional; timing continues.
 - Retention schedules five/four/three/two/one at deadline minus 5/4/3/2/1 seconds. Release and Stop cancel all remaining sources. Breath sources use a short attack and up to a 60 ms end fade, bounded by the stage deadline. Stop/release immediately mute and stop obsolete sources.
+- Preparation, announcement, recovery exhale, and settle are explicit deterministic stages. Announcement metadata lives in `src/audio/voice-metadata.ts`; loading/playback completion never controls stage timing. No leading-silence offsets are added.
+- The recovery instruction is 4.989 seconds long. Its final ~0.989 seconds may finish into the adjacent quiet recovery hold using an explicit cue continuation. Only the same session and exact adjacent hold boundary can retain it. Other transitions, Stop, hiding, or restart cancel it. The inhale/hold remain exactly 4/15 seconds.
 
 ## Local audio
 
@@ -53,15 +57,22 @@ All filenames are preserved. URLs encode each path segment and use Vite's projec
 
 | Logical ID | Actual filename |
 | --- | --- |
-| `voice.in`, `voice.out` | `breath-in.mp3`, `breath-out.mp3` |
-| `voice.hold60`, `voice.hold90` | `60 second hold.mp3`, `90 second hold.mp3` |
-| `voice.recoveryBreath`, `voice.hold` | `Recovery Breath.mp3`, `Hold.mp3` |
-| `voice.one` through `voice.five` | `count-1.mp3` through `count-5.mp3` |
-| `breath.in4`, `breath.in6` | `Inhale 4 second.mp3`, `Inhale 6 second.mp3` |
-| `breath.out4`, `breath.out8` | `Exhale 4 seconds.mp3`, `Exhale 8 seconds.mp3` |
+| `voice.in`, `voice.out` | `voice.breath-in.wav`, `voice.breath-out.wav` |
+| `voice.hold60`, `voice.hold90` | `voice.60 second hold.wav`, `voice.90 second hold.wav` |
+| `voice.hold` | `voice.Hold.wav` |
+| `voice.one` through `voice.five` | `voice.count-1.wav` through `voice.count-5.wav` |
+| `voice.prepare` | `voice.Prepare.mp3` — 3.474286 seconds |
+| `voice.round1`, `voice.round2` | `voice.Round 1.mp3` — 2.925714 s; `voice.Round 2.mp3` — 1.645714 s |
+| `voice.finalRound` | `voice.Final round.mp3` — 1.802449 seconds |
+| `voice.recoveryInhaleHold15` | `voice.Recovery breath inhale 15 second hold.mp3` — 4.989388 seconds |
+| `voice.recoveryExhale` | `voice.Recovery breath exhale.mp3` — 3.239184 seconds |
+| `breath.in4`, `breath.in6` | `Inhale 4 second.wav` — 3.91 s; `Inhale 6 second.wav` — 5.87 s |
+| `breath.out4`, `breath.out8` | `Exhale 4 seconds.wav` — 3.91 s; `Exhale 8 seconds.wav` — 7.87 s |
 | `ambience.floating`, `ambience.homeAgain` | `Floating.mp3`, `Home Again.mp3` |
 
 There is no six-second exhale recording. The user approved the four-second file for four-second phases and the eight-second file faded at six seconds for six-second phases. Hormesis uses the four-second sources cut/faded at two or three seconds. Samples never loop inside a phase. The physical file duration never sets practice timing.
+
+Phase 2 MP3s were replaced by the user-supplied edited WAVs and new prefixed voice filenames. The unused generic Recovery Breath file/ID is retired. The edited four/six/eight-second breath sources are slightly shorter than their nominal phases; this does not change deadlines. Decoded-buffer caching and offline precaching support both WAV and MP3.
 
 Both user-supplied ambient tracks are tracked and published with explicit user authorization. They are catalogued for future use, excluded from automatic preload/precache, and have no playback/mixer controls in Phase 2. Voice/breath files are all precached. Master/Voice/Breath sliders update independently during a running session and persist locally; future Ambience/Signals preferences remain preserved.
 
@@ -70,6 +81,8 @@ Both user-supplied ambient tracks are tracked and published with explicit user a
 Dexie database `breathwork-buddy-v2` preserves the original version-1 tables: preferences, routines, journal, history, migrations. Explicit version 2 adds the history `outcome` index. Existing rows and settings survive the upgrade; added result fields are optional for old rows.
 
 Every completed/cancelled practice writes an idempotent result containing preset/name, timestamps, planned/actual duration, completed stages, and Hormesis rounds/actual retentions with completed/released/cancelled outcome. History shows the 30 most recent results. Failed writes remain available for explicit retry while the page remains open; closing before a write finishes cannot guarantee persistence. No legacy import occurs. `localStorage["breathwork_data"]` is only checked for presence and remains untouched.
+
+Actual elapsed duration includes everything from Start through completion/cancellation, including Prepare and transitions. Patterned planned duration remains the selected 180/300/600 seconds; completed actual duration is 193/313/613 seconds. Hormesis planned duration includes all compiled stages. Completed stage count includes all fully finished preparation/announcement/recovery/settle stages; completed rounds increment after recovery settle. No database migration or extra History fields were required.
 
 ## Visibility, wake lock, and updates
 
@@ -87,12 +100,14 @@ Live: <https://smithzach648.github.io/Breathwork--Buddy/>.
 
 `.github/workflows/pages.yml` runs locked install, type checks, tests, production build, and artifact validation on pushes to `breathwork-buddy-2`, then deploys through GitHub Actions/Pages. It never writes/merges `main`. Pages uses Actions as its source and the environment permits the modernization branch.
 
-Vite base, manifest identity/start URL/scope, and worker scope are `/Breathwork--Buddy/`. The worker precaches shell, icons, manifest, and all 15 voice/breath files. Navigation falls back to the project-path index. Large ambient MP3s are deployed but excluded from the practice cache. Allow initial installation to finish, then reload once under the worker before testing offline.
+Vite base, manifest identity/start URL/scope, and worker scope are `/Breathwork--Buddy/`. The worker precaches shell, icons, manifest, and all 20 voice/breath files: 28 entries totaling approximately 9.3 MiB. The edited WAVs increase initial offline download size. Navigation falls back to the project-path index. Large ambient MP3s are deployed but excluded from the practice cache. Allow initial installation to finish, then reload once under the worker before testing offline.
 
 Production browser validation covers every preset's start/transition/Stop/restart, offline reload and practice, decoding all cached recordings with HTTP cache disabled, saved History, mobile overflow, and absence of external requests/page errors. An isolated test-only clock build exercises full Hormesis flows and update protection; its debug controls and shortened execution are never part of `dist` or Pages.
 
+Phase 2.1 adds 25 deterministic flow/reconciliation tests, 6 audio continuation/stale-cue tests, and 2 initial AudioContext resume-order tests: **81 tests total**. The initial resume race is fixed so a fresh Prepare stage keeps its entry cues whichever order Chrome delivers resume/statechange. Later resume still skips overdue entry cues. The real-browser audio review captures preparation, all three announcements, countdown/release, full recovery, and silence at their actual speed, skipping only middle repetitive breaths/retention waiting in a separate harness. Scheduling and capture evidence are automated; subjective listening and physical-phone checks remain a human review.
+
 ## Phone review and next boundary
 
-Check Chrome/Android and Safari/iOS installation, airplane-mode cold relaunch, audible phase/countdown timing, early release, rapid Stop/restart, background return, wake lock, volume persistence, History, large text, screen-reader stage announcements, landscape, and an update during practice. Listen specifically to two- and three-second breaths: dedicated short recordings are recommended only if the truncation sounds abrupt or unnatural. Check the two-second recovery phrase for clarity too.
+Check Chrome/Android and Safari/iOS installation, airplane-mode cold relaunch, preparation rhythm, round announcements before rapid breaths, the full 4/15/6/3 recovery, early release before/during countdown, rapid Stop/restart, background return, wake lock, volume persistence, History, large text, screen-reader stage announcements, landscape, and an update during practice. Review phone speaker and earbuds with Voice/Breath balance. Listen specifically to two- and three-second breaths: dedicated short recordings are recommended only if the truncation sounds abrupt or unnatural. The recovery sentence must finish clearly into the quiet hold without a second Hold instruction. Round onset is about 0.23–0.29 s into the supplied clips; edit those assets further if that feels delayed rather than adding offsets in code.
 
 Phase 3 remains deferred. Recommended next scope is phone feedback first, then simple local journal/reflection and carefully designed routine composition. Legacy migration should have a backup/preview and idempotent validation before any data writes. No routine builder, journal editor, advanced analytics, AI/TTS, cloud/backend, notifications, haptics, native packaging, or ambience mixer is implemented here.
