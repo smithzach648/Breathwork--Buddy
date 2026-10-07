@@ -1,11 +1,9 @@
 import { database } from './database';
 import type { SessionResult } from '../types/domain';
-import { defaultPreferences, validPreferences, type Preferences } from '../settings/preferences';
+import { normalizePreferences, validPreferences, type Preferences } from '../settings/preferences';
 export async function loadPreferences(): Promise<Preferences> {
     const saved = await database.preferences.get('preferences');
-    if (validPreferences(saved))
-        return saved;
-    const defaults = defaultPreferences();
+    const defaults = normalizePreferences(saved);
     await database.preferences.put(defaults);
     return defaults;
 }

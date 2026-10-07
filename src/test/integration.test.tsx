@@ -8,6 +8,7 @@ import { WakeLockController, type ScreenLock } from '../session/wake-lock';
 import { BuddyDatabase, database } from '../storage/database';
 import { defaultPreferences } from '../settings/preferences';
 import { FakeTiming } from './fake-time';
+import type { BackgroundController } from '../media/background';
 const sw = vi.hoisted(() => ({ refresh: true, update: vi.fn() }));
 vi.mock('virtual:pwa-register/react', () => ({ useRegisterSW: () => ({ needRefresh: [sw.refresh], offlineReady: [true], updateServiceWorker: sw.update }) }));
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -18,6 +19,14 @@ function fixture(persist?: ConstructorParameters<typeof PracticeRuntime>[4]) {
     return { timing, audio, runtime };
 }
 describe('runtime and UI', () => {
+    it('native long-media exceptions cannot interrupt deadlines or result saving', async () => {
+        const f = fixture(), fail = () => { throw new Error('Native media unavailable'); }, persist = vi.fn(async () => {});
+        const background = { sync: fail, setPreferences: fail, visibilityChanged: fail } as unknown as BackgroundController;
+        const runtime = new PracticeRuntime(f.timing, f.timing, f.audio, new WakeLockController(undefined, () => true), persist, background);
+        runtime.preferencesChanged(defaultPreferences()); runtime.start({ kind: 'patterned', presetId: 'box', durationSeconds: 1 });
+        runtime.visibilityChanged(false); f.timing.jump(14000); runtime.visibilityChanged(true);
+        expect(runtime.engine.getState().status).toBe('completed'); await flush(); expect(persist).toHaveBeenCalledTimes(1);
+    });
     it('protects an active practice from updates, saves completion, and shows real History', async () => {
         await database.history.clear();
         const f = fixture();
@@ -48,7 +57,7 @@ describe('runtime and UI', () => {
         expect(screen.getByText(/Never while driving/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
         expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
-        act(() => f.timing.advance(108326));
+        act(() => f.timing.advance(110326));
         fireEvent.click(screen.getByRole('button', { name: 'Release retention' }));
         expect(screen.getAllByText('Recovery inhale').length).toBeGreaterThan(0);
         act(() => f.timing.advance(4000));
@@ -76,6 +85,24 @@ describe('runtime and UI', () => {
         render(<App runtime={fixture().runtime}/>);
         fireEvent.click(screen.getByRole('button', { name: /^Settings/ }));
         await waitFor(() => expect(screen.getByLabelText(/Master volume/)).toHaveValue('0.24'));
+    });
+    it('persists guidance/background independently while preserving an active snapshot and deadline', async () => {
+        await database.preferences.clear();
+        const f = fixture(), view = render(<App runtime={f.runtime}/>);
+        fireEvent.click(screen.getByRole('button', { name: /^Settings/ }));
+        await waitFor(() => expect(screen.getByLabelText('Breath sounds')).toBeEnabled());
+        act(() => f.runtime.start({ kind: 'patterned', presetId: 'box', durationSeconds: 180 }));
+        const before = f.runtime.engine.getState();
+        for (const label of ['Breath sounds', 'Spoken breath cues', 'General voice guidance', 'Lower background during voice guidance']) fireEvent.click(screen.getByLabelText(label));
+        fireEvent.change(screen.getByLabelText('Background volume'), { target: { value: '0.27' } });
+        fireEvent.change(screen.getByLabelText('Background source'), { target: { value: 'ambience.floating' } });
+        fireEvent.change(screen.getByLabelText('Background mode'), { target: { value: 'retention' } });
+        await waitFor(async () => expect((await database.preferences.get('preferences'))?.background.mode).toBe('retention'));
+        expect(f.runtime.engine.getState().snapshot).toBe(before.snapshot); expect(f.runtime.engine.getState().deadline).toBe(before.deadline);
+        view.unmount(); render(<App runtime={fixture().runtime}/>); fireEvent.click(screen.getByRole('button', { name: /^Settings/ }));
+        await waitFor(() => expect(screen.getByLabelText('Background volume')).toHaveValue('0.27'));
+        for (const label of ['Breath sounds', 'Spoken breath cues', 'General voice guidance', 'Lower background during voice guidance']) expect(screen.getByLabelText(label)).not.toBeChecked();
+        expect(screen.getByLabelText('Background source')).toHaveValue('ambience.floating'); expect(screen.getByLabelText('Background mode')).toHaveValue('retention');
     });
     it('keeps failed result available for retry without duplicate writes', async () => {
         const persist = vi.fn().mockRejectedValueOnce(new Error('full')).mockResolvedValue(undefined);
@@ -118,7 +145,7 @@ describe('versioned local persistence', () => {
         old.close();
         const upgraded = new BuddyDatabase(name);
         await upgraded.open();
-        expect(upgraded.verno).toBe(2);
+        expect(upgraded.verno).toBe(3);
         expect(await upgraded.preferences.get('preferences')).toEqual(prefs);
         expect(await upgraded.history.get(result.id)).toEqual(result);
         expect(upgraded.history.schema.indexes.map(i => i.name)).toContain('outcome');

@@ -7,12 +7,14 @@ import { saveSessionResult } from '../storage/repositories';
 import { WakeLockController } from './wake-lock';
 import type { SessionResult } from '../types/domain';
 import type { SessionAudio } from './audio-port';
+import { BackgroundController } from '../media/background';
 export interface RuntimeAudio extends SessionAudio {
     unlock(): Promise<void>;
     setPreferences(p: Preferences): void;
     resynchronize(): void;
     diagnostics(): AudioDiagnostics;
     subscribe(listener: () => void): () => void;
+    voiceActive?(): boolean;
 }
 export interface RuntimeState {
     session: SessionState;
@@ -29,7 +31,7 @@ export class PracticeRuntime {
     private pending = new Set<string>();
     private unsaved = new Map<string, SessionResult>();
     private state: RuntimeState;
-    constructor(clock: Clock, scheduler: Scheduler, readonly audio: RuntimeAudio, private wake: WakeLockController, private persist: (result: SessionResult) => Promise<unknown> = saveSessionResult) {
+    constructor(clock: Clock, scheduler: Scheduler, readonly audio: RuntimeAudio, private wake: WakeLockController, private persist: (result: SessionResult) => Promise<unknown> = saveSessionResult, readonly background?: BackgroundController) {
         this.engine = new DeterministicSessionEngine(clock, scheduler, audio);
         this.state = { session: this.engine.getState(), audio: audio.diagnostics(), saveError: '', saving: false, historyVersion: 0 };
         this.engine.subscribe(() => {
@@ -43,14 +45,15 @@ export class PracticeRuntime {
     }
     getState = () => this.state;
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
-    private publish() { this.state = { ...this.state, session: this.engine.getState(), audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
+    private media(action: () => void) { try { action(); } catch { /* Long-media presentation can never interrupt session truth. */ } }
+    private publish() { const session = this.engine.getState(); this.media(() => { this.background?.sync(session); this.background?.setDucking(this.audio.voiceActive?.() || false); }); this.state = { ...this.state, session, audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
     start(config: PracticeConfig) {
         const snapshot = createSnapshot(config);
         void this.audio.unlock();
         this.engine.start(snapshot);
     }
-    preferencesChanged(p: Preferences) { this.audio.setPreferences(p); }
-    visibilityChanged(visible: boolean) { this.audio.resynchronize(); this.engine.setVisible(visible); this.wake.visibilityChanged(); }
+    preferencesChanged(p: Preferences) { this.audio.setPreferences(p); this.media(() => this.background?.setPreferences(p)); }
+    visibilityChanged(visible: boolean) { this.audio.resynchronize(); this.engine.setVisible(visible); this.media(() => this.background?.visibilityChanged(visible)); this.wake.visibilityChanged(); }
     private async save(result: SessionResult) {
         if (this.pending.has(result.id))
             return;
@@ -78,5 +81,5 @@ export function createBrowserRuntime() {
     const timing = new BrowserTiming();
     const audio = new BrowserAudio(timing, defaultPreferences());
     const wake = new WakeLockController(typeof navigator !== 'undefined' && 'wakeLock' in navigator ? () => navigator.wakeLock.request('screen') : undefined, () => document.visibilityState === 'visible');
-    return new PracticeRuntime(timing, timing, audio, wake);
+    return new PracticeRuntime(timing, timing, audio, wake, saveSessionResult, new BackgroundController());
 }

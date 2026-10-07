@@ -3,11 +3,15 @@ import type { StageAudio, SessionAudio } from '../session/audio-port';
 import type { Preferences } from '../settings/preferences';
 import { assetUrl, resolveAsset, audioCatalog, type AudioBus } from './catalog';
 import { stageCues, type AudioCue } from './cues';
+import { cueEnabled, guidanceCategory } from './guidance';
 interface Track {
     source: AudioBufferSourceNode;
     gain: GainNode;
     scope: StageAudio;
     continuesInto?: AudioCue['continuesInto'];
+    cueId: string;
+    when: number;
+    end: number;
 }
 export interface AudioDiagnostics {
     scheduled: number;
@@ -78,11 +82,13 @@ export class BrowserAudio implements SessionAudio {
     }
     setPreferences(preferences: Preferences) {
         this.preferences = structuredClone(preferences);
+        this.stopTracks(track => !cueEnabled(track.cueId, preferences));
         for (const bus of ['master', 'voice', 'breath'] as const) {
             const node = this.buses[bus];
             if (node && this.context)
                 node.gain.setTargetAtTime(preferences.volumes[bus], this.context.currentTime, 0.015);
         }
+        this.notify();
     }
     load(id: string): Promise<AudioBuffer | undefined> {
         const existing = this.loads.get(id);
@@ -116,6 +122,7 @@ export class BrowserAudio implements SessionAudio {
         if (!this.context || this.context.state !== 'running')
             return;
         for (const cue of stageCues(scope)) {
+            if (!cueEnabled(cue.id, this.preferences)) continue;
             if (scope.resuming && cue.at <= this.clock.now() + 10)
                 continue;
             void this.schedule(cue, scope, epoch);
@@ -125,7 +132,7 @@ export class BrowserAudio implements SessionAudio {
     private async schedule(cue: AudioCue, scope: StageAudio, epoch: number) {
         const buffer = await this.load(cue.id);
         const context = this.context;
-        if (!buffer || !context || context.state !== 'running' || !this.current(scope, epoch))
+        if (!buffer || !context || context.state !== 'running' || !this.current(scope, epoch) || !cueEnabled(cue.id, this.preferences))
             return;
         const now = this.clock.now();
         // Do not replay overdue cues after loading, suspension, reconciliation, or restart.
@@ -151,7 +158,7 @@ export class BrowserAudio implements SessionAudio {
             gain.gain.linearRampToValueAtTime(1, when + Math.min(0.02, fade));
             gain.gain.setValueAtTime(1, when + duration - fade);
             gain.gain.linearRampToValueAtTime(0, when + duration);
-            const track: Track = { source, gain, scope, continuesInto: cue.continuesInto };
+            const track: Track = { source, gain, scope, continuesInto: cue.continuesInto, cueId: cue.id, when, end: when + duration };
             this.tracks.add(track);
             source.onended = () => { this.tracks.delete(track); source.disconnect(); gain.disconnect(); this.notify(); };
             source.start(when, offset, duration);
@@ -201,4 +208,5 @@ export class BrowserAudio implements SessionAudio {
     }
     /** Visibility or audio suspension changes the clock mapping; engine truth does not pause. */
     resynchronize() { this.mapClock(); }
+    voiceActive() { if (!this.preferences.volumes.master || !this.preferences.volumes.voice) return false; const now = this.context?.currentTime ?? -1; return [...this.tracks].some(track => guidanceCategory(track.cueId) !== 'breath-sound' && now >= track.when && now < track.end); }
 }

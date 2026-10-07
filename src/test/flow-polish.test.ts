@@ -125,7 +125,7 @@ describe('visibility reconciliation of new phases', () => {
     it.each([
         [2500, 'prepare-inhale', 1500], [6500, 'prepare-exhale', 3500], [11500, 'prepare-settle', 1500],
         [13500, 'round-announcement', 2826], [17000, 'inhale', 1326],
-        [181500, 'round-settle', 2826], [185000, 'round-announcement', 1372], [187500, 'inhale', 872],
+        [183500, 'round-settle', 2826], [187000, 'round-announcement', 1372], [189500, 'inhale', 872],
     ] as const)('return at %s enters %s without replaying old cues', (at, phase, remaining) => {
         const f = fixture();
         f.engine.setVisible(false);

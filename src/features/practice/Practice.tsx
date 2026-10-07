@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { PracticeRuntime, RuntimeState } from '../../session/runtime';
 import { patterns, type PatternId, type PracticeConfig } from '../../session/config';
 import { formatDuration } from '../../shared/format';
+import { BackgroundControls } from '../../media/MediaSettings';
 export function Practice({ runtime, state, onDone }: {
     runtime: PracticeRuntime;
     state: RuntimeState;
@@ -37,6 +38,8 @@ export function Practice({ runtime, state, onDone }: {
         <button onClick={() => runtime.engine.stop()}>Stop practice</button>
       </div>
       <p className="muted">Elapsed {formatDuration(session.elapsedMs / 1000)}</p>
+      <BackgroundControls controller={runtime.background}/>
+      {session.snapshot!.config.kind !== 'hormesis' && runtime.background?.getMode() === 'retention' && <p className="muted">Retention-only background is unavailable for this practice. Choose Entire practice in Settings to hear background audio.</p>}
       {state.audio.failures.length > 0 && <p className="muted">Some audio is unavailable. Practice timing continues normally.</p>}
     </section>
   </>;
@@ -48,6 +51,7 @@ export function Practice({ runtime, state, onDone }: {
       {session.snapshot!.config.kind === 'hormesis' && <p>Rounds completed: {session.result.roundsCompleted} of {session.snapshot!.config.retentions.length}</p>}
       {!!session.result.retentions?.length && <ul className="retention-results">{session.result.retentions.map(r => <li key={r.stageId}>Round {r.round}: {r.durationSeconds.toFixed(1)} seconds{r.outcome === 'released' ? ' · released early' : r.outcome === 'cancelled' ? ' · cancelled' : ''}</li>)}</ul>}
       <p className="muted">{state.saving ? 'Saving on this device…' : state.saveError ? 'Not yet saved. Retry using the message above.' : 'Saved on this device.'}</p>
+      {session.status === 'completed' && <BackgroundControls controller={runtime.background}/>}
       <div className="practice-actions"><button className="primary" onClick={() => start(session.snapshot!.config)}>Start again</button><button onClick={() => { runtime.engine.reset(); onDone(); }}>Done / Home</button></div>
     </section>
   </>;
@@ -65,6 +69,7 @@ export function Practice({ runtime, state, onDone }: {
         <label htmlFor="interval">Inhale / exhale interval</label><select id="interval" value={interval} onChange={e => setInterval(Number(e.target.value) as 2 | 3)}><option value="2">2 seconds each</option><option value="3">3 seconds each</option></select>
         <label htmlFor="cycles">Breaths per round</label><select id="cycles" value={cycles} onChange={e => setCycles(Number(e.target.value) as 20 | 30 | 40)}>{[20, 30, 40].map(n => <option key={n} value={n}>{n}</option>)}</select>
         <p className="muted">Recovery: inhale 4 seconds, hold 15, exhale 6, then settle for 3.</p>
+        <p className="muted">The final exhale before each retention lasts 4 seconds: exhale fully.</p>
         <p className="muted">Practice seated or lying down somewhere safe. Never while driving or in or near water. Release or stop whenever uncomfortable.</p>
       </>}
       <button className="primary" onClick={() => start()}>Start practice</button>

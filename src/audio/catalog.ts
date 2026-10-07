@@ -18,6 +18,7 @@ export const audioCatalog: readonly AudioAsset[] = [
     asset('voice.hold', 'voice', 'voice.Hold.wav', 1.03),
     ...['one', 'two', 'three', 'four', 'five'].map((name, i) => asset(`voice.${name}`, 'voice', `voice.count-${i + 1}.wav`, [0.79, 0.74, 0.79, 0.86, 0.89][i])),
     asset('voice.prepare', 'voice', 'voice.Prepare.mp3', voiceDurations['voice.prepare']),
+    asset('voice.fullExhale', 'voice', 'voice.Full Exhale.mp3', 2.115918367346939),
     asset('voice.round1', 'voice', 'voice.Round 1.mp3', voiceDurations['voice.round1']),
     asset('voice.round2', 'voice', 'voice.Round 2.mp3', voiceDurations['voice.round2']),
     asset('voice.finalRound', 'voice', 'voice.Final round.mp3', voiceDurations['voice.finalRound']),

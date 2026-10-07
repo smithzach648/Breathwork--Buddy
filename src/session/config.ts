@@ -12,7 +12,7 @@ export type PracticeConfig = {
     retentions: readonly (60 | 90)[];
     recoveryHoldSeconds: 15;
 };
-export type Phase = 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
+export type Phase = 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
 export interface PlannedStage {
     readonly phase: Phase;
     readonly label: string;
@@ -37,7 +37,7 @@ export const patterns: Record<PatternId, {
     box: { name: 'Box 4-4-4-4', seconds: [4, 4, 4, 4] }, '478': { name: '4-7-8', seconds: [4, 7, 8, 0] }, calm: { name: 'Calm 4-4-6-2', seconds: [4, 4, 6, 2] }, coherent: { name: 'Coherent 6-6', seconds: [6, 0, 6, 0] },
 };
 const phases = ['inhale', 'hold-in', 'exhale', 'hold-out'] as const;
-const labels: Record<Phase, string> = { 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
+const labels: Record<Phase, string> = { 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
 export function validateConfig(config: PracticeConfig) {
     if (config.kind === 'patterned') {
         if (!Object.hasOwn(patterns, config.presetId) || !Number.isFinite(config.durationSeconds) || config.durationSeconds <= 0 || config.durationSeconds > 600)
@@ -82,7 +82,7 @@ export function compileStages(config: PracticeConfig): PlannedStage[] {
         stages.push({ phase: 'round-announcement', label: round === 3 ? 'Final round' : `Round ${round}`, durationMs: roundAnnouncementMs[index], round, totalRounds: 3, cycle: 0, totalCycles: config.cycles });
         for (let cycle = 1; cycle <= config.cycles; cycle++) {
             add('inhale', config.intervalSeconds, cycle);
-            add('exhale', config.intervalSeconds, cycle);
+            add(cycle === config.cycles ? 'pre-retention-exhale' : 'exhale', cycle === config.cycles ? 4 : config.intervalSeconds, cycle);
         }
         add('retention', retention, config.cycles);
         add('recovery-inhale', 4, config.cycles);

@@ -46,7 +46,7 @@ export function App({ runtime: providedRuntime }: {
         const visible = () => runtime.visibilityChanged(document.visibilityState === 'visible');
         document.addEventListener('visibilitychange', visible);
         visible();
-        return () => { document.removeEventListener('visibilitychange', visible); runtime.engine.stop(); };
+        return () => { document.removeEventListener('visibilitychange', visible); runtime.engine.stop(); runtime.background?.dispose(); };
     }, [runtime]);
     useEffect(() => {
         const media = matchMedia('(prefers-color-scheme: dark)');
@@ -93,7 +93,7 @@ export function App({ runtime: providedRuntime }: {
       {page === 'Practice' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')}/>}
       {page === 'Journal' && <Journal />}
       {page === 'History' && <History version={practiceState.historyVersion}/>}
-      {page === 'Settings' && <Settings theme={prefs.theme} volumes={prefs.volumes} ready={ready} saving={saving} storageFailed={!!error} legacy={legacy} onThemeChange={changeTheme} onVolumeChange={(bus, value) => saveSettings({ ...latestPrefs.current, volumes: { ...latestPrefs.current.volumes, [bus]: value } })}/>}
+      {page === 'Settings' && <Settings theme={prefs.theme} volumes={prefs.volumes} ready={ready} saving={saving} storageFailed={!!error} legacy={legacy} onThemeChange={changeTheme} onVolumeChange={(bus, value) => saveSettings({ ...latestPrefs.current, volumes: { ...latestPrefs.current.volumes, [bus]: value } })} preferences={prefs} onPreferencesChange={saveSettings} background={runtime.background} running={practiceState.session.status === 'running'}/>}
     </main>
     <Navigation page={page} onNavigate={navigate}/>
   </div>;
