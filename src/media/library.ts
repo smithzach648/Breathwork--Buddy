@@ -74,7 +74,9 @@ export class MediaLibrary {
 export const mediaLibrary = new MediaLibrary();
 export async function storageInfo() {
     const storage = navigator.storage;
-    const estimate = storage?.estimate ? await storage.estimate() : {};
-    const persistent = storage?.persisted ? await storage.persisted() : undefined;
+    let estimate: StorageEstimate = {}, persistent: boolean | undefined;
+    // Optional diagnostics must not hide a working IndexedDB library.
+    try { if (storage?.estimate) estimate = await storage.estimate(); } catch { /* Unavailable estimate. */ }
+    try { if (storage?.persisted) persistent = await storage.persisted(); } catch { /* Unavailable status. */ }
     return { usage: estimate.usage, quota: estimate.quota, persistent };
 }

@@ -8,7 +8,7 @@ import { stageCues } from '../audio/cues';
 import { cueEnabled, guidanceCategory } from '../audio/guidance';
 import { defaultPreferences, normalizePreferences } from '../settings/preferences';
 import { BuddyDatabase } from '../storage/database';
-import { MediaLibrary, mediaError, probeAudio } from '../media/library';
+import { MediaLibrary, mediaError, probeAudio, storageInfo } from '../media/library';
 import { BackgroundController } from '../media/background';
 import { BrowserAudio } from '../audio/web-audio';
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); };
@@ -79,6 +79,10 @@ describe('central guidance categorization', () => {
 describe('private persistent media', () => {
     // fake-indexeddb uses Node structuredClone; use its native Blob/File implementation.
     beforeEach(() => { vi.stubGlobal('Blob', NativeBlob); vi.stubGlobal('File', NativeFile); });
+    it('unavailable storage diagnostics do not prevent library access', async () => {
+        vi.stubGlobal('navigator', { storage: { estimate: async () => { throw new Error('denied'); }, persisted: async () => { throw new Error('unsupported'); } } });
+        await expect(storageInfo()).resolves.toEqual({ usage: undefined, quota: undefined, persistent: undefined });
+    });
     it('validates, stores metadata and Blob, reopens, and deletes without object URLs in storage', async () => {
         const name = `media-${crypto.randomUUID()}`, db = new BuddyDatabase(name), probe = vi.fn(async () => 2.5), lib = new MediaLibrary(db, probe);
         const file = new File([new Uint8Array([1, 2, 3])], 'my-audio.wav', { type: 'audio/wav' });
