@@ -11,12 +11,15 @@ import { History } from '../features/history/History';
 import { Settings } from '../features/settings/Settings';
 import { createBrowserRuntime, canActivateUpdate, type PracticeRuntime } from '../session/runtime';
 import type { Preferences } from '../settings/preferences';
+import { Routines } from '../features/routines/Routines';
+import { routineRepository } from '../routines/repository';
 export function App({ runtime: providedRuntime }: {
     runtime?: PracticeRuntime;
 } = {}) {
     const [runtime] = useState(() => providedRuntime || createBrowserRuntime());
     const practiceState = useSyncExternalStore(runtime.subscribe, runtime.getState);
     const [page, setPage] = useState<Page>('Home');
+    const [routinesOpen, setRoutinesOpen] = useState(false);
     const [prefs, setPrefs] = useState(defaultPreferences);
     const latestPrefs = useRef(prefs);
     const saves = useRef(Promise.resolve());
@@ -46,7 +49,7 @@ export function App({ runtime: providedRuntime }: {
         const visible = () => runtime.visibilityChanged(document.visibilityState === 'visible');
         document.addEventListener('visibilitychange', visible);
         visible();
-        return () => { document.removeEventListener('visibilitychange', visible); runtime.engine.stop(); runtime.background?.dispose(); };
+        return () => { document.removeEventListener('visibilitychange', visible); runtime.cancelStart(); runtime.engine.stop(); runtime.background?.dispose(); };
     }, [runtime]);
     useEffect(() => {
         const media = matchMedia('(prefers-color-scheme: dark)');
@@ -66,12 +69,13 @@ export function App({ runtime: providedRuntime }: {
     }
     function changeTheme(theme: Theme) { saveSettings({ ...latestPrefs.current, theme }); }
     function navigate(destination: Page) {
+        setRoutinesOpen(false);
         setPage(destination);
         document.getElementById('content')?.focus();
         window.scrollTo({ top: 0, behavior: 'instant' });
     }
     async function update() {
-        if (!canActivateUpdate(runtime.engine.getState().status))
+        if (runtime.getState().starting || !canActivateUpdate(runtime.engine.getState().status))
             return;
         try {
             await updateServiceWorker(true);
@@ -79,6 +83,13 @@ export function App({ runtime: providedRuntime }: {
         catch {
             setError('The update could not finish. Please try again when connected.');
         }
+    }
+    async function startRoutine(id: string) {
+        void runtime.audio.unlock();
+        const routine = await routineRepository.read(id);
+        navigate('Practice');
+        try { await runtime.start({ kind: 'routine', routine }); }
+        catch (error) { setError(error instanceof Error ? error.message : 'Routine could not start.'); throw error; }
     }
     return <div className="shell">
     <a className="skip" href="#content">Skip to content</a>
@@ -88,12 +99,14 @@ export function App({ runtime: providedRuntime }: {
     <main id="content" tabIndex={-1}>
       {error && <p role="alert" className="notice">{error}</p>}
       {practiceState.saveError && <div role="alert" className="notice">{practiceState.saveError} <button onClick={() => runtime.retrySaving()}>Retry saving</button></div>}
-      {needRefresh && <div className="notice" role="status">{practiceState.session.status === 'running' ? 'An update is ready. Finish or stop your practice to update.' : <>A new version is ready. <button onClick={() => void update()}>Update app</button></>}</div>}
-      {page === 'Home' && <Home onExplore={() => navigate('Practice')}/>}
-      {page === 'Practice' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')}/>}
+      {needRefresh && <div className="notice" role="status">{practiceState.starting || practiceState.session.status === 'running' ? 'An update is ready. Finish or stop your practice to update.' : <>A new version is ready. <button onClick={() => void update()}>Update app</button></>}</div>}
+      {routinesOpen ? <Routines onStart={startRoutine} onBack={() => navigate('Home')}/> : <>
+      {page === 'Home' && <Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine}/>}
+      {page === 'Practice' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => setRoutinesOpen(true)}/>}
       {page === 'Journal' && <Journal />}
       {page === 'History' && <History version={practiceState.historyVersion}/>}
       {page === 'Settings' && <Settings theme={prefs.theme} volumes={prefs.volumes} ready={ready} saving={saving} storageFailed={!!error} legacy={legacy} onThemeChange={changeTheme} onVolumeChange={(bus, value) => saveSettings({ ...latestPrefs.current, volumes: { ...latestPrefs.current.volumes, [bus]: value } })} preferences={prefs} onPreferencesChange={saveSettings} background={runtime.background} running={practiceState.session.status === 'running'}/>}
+      </>}
     </main>
     <Navigation page={page} onNavigate={navigate}/>
   </div>;

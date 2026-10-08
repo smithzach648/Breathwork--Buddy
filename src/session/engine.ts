@@ -32,6 +32,8 @@ export class DeterministicSessionEngine {
     private stagesCompleted = 0;
     private roundsCompleted = 0;
     private retentions: NonNullable<SessionResult['retentions']> = [];
+    private blockTimes = new Map<string, number>();
+    private completedBlocks = new Set<string>();
     private audioEnabled = true;
     constructor(private clock: Clock, private scheduler: Scheduler, private audio: SessionAudio = silent) { }
     getState = () => this.state;
@@ -53,6 +55,7 @@ export class DeterministicSessionEngine {
         this.stagesCompleted = 0;
         this.roundsCompleted = 0;
         this.retentions = [];
+        this.blockTimes.clear(); this.completedBlocks.clear();
         this.startTime = this.clock.now();
         this.stageStart = this.startTime;
         this.deadline = this.stageStart + snapshot.stages[0].durationMs;
@@ -86,8 +89,12 @@ export class DeterministicSessionEngine {
     }
     private finishStage(end: number, outcome: 'completed' | 'released' | 'cancelled' = 'completed') {
         const stage = this.state.snapshot!.stages[this.index];
+        if (stage.blockId) {
+            this.blockTimes.set(stage.blockId, (this.blockTimes.get(stage.blockId) || 0) + Math.max(0, end - this.stageStart) / 1000);
+            if (outcome !== 'cancelled' && this.state.snapshot!.stages[this.index + 1]?.blockId !== stage.blockId) this.completedBlocks.add(stage.blockId);
+        }
         if (stage.phase === 'retention')
-            this.retentions.push({ stageId: this.stageToken(), round: stage.round, durationSeconds: Math.max(0, end - this.stageStart) / 1000, outcome });
+            this.retentions.push({ stageId: this.stageToken(), ...(stage.blockId ? { blockId: stage.blockId } : {}), round: stage.round, durationSeconds: Math.max(0, end - this.stageStart) / 1000, outcome });
         if (outcome !== 'cancelled') {
             this.stagesCompleted++;
             if (stage.phase === 'round-settle')
@@ -148,7 +155,19 @@ export class DeterministicSessionEngine {
         this.cancelWakeup?.();
         this.cancelWakeup = undefined;
         this.sound(() => this.audio.cancelSession(sessionId));
-        const result: SessionResult = { id: sessionId, routineId: snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
+        const result: SessionResult = { id: sessionId, routineId: snapshot.config.kind === 'routine' ? snapshot.config.routine.id : snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
+        if (snapshot.config.kind === 'routine') {
+            result.routineName = snapshot.name;
+            result.totalBlocks = snapshot.config.routine.stages.length;
+            result.blocksCompleted = this.completedBlocks.size;
+            result.blocks = snapshot.config.routine.stages.map(block => ({
+                id: block.id, name: snapshot.stages.find(stage => stage.blockId === block.id)!.blockName!, kind: block.kind,
+                outcome: this.completedBlocks.has(block.id) ? 'completed' : this.blockTimes.has(block.id) ? 'cancelled' : 'not-started',
+                plannedDurationSeconds: snapshot.stages.filter(stage => stage.blockId === block.id).reduce((sum, stage) => sum + stage.durationMs, 0) / 1000,
+                actualDurationSeconds: this.blockTimes.get(block.id) || 0,
+                retentions: structuredClone(this.retentions.filter(retention => retention.blockId === block.id)),
+            }));
+        }
         this.state = deepFreeze({ ...this.state, status: outcome, remainingMs: 0, elapsedMs: Math.max(0, end - this.startTime), stagesCompleted: this.stagesCompleted, roundsCompleted: this.roundsCompleted, releaseAvailable: false, result });
         this.notify();
     }

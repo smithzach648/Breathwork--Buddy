@@ -3,10 +3,11 @@ import type { PracticeRuntime, RuntimeState } from '../../session/runtime';
 import { patterns, type PatternId, type PracticeConfig } from '../../session/config';
 import { formatDuration } from '../../shared/format';
 import { BackgroundControls } from '../../media/MediaSettings';
-export function Practice({ runtime, state, onDone }: {
+export function Practice({ runtime, state, onDone, onRoutines }: {
     runtime: PracticeRuntime;
     state: RuntimeState;
     onDone: () => void;
+    onRoutines?: () => void;
 }) {
     const [preset, setPreset] = useState<PatternId | 'hormesis-60' | 'hormesis-progressive'>('box');
     const [duration, setDuration] = useState(300);
@@ -15,31 +16,33 @@ export function Practice({ runtime, state, onDone }: {
     const [error, setError] = useState('');
     const session = state.session;
     const hormesis = preset.startsWith('hormesis');
-    function start(config?: PracticeConfig) {
+    async function start(config?: PracticeConfig) {
         try {
-            runtime.start(config || (hormesis ? { kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { kind: 'patterned', presetId: preset as PatternId, durationSeconds: duration }));
+            await runtime.start(config || (hormesis ? { kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { kind: 'patterned', presetId: preset as PatternId, durationSeconds: duration }));
             setError('');
         }
         catch (e) {
             setError(e instanceof Error ? e.message : 'Practice could not start.');
         }
     }
+    if (state.starting) return <><h1>Getting ready</h1><p role="status">Preparing your local audio before practice begins…</p><button onClick={() => runtime.cancelStart()}>Cancel start</button></>;
     if (session.status === 'running')
         return <>
     <p className="eyebrow">YOUR PRACTICE</p><h1>Practice</h1>
     <section className="panel active-practice">
       <p>{session.snapshot!.name}</p>
+      {session.stage?.blockId && <p className="muted">Block {session.stage.blockIndex! + 1} · {session.stage.blockName}</p>}
       <p className="stage-title">{session.stage!.label}</p>
       <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>
-      <p role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{session.snapshot!.config.kind === 'hormesis' && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
-      {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{session.snapshot!.config.kind === 'hormesis' ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
+      <p role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
+      {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
       <div className="practice-actions">
         {session.releaseAvailable && <button className="primary" onClick={() => runtime.engine.releaseRetention()}>Release retention</button>}
         <button onClick={() => runtime.engine.stop()}>Stop practice</button>
       </div>
       <p className="muted">Elapsed {formatDuration(session.elapsedMs / 1000)}</p>
       <BackgroundControls controller={runtime.background}/>
-      {session.snapshot!.config.kind !== 'hormesis' && runtime.background?.getMode() === 'retention' && <p className="muted">Retention-only background is unavailable for this practice. Choose Entire practice in Settings to hear background audio.</p>}
+      {session.snapshot!.config.kind === 'patterned' && runtime.background?.getMode() === 'retention' && <p className="muted">Retention-only background is unavailable for this practice. Choose Entire practice in Settings to hear background audio.</p>}
       {state.audio.failures.length > 0 && <p className="muted">Some audio is unavailable. Practice timing continues normally.</p>}
     </section>
   </>;
@@ -48,6 +51,7 @@ export function Practice({ runtime, state, onDone }: {
     <p className="eyebrow">YOUR PRACTICE</p><h1>{session.status === 'completed' ? 'Completed' : 'Cancelled'}</h1>
     <section className="panel">
       <h2>{session.snapshot!.name}</h2><p>Duration {formatDuration(session.result.actualDurationSeconds)}</p>
+      {session.result.blocks && <><p>{session.result.blocksCompleted} of {session.result.totalBlocks} blocks completed</p><ul>{session.result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}</li>)}</ul></>}
       {session.snapshot!.config.kind === 'hormesis' && <p>Rounds completed: {session.result.roundsCompleted} of {session.snapshot!.config.retentions.length}</p>}
       {!!session.result.retentions?.length && <ul className="retention-results">{session.result.retentions.map(r => <li key={r.stageId}>Round {r.round}: {r.durationSeconds.toFixed(1)} seconds{r.outcome === 'released' ? ' · released early' : r.outcome === 'cancelled' ? ' · cancelled' : ''}</li>)}</ul>}
       <p className="muted">{state.saving ? 'Saving on this device…' : state.saveError ? 'Not yet saved. Retry using the message above.' : 'Saved on this device.'}</p>
@@ -58,6 +62,7 @@ export function Practice({ runtime, state, onDone }: {
     return <>
     <p className="eyebrow">MAKE A LITTLE SPACE</p><h1>Practice</h1>
     <p className="intro">Choose a rhythm. Follow the guidance at a pace that feels comfortable.</p>
+    {onRoutines && <p><button onClick={onRoutines}>My Routines</button></p>}
     {error && <p role="alert" className="notice">{error}</p>}
     <section className="panel practice-config">
       <label htmlFor="preset">Practice</label>

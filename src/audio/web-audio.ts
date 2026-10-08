@@ -28,6 +28,7 @@ export class BrowserAudio implements SessionAudio {
     private active: {
         scope: StageAudio;
         epoch: number;
+        started: boolean;
     } | undefined;
     private epoch = 0;
     private offset = 0;
@@ -35,11 +36,12 @@ export class BrowserAudio implements SessionAudio {
     private skipped = 0;
     private failures = new Set<string>();
     private listeners = new Set<() => void>();
+    private decoded = new Set<string>();
     constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify() { this.listeners.forEach(listener => listener()); }
     diagnostics(): AudioDiagnostics { return { scheduled: this.scheduled, skipped: this.skipped, failures: [...this.failures], playing: this.tracks.size, state: this.context?.state || 'not initialized' }; }
-    /** Call directly in a user gesture. Session Start does not wait for downloads or resume. */
+    /** Call directly in a user gesture; readiness is resolved before the session clock starts. */
     async unlock() {
         try {
             if (!this.context) {
@@ -52,20 +54,20 @@ export class BrowserAudio implements SessionAudio {
                 }
                 this.setPreferences(this.preferences);
                 this.context.addEventListener('statechange', () => {
-                    this.stopTracks();
                     if (this.context?.state === 'running') {
                         this.mapClock();
                         const scope = this.active?.scope;
-                        if (scope)
+                        if (scope && !this.active?.started)
                             this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
                     }
+                    else { this.stopTracks(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
                     this.notify();
                 });
             }
-            await this.context.resume();
+            if (this.context.state !== 'running') await this.context.resume();
             this.mapClock();
             const scope = this.active?.scope;
-            if (scope)
+            if (scope && !this.active?.started)
                 // Initial resume also emits statechange, which marks the scope as resuming.
                 // A newly started stage still needs its entry cues; later resumes skip them.
                 this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
@@ -99,11 +101,19 @@ export class BrowserAudio implements SessionAudio {
             return Promise.resolve(undefined);
         const context = this.context;
         const loading = (async () => {
+            const abort = new AbortController();
+            let timeout: ReturnType<typeof setTimeout> | undefined;
             try {
-                const response = await this.fetcher(assetUrl(asset));
-                if (!response.ok)
-                    throw new Error('Missing file');
-                return await context.decodeAudioData(await response.arrayBuffer());
+                const buffer = await Promise.race([
+                    (async () => {
+                        const response = await this.fetcher(assetUrl(asset), { signal: abort.signal });
+                        if (!response.ok) throw new Error('Missing file');
+                        return context.decodeAudioData(await response.arrayBuffer());
+                    })(),
+                    new Promise<never>((_, reject) => { timeout = setTimeout(() => { abort.abort(); reject(new Error('Audio load timed out')); }, 5000); }),
+                ]);
+                this.decoded.add(id);
+                return buffer;
             }
             catch {
                 this.failures.add(id);
@@ -111,16 +121,19 @@ export class BrowserAudio implements SessionAudio {
                 this.notify();
                 return undefined;
             }
+            finally { if (timeout) clearTimeout(timeout); }
         })();
         this.loads.set(id, loading);
         return loading;
     }
     enter(scope: StageAudio) {
+        if (this.active?.started && this.active.scope.sessionId === scope.sessionId && this.active.scope.stageId === scope.stageId) return;
         this.stopTracks(track => !(track.scope.sessionId === scope.sessionId && track.continuesInto === scope.stage.phase && track.scope.deadline === scope.start));
         const epoch = ++this.epoch;
-        this.active = { scope, epoch };
+        this.active = { scope, epoch, started: false };
         if (!this.context || this.context.state !== 'running')
             return;
+        this.active.started = true;
         for (const cue of stageCues(scope)) {
             if (!cueEnabled(cue.id, this.preferences)) continue;
             if (scope.resuming && cue.at <= this.clock.now() + 10)
@@ -208,5 +221,8 @@ export class BrowserAudio implements SessionAudio {
     }
     /** Visibility or audio suspension changes the clock mapping; engine truth does not pause. */
     resynchronize() { this.mapClock(); }
+    startReady() { return !this.preferences.guidance.generalVoice || this.context?.state === 'running' && (this.decoded.has('voice.prepare') || this.failures.has('voice.prepare')); }
+    async readyForStart() { if (this.preferences.guidance.generalVoice) await this.load('voice.prepare'); }
+    debugState() { return { epoch: this.epoch, context: this.context?.state, generalVoice: this.preferences.guidance.generalVoice, active: this.active ? { ...this.active, scope: { ...this.active.scope } } : null, decoded: [...this.decoded], tracks: [...this.tracks].map(t => ({ cueId: t.cueId, sessionId: t.scope.sessionId, stageId: t.scope.stageId, when: t.when, end: t.end })), now: this.clock.now(), audioNow: this.context?.currentTime }; }
     voiceActive() { if (!this.preferences.volumes.master || !this.preferences.volumes.voice) return false; const now = this.context?.currentTime ?? -1; return [...this.tracks].some(track => guidanceCategory(track.cueId) !== 'breath-sound' && now >= track.when && now < track.end); }
 }

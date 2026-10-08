@@ -24,15 +24,16 @@ function scope(phase: Phase = 'inhale', seconds = 4): StageAudio {
 describe('real audio mappings and deadlines', () => {
     it('first AudioContext statechange must not swallow the Prepare entry cues', async () => {
         const f = nativeFixture();let resume!:()=>void;
-        f.context.resume.mockImplementation(()=>new Promise<void>(resolve=>{resume=()=>{const callback=f.context.addEventListener.mock.calls[0][1] as ()=>void;callback();resolve();};}));
+        f.context.state = 'suspended';
+        f.context.resume.mockImplementation(()=>new Promise<void>(resolve=>{resume=()=>{f.context.state = 'running';const callback=f.context.addEventListener.mock.calls[0][1] as ()=>void;callback();resolve();};}));
         const unlocking=f.audio.unlock();f.audio.enter(scope('prepare-inhale'));resume();await unlocking;await flush();
         expect(f.sources).toHaveLength(2);expect(f.audio.diagnostics().scheduled).toBe(2);
     });
     it('a statechange delivered after unlock preserves the same fresh entry timeline', async()=>{
-        const f=nativeFixture();await f.audio.unlock();f.audio.enter(scope('prepare-inhale'));await flush();
+        const f=nativeFixture();f.context.state='suspended';f.context.resume.mockImplementation(async()=>{f.context.state='running';});await f.audio.unlock();f.audio.enter(scope('prepare-inhale'));await flush();
         const callback=f.context.addEventListener.mock.calls[0][1] as ()=>void;callback();await flush();
-        expect(f.audio.diagnostics().playing).toBe(2);expect(f.sources).toHaveLength(4);
-        expect(f.sources[2].start).toHaveBeenCalledWith(100,0,4);
+        expect(f.audio.diagnostics().playing).toBe(2);expect(f.sources).toHaveLength(2);
+        expect(f.sources[0].start).toHaveBeenCalledWith(100,0,4);
     });
     it('allows the recovery instruction to finish only into the adjacent quiet hold', async () => {
         const f = nativeFixture();
