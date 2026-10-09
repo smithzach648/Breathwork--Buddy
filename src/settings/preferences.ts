@@ -2,6 +2,8 @@ import type { AudioBus } from '../audio/catalog';
 export type Theme = 'system' | 'light' | 'dark';
 export type BackgroundMode = 'off' | 'entire' | 'retention' | 'after';
 export type NoiseColor = 'white' | 'pink' | 'brown';
+export type BinauralMode = 'off' | 'baseline' | 'layered' | 'modulated';
+export interface BinauralPreferences { mode:BinauralMode; level:number }
 export interface MeditationPreferences {
     durationMinutes: number;
     music: boolean;
@@ -10,13 +12,16 @@ export interface MeditationPreferences {
     openingSignal: boolean;
     completionSignal: boolean;
     showTimer: boolean;
+    binaural: BinauralPreferences;
 }
-export const meditationDefaults = (): MeditationPreferences => ({ durationMinutes: 10, music: false, noise: 'off', noiseVolume: .1, openingSignal: true, completionSignal: true, showTimer: true });
-export function validMeditation(value: unknown): value is MeditationPreferences {
+export const meditationDefaults = (): MeditationPreferences => ({ durationMinutes: 10, music: false, noise: 'brown', noiseVolume: .1, openingSignal: true, completionSignal: true, showTimer: true, binaural:{mode:'off',level:.08} });
+function validMeditationBase(value: unknown): value is MeditationPreferences {
     if (!value || typeof value !== 'object') return false;
     const m = value as MeditationPreferences;
     return Number.isInteger(m.durationMinutes) && m.durationMinutes >= 1 && m.durationMinutes <= 60 && ['off','white','pink','brown'].includes(m.noise) && Number.isFinite(m.noiseVolume) && m.noiseVolume >= 0 && m.noiseVolume <= .35 && ['music','openingSignal','completionSignal','showTimer'].every(key => typeof m[key as keyof MeditationPreferences] === 'boolean');
 }
+export function validBinaural(value:unknown):value is BinauralPreferences {const b=value as BinauralPreferences;return !!b && ['off','baseline','layered','modulated'].includes(b.mode) && Number.isFinite(b.level) && b.level>=0 && b.level<=.3;}
+export function validMeditation(value:unknown):value is MeditationPreferences{return validMeditationBase(value)&&validBinaural(value.binaural);}
 export interface Preferences {
     id: 'preferences';
     theme: Theme;
@@ -35,7 +40,7 @@ export function normalizePreferences(value: unknown): Preferences {
     if (typeof p.background?.source === 'string') defaults.background.source = p.background.source;
     if (['off', 'entire', 'retention', 'after'].includes(p.background?.mode || '')) defaults.background.mode = p.background!.mode;
     if (typeof p.background?.loop === 'boolean') defaults.background.loop = p.background.loop;
-    if (validMeditation(p.meditation)) defaults.meditation = structuredClone(p.meditation);
+    if (validMeditationBase(p.meditation)) defaults.meditation = {...structuredClone(p.meditation),binaural:validBinaural(p.meditation.binaural)?structuredClone(p.meditation.binaural):{mode:'off',level:.08}};
     return { ...defaults, theme: p.theme!, volumes: { ...p.volumes! } };
 }
 function validBase(value: unknown): boolean { if (!value || typeof value !== 'object')

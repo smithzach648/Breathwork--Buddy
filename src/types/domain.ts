@@ -1,5 +1,6 @@
 export type StageKind = 'settling' | 'patterned-breathing' | 'hormesis' | 'timed-retention' | 'manual-retention' | 'recovery-inhale' | 'recovery-hold' | 'meditation' | 'journal';
 import type { ExerciseConfig } from '../session/config';
+import type { FrozenSound } from '../meditation/profile';
 export type RoutineStage = ExerciseConfig & { readonly id: string };
 export interface Routine {
     readonly id: string;
@@ -28,6 +29,7 @@ export interface SessionResult {
     stagesCompleted: number;
     roundsCompleted?: number;
     endReason?: 'ended-early';
+    soundProfile?: FrozenSound;
     meditation?: { plannedDurationSeconds: number; actualDurationSeconds: number };
     routineName?: string;
     blocksCompleted?: number;

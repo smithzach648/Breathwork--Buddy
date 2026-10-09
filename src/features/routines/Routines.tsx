@@ -4,7 +4,7 @@ import { patterns, type PatternId } from '../../session/config';
 import { blockName, MAX_BLOCKS, MAX_NAME, newBlock, repairDraft, validateRoutine } from '../../routines/model';
 import { routineRepository, type RoutineRepository } from '../../routines/repository';
 
-export function Routines({ onStart, onBack, repository = routineRepository }: { onStart: (id: string) => Promise<void>; onBack: () => void; repository?: RoutineRepository }) {
+export function Routines({ onStart, onBack, repository = routineRepository, binauralSelected=false }: { onStart: (id: string) => Promise<void>; onBack: () => void; repository?: RoutineRepository; binauralSelected?:boolean }) {
     const [rows, setRows] = useState<Routine[]>([]), [draft, setDraft] = useState<Routine>(), [error, setError] = useState(''), [busy, setBusy] = useState(false), [loading, setLoading] = useState(true), [deleting, setDeleting] = useState<string>(), [repair, setRepair] = useState(false);
     async function reload() { setRows(await repository.list()); setLoading(false); }
     useEffect(() => { let live = true; repository.list().then(rows => { if (live) { setRows(rows); setLoading(false); } }).catch(() => { if (live) { setError('Routines could not be read. Please try again.'); setLoading(false); } }); return () => { live = false; }; }, [repository]);
@@ -14,6 +14,7 @@ export function Routines({ onStart, onBack, repository = routineRepository }: { 
     function move(index: number, direction: number) { if (!draft) return; const blocks = [...draft.stages]; [blocks[index], blocks[index + direction]] = [blocks[index + direction], blocks[index]]; setDraft({ ...draft, stages: blocks }); }
     return <>
         <p className="eyebrow">YOUR PRACTICE, YOUR WAY</p><h1>{draft ? 'Build a routine' : 'My Routines'}</h1>
+        {binauralSelected&&<p className="notice">Meditation blocks shorter than 10 minutes use masking and selected audio only. Longer blocks use your selected binaural layer. Silent blocks stay silent.</p>}
         {error && <p role="alert" className="notice">{error}</p>}
         {draft ? <form className="panel routine-editor" onSubmit={event => { event.preventDefault(); void action(async () => { await repository.save(draft); setDraft(undefined); await reload(); }, 'Your edits are still here. Saving failed.'); }}>
             {repair && <p className="notice" role="status">This record needs repair. Unsupported blocks have editable defaults. Review every block before saving.</p>}
@@ -27,7 +28,7 @@ export function Routines({ onStart, onBack, repository = routineRepository }: { 
                 </select>
                 {block.kind === 'patterned' ? <><label htmlFor={`duration-${block.id}`}>Block {index + 1} duration</label><select id={`duration-${block.id}`} value={block.durationSeconds} onChange={event => replace(index, { ...block, durationSeconds: Number(event.target.value) })}>{[180, 300, 600].map(seconds => <option key={seconds} value={seconds}>{seconds / 60} minutes</option>)}</select></> : block.kind === 'meditation' ? <>
                     <label htmlFor={`minutes-${block.id}`}>Block {index + 1} meditation minutes</label><input id={`minutes-${block.id}`} type="number" min="1" max="60" step="1" value={Number.isFinite(block.durationSeconds) ? block.durationSeconds / 60 : ''} onChange={event => replace(index, { ...block, durationSeconds: event.target.value === '' ? NaN : Number(event.target.value) * 60 })}/>
-                    <label htmlFor={`policy-${block.id}`}>Block {index + 1} sound environment</label><select id={`policy-${block.id}`} value={block.audioPolicy} onChange={event => replace(index, { ...block, audioPolicy: event.target.value as 'defaults' | 'silent' })}><option value="defaults">Use Meditation Audio defaults</option><option value="silent">Silent, including signals</option></select>
+                    <label htmlFor={`policy-${block.id}`}>Block {index + 1} sound environment</label><select id={`policy-${block.id}`} value={block.audioPolicy} onChange={event => replace(index, { ...block, audioPolicy: event.target.value as 'defaults' | 'silent' })}><option value="defaults">Use Meditation sound defaults</option><option value="silent">Silent, including signals</option></select>
                 </> : <>
                     <label htmlFor={`cadence-${block.id}`}>Block {index + 1} inhale / exhale interval</label><select id={`cadence-${block.id}`} value={block.intervalSeconds} onChange={event => replace(index, { ...block, intervalSeconds: Number(event.target.value) as 2 | 3 })}><option value="2">2 seconds each</option><option value="3">3 seconds each</option></select>
                     <label htmlFor={`cycles-${block.id}`}>Block {index + 1} breaths per round</label><select id={`cycles-${block.id}`} value={block.cycles} onChange={event => replace(index, { ...block, cycles: Number(event.target.value) as 20 | 30 | 40 })}>{[20, 30, 40].map(cycles => <option key={cycles}>{cycles}</option>)}</select>

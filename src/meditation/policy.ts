@@ -14,12 +14,12 @@ export function meditationWindow(session?: SessionState) {
     } else return undefined;
     const stage = stages[target];
     if (stage?.phase !== 'meditation') return undefined;
-    return { key: `${session.sessionId}/meditation/${stage.blockId || 'standalone'}`, silent: stage.meditationPolicy === 'silent', start, fadeDeadline: start + fadeMs };
+    return { key: `${session.sessionId}/meditation/${stage.blockId || 'standalone'}`, silent: stage.meditationPolicy === 'silent', start, fadeDeadline: start + fadeMs, meditationStart:start+fadeMs,durationSeconds:stage.durationMs/1000,leadSeconds:fadeMs/1000 };
 }
 export function backgroundWanted(session: SessionState | undefined, preferences: Preferences): boolean {
     if (!session) return false;
     const meditation = meditationWindow(session);
-    if (meditation) return !meditation.silent && preferences.meditation.music;
+    if (meditation) return !meditation.silent && (session?.snapshot?.meditationSound?.music ?? preferences.meditation.music);
     const mode = preferences.background.mode;
     return mode === 'entire' && session.status === 'running' || mode === 'retention' && session.status === 'running' && (session.snapshot?.config.kind === 'hormesis' || session.stage?.blockKind === 'hormesis') && session.stage?.phase === 'retention' || mode === 'after' && session.status === 'completed';
 }

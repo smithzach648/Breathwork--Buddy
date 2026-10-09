@@ -5,6 +5,7 @@ import { assetUrl, resolveAsset, audioCatalog, type AudioBus } from './catalog';
 import { stageCues, type AudioCue } from './cues';
 import { cueEnabled, guidanceCategory } from './guidance';
 import { MeditationSignals, type AudioEnvironmentPort } from './meditation-signals';
+import { createOutput } from './output';
 interface Track {
     source: AudioBufferSourceNode;
     gain: GainNode;
@@ -52,11 +53,7 @@ export class BrowserAudio implements SessionAudio {
             if (!this.context) {
                 this.context = this.createContext();
                 this.buses.master = this.context.createGain();
-                if (this.context.createDynamicsCompressor) {
-                    const limiter = this.context.createDynamicsCompressor(); limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = .003; limiter.release.value = .15;
-                    this.buses.master.connect(limiter); limiter.connect(this.context.destination);
-                    this.mediaInput = limiter;
-                } else this.buses.master.connect(this.context.destination);
+                if(typeof this.context.createWaveShaper === 'function'){this.mediaInput=createOutput(this.context);this.buses.master.connect(this.mediaInput);}else this.buses.master.connect(this.context.destination);
                 for (const bus of ['voice', 'breath'] as const) {
                     this.buses[bus] = this.context.createGain();
                     this.buses[bus]!.connect(this.buses.master);

@@ -1,6 +1,7 @@
 import { roundAnnouncementMs } from '../audio/voice-metadata';
 import type { Routine } from '../types/domain';
 import { validateRoutine, blockName } from '../routines/model';
+import { validSound, type FrozenSound } from '../meditation/profile';
 export type PatternId = 'box' | '478' | 'calm' | 'coherent';
 export type ExerciseConfig = {
     kind: 'patterned';
@@ -42,6 +43,7 @@ export interface PracticeSnapshot {
     readonly config: PracticeConfig;
     readonly stages: readonly PlannedStage[];
     readonly plannedDurationSeconds: number;
+    readonly meditationSound?: FrozenSound;
 }
 export const patterns: Record<PatternId, {
     name: string;
@@ -125,10 +127,11 @@ export function deepFreeze<T>(value: T): T {
     }
     return value;
 }
-export function createSnapshot(config: PracticeConfig, id: string = crypto.randomUUID(), startedAt = new Date().toISOString()): PracticeSnapshot {
+export function createSnapshot(config: PracticeConfig, id: string = crypto.randomUUID(), startedAt = new Date().toISOString(), meditationSound?:FrozenSound): PracticeSnapshot {
     const copy = structuredClone(config);
     const stages = compileStages(copy);
+    if(meditationSound && !validSound(meditationSound))throw new Error('Invalid meditation sound profile');
     if (!Number.isFinite(Date.parse(startedAt)))
         throw new Error('Invalid session start time.');
-    return deepFreeze({ id, startedAt, name: copy.kind === 'meditation' ? 'Meditation' : copy.kind === 'routine' ? copy.routine.name.trim() : copy.kind === 'patterned' ? patterns[copy.presetId].name : copy.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90', config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' || copy.kind === 'meditation' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000 });
+    return deepFreeze({ id, startedAt, name: copy.kind === 'meditation' ? 'Meditation' : copy.kind === 'routine' ? copy.routine.name.trim() : copy.kind === 'patterned' ? patterns[copy.presetId].name : copy.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90', config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' || copy.kind === 'meditation' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000, ...(meditationSound?{meditationSound:structuredClone(meditationSound)}:{}) });
 }

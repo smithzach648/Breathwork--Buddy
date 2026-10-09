@@ -9,6 +9,8 @@ import type { SessionResult } from '../types/domain';
 import type { SessionAudio } from './audio-port';
 import { BackgroundController } from '../media/background';
 import { NoiseController } from '../audio/noise';
+import { freezeSound, type FrozenSound } from '../meditation/profile';
+import { BinauralController } from '../audio/binaural';
 export interface RuntimeAudio extends SessionAudio {
     unlock(): Promise<void>;
     setPreferences(p: Preferences): void;
@@ -37,7 +39,9 @@ export class PracticeRuntime {
     private state: RuntimeState;
     private startGeneration = 0;
     private previewGeneration = 0;
-    constructor(clock: Clock, scheduler: Scheduler, readonly audio: RuntimeAudio, private wake: WakeLockController, private persist: (result: SessionResult) => Promise<unknown> = saveSessionResult, readonly background?: BackgroundController, readonly noise?: NoiseController) {
+    private preferences = defaultPreferences();
+    private previewTimer?:ReturnType<typeof setTimeout>;
+    constructor(clock: Clock, scheduler: Scheduler, readonly audio: RuntimeAudio, private wake: WakeLockController, private persist: (result: SessionResult) => Promise<unknown> = saveSessionResult, readonly background?: BackgroundController, readonly noise?: NoiseController, readonly binaural?:BinauralController) {
         this.engine = new DeterministicSessionEngine(clock, scheduler, audio);
         this.state = { session: this.engine.getState(), audio: audio.diagnostics(), saveError: '', saving: false, historyVersion: 0, starting: false };
         this.engine.subscribe(() => {
@@ -52,11 +56,12 @@ export class PracticeRuntime {
     getState = () => this.state;
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private media(action: () => void) { try { action(); } catch { /* Long-media presentation can never interrupt session truth. */ } }
-    private publish() { const session = this.engine.getState(); this.media(() => { this.background?.sync(session); this.background?.setDucking(this.audio.voiceActive?.() || false); }); this.media(()=>{this.noise?.sync(session);this.noise?.setDucking(this.audio.voiceActive?.() || false);}); this.state = { ...this.state, session, audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
-    start(config: PracticeConfig) {
+    private publish() { const session = this.engine.getState(); this.media(() => { this.background?.sync(session); this.background?.setDucking(this.audio.voiceActive?.() || false); }); this.media(()=>{this.noise?.sync(session);this.noise?.setDucking(this.audio.voiceActive?.() || false);}); this.media(()=>{this.binaural?.sync(session);this.binaural?.setDucking(this.audio.voiceActive?.() || false);}); this.state = { ...this.state, session, audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
+    start(config: PracticeConfig, sound?: FrozenSound) {
         this.stopNoisePreview();
         if (this.state.starting || this.engine.getState().status === 'running') throw new Error('Finish or stop the current practice first.');
-        const snapshot = createSnapshot(config);
+        const containsMeditation = config.kind === 'meditation' || config.kind === 'routine' && config.routine.stages.some(block=>block.kind==='meditation');
+        const snapshot = createSnapshot(config, undefined, undefined, containsMeditation ? sound || freezeSound(this.preferences) : undefined);
         const generation = ++this.startGeneration;
         const ready = !this.audio.startReady || this.audio.startReady();
         const unlocking = this.audio.unlock();
@@ -67,15 +72,15 @@ export class PracticeRuntime {
                 await unlocking;
                 await this.audio.readyForStart?.();
                 if (generation !== this.startGeneration) return;
-                this.engine.start(createSnapshot(snapshot.config));
+                this.engine.start(createSnapshot(snapshot.config, undefined, undefined, snapshot.meditationSound));
             } finally { if (generation === this.startGeneration) { this.state = { ...this.state, starting: false }; this.publish(); } }
         })();
     }
     cancelStart() { ++this.startGeneration; this.state = { ...this.state, starting: false }; this.publish(); }
-    preferencesChanged(p: Preferences) { this.audio.setPreferences(p); this.media(() => this.background?.setPreferences(p)); this.media(()=>this.noise?.setPreferences(p)); }
-    visibilityChanged(visible: boolean) { if (!visible) this.stopNoisePreview(); if (!visible && this.state.starting) this.cancelStart(); this.media(()=>this.noise?.visibilityChanged(visible)); this.audio.resynchronize(); this.engine.setVisible(visible); this.media(() => this.background?.visibilityChanged(visible)); this.wake.visibilityChanged(); }
-    stopNoisePreview() { ++this.previewGeneration; this.noise?.stopPreview(); }
-    async previewNoise() { if (this.engine.getState().status === 'running' || this.state.starting) return; const generation=++this.previewGeneration; await this.audio.unlock(); if (generation===this.previewGeneration && this.engine.getState().status !== 'running' && !this.state.starting) this.noise?.preview(); }
+    preferencesChanged(p: Preferences) { if(JSON.stringify(freezeSound(p))!==JSON.stringify(freezeSound(this.preferences))||p.background.source!==this.preferences.background.source)this.stopNoisePreview();this.preferences=structuredClone(p); this.audio.setPreferences(p); this.media(() => this.background?.setPreferences(p)); this.media(()=>this.noise?.setPreferences(p));this.media(()=>this.binaural?.setPreferences(p)); }
+    visibilityChanged(visible: boolean) { if (!visible) this.stopNoisePreview(); if (!visible && this.state.starting) this.cancelStart(); this.media(()=>this.noise?.visibilityChanged(visible));this.media(()=>this.binaural?.visibilityChanged(visible)); this.audio.resynchronize(); this.engine.setVisible(visible); this.media(() => this.background?.visibilityChanged(visible)); this.wake.visibilityChanged(); }
+    stopNoisePreview() { ++this.previewGeneration;if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();}); }
+    async previewNoise() { if (this.engine.getState().status === 'running' || this.state.starting) return;this.stopNoisePreview(); const generation=++this.previewGeneration; await this.audio.unlock(); if (generation===this.previewGeneration && this.engine.getState().status !== 'running' && !this.state.starting) {this.noise?.preview();this.binaural?.preview();if(this.preferences.meditation.music)this.background?.preview(this.preferences.background.source);this.previewTimer=setTimeout(()=>this.stopNoisePreview(),20000);} }
     private async save(result: SessionResult) {
         if (this.pending.has(result.id))
             return;
@@ -103,5 +108,5 @@ export function createBrowserRuntime() {
     const timing = new BrowserTiming();
     const audio = new BrowserAudio(timing, defaultPreferences());
     const wake = new WakeLockController(typeof navigator !== 'undefined' && 'wakeLock' in navigator ? () => navigator.wakeLock.request('screen') : undefined, () => document.visibilityState === 'visible');
-    return new PracticeRuntime(timing, timing, audio, wake, saveSessionResult, new BackgroundController(undefined, undefined, ()=>audio.environmentPort()), new NoiseController(()=>audio.environmentPort()));
+    return new PracticeRuntime(timing, timing, audio, wake, saveSessionResult, new BackgroundController(undefined, undefined, ()=>audio.environmentPort()), new NoiseController(()=>audio.environmentPort()),new BinauralController(()=>audio.environmentPort(),timing));
 }

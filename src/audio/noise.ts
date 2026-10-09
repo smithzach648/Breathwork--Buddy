@@ -3,7 +3,7 @@ import type { NoiseColor, Preferences } from '../settings/preferences';
 import { defaultPreferences } from '../settings/preferences';
 import type { SessionState } from '../session/engine';
 import { meditationWindow } from '../meditation/policy';
-import { generateNoiseBuffer } from './noise-spectrum';
+import { generateMaskingBuffer } from './noise-spectrum';
 type VoiceEnvelope = { from: number; to: number; at: number; duration: number };
 interface NoiseTrack { context: AudioContext; source: AudioBufferSourceNode; transport: GainNode; duck: GainNode; level: GainNode; color: NoiseColor; region: string; }
 export class NoiseController {
@@ -27,7 +27,7 @@ export class NoiseController {
     private error='';
     private generationMs=0;
     private state={playing:false,preview:false,color:'off' as NoiseColor|'off',error:''};
-    constructor(private port:()=>AudioEnvironmentPort|undefined,private build=generateNoiseBuffer) {}
+    constructor(private port:()=>AudioEnvironmentPort|undefined,private build=generateMaskingBuffer) {}
     getState=()=>this.state;
     subscribe=(listener:()=>void)=>{this.listeners.add(listener);return()=>{this.listeners.delete(listener);};};
     private publish(){this.state={playing:!!this.current,preview:this.previewing,color:this.current?.color||'off',error:this.error};this.listeners.forEach(listener=>listener());}
@@ -42,7 +42,7 @@ export class NoiseController {
     sync(session?:SessionState){
         this.session=session;
         if(session?.status==='running'&&this.previewing){this.previewing=false;this.stop();}
-        const window=meditationWindow(session),color=this.preferences.meditation.noise;
+        const window=meditationWindow(session),color=session?.status==='running' ? session.snapshot?.meditationSound?.texture ?? this.preferences.meditation.noise : this.preferences.meditation.noise;
         if(!this.visible||color==='off'||!this.previewing&&(!window||window.silent)) { if(this.current||this.pending)this.stop(!window?.silent && (session?.status==='completed'||session?.status==='running'&&session.stage?.phase==='block-transition') ? .7 : .05);return; }
         const port=this.port();if(!port||port.context.state!=='running'){if(this.current||this.pending)this.stop();return;}
         const region=this.previewing?'preview':window!.key,key=`${region}/${color}`;
@@ -63,9 +63,9 @@ export class NoiseController {
             if(old)this.retire(old,.3);this.publish();
         }).catch(()=>{if(generation===this.generation){this.pending=undefined;this.error='Noise is unavailable. Meditation continues normally.';this.publish();}});
     }
-    private retire(track:NoiseTrack,seconds:number){const context=track.context,now=context.currentTime;const gain=track.transport.gain;if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(now);else{gain.cancelScheduledValues(now);gain.setValueAtTime(gain.value,now);}gain.linearRampToValueAtTime(0,now+seconds);try{track.source.stop(now+seconds);}catch{/* already ended */}}
+    private retire(track:NoiseTrack,seconds:number){const context=track.context,now=context.currentTime;if(context.state!=='running'){try{track.source.stop();}catch{/* already ended */}track.source.disconnect();track.transport.disconnect();track.duck.disconnect();track.level.disconnect();this.tracks.delete(track);return;}const gain=track.transport.gain;if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(now);else{gain.cancelScheduledValues(now);gain.setValueAtTime(gain.value,now);}gain.linearRampToValueAtTime(0,now+seconds);try{track.source.stop(now+seconds);}catch{/* already ended */}}
     private duckValue(now:number){const e=this.duckEnvelope;return e.duration?e.from+(e.to-e.from)*Math.min(1,Math.max(0,(now-e.at)/e.duration)):e.to;}
-    private duckTo(to:number){const context=this.port()?.context;if(!context)return;const now=context.currentTime,from=this.duckValue(now);this.duckEnvelope={from,to,at:now,duration:.25};for(const track of this.tracks){track.duck.gain.cancelScheduledValues(now);track.duck.gain.setValueAtTime(from,now);track.duck.gain.linearRampToValueAtTime(to,now+.25);}}
+    private duckTo(to:number){const context=this.port()?.context;if(!context||this.duckEnvelope.to===to)return;const now=context.currentTime,from=this.duckValue(now);this.duckEnvelope={from,to,at:now,duration:.25};for(const track of this.tracks){track.duck.gain.cancelScheduledValues(now);track.duck.gain.setValueAtTime(from,now);track.duck.gain.linearRampToValueAtTime(to,now+.25);}}
     setDucking(active:boolean,force=false){this.input=active;if(force||!this.preferences.guidance.ducking){if(this.restore)clearTimeout(this.restore);this.restore=undefined;this.held=false;this.duckTo(1);return;}if(active){if(this.restore)clearTimeout(this.restore);this.restore=undefined;if(!this.held){this.held=true;this.duckTo(.4);}}else if(this.held&&!this.restore){const generation=this.duckGeneration;this.restore=setTimeout(()=>{this.restore=undefined;if(generation!==this.duckGeneration||this.input)return;this.held=false;this.duckTo(1);},300);}}
     preview(){if(this.session?.status==='running')return;this.previewing=true;this.sync(this.session);this.publish();}
     stopPreview(){if(this.previewing){this.previewing=false;this.stop();}}

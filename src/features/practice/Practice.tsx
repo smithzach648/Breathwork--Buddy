@@ -5,6 +5,7 @@ import type { PracticeRuntime, RuntimeState } from '../../session/runtime';
 import { patterns, type PatternId, type PracticeConfig } from '../../session/config';
 import { formatDuration } from '../../shared/format';
 import { BackgroundControls } from '../../media/MediaSettings';
+import {signalProfile} from '../../meditation/profile';
 export function Practice({ runtime, state, onDone, onRoutines, onMeditation, preferences = defaultPreferences(), onPreferencesChange }: {
     runtime: PracticeRuntime;
     state: RuntimeState;
@@ -21,10 +22,12 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     const [error, setError] = useState('');
     const session = state.session;
     const meditating = session.stage?.phase === 'meditation';
+    const envelope=meditating&&session.stage!.durationMs>=600000&&session.snapshot?.meditationSound?.mode!=='off'&&session.snapshot?.meditationSound?signalProfile(session.stage!.durationMs/1000):undefined;
+    const elapsed=meditating?(session.stage!.durationMs-session.remainingMs)/1000:0;
     const hormesis = preset.startsWith('hormesis');
     async function start(config?: PracticeConfig) {
         try {
-            await runtime.start(config || (hormesis ? { kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { kind: 'patterned', presetId: preset as PatternId, durationSeconds: duration }));
+            await runtime.start(config || (hormesis ? { kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { kind: 'patterned', presetId: preset as PatternId, durationSeconds: duration }), config ? session.snapshot?.meditationSound : undefined);
             setError('');
         }
         catch (e) {
@@ -43,6 +46,8 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
       <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
       {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
       {meditating && onPreferencesChange && <button onClick={() => onPreferencesChange({...preferences,meditation:{...preferences.meditation,showTimer:!preferences.meditation.showTimer}})}>{preferences.meditation.showTimer ? 'Hide timer' : 'Show timer'}</button>}
+      {envelope&&session.stage?.meditationPolicy!=='silent'&&<p className="muted">{elapsed<envelope.entry?'Entry':elapsed<envelope.entry+envelope.steady?'Steady':'Return'}</p>}
+      {meditating && session.stage!.durationMs<600000 && session.snapshot?.meditationSound?.mode!=='off' && session.snapshot?.meditationSound && session.stage!.meditationPolicy!=='silent' && <p className="notice">This short block uses masking and selected audio only. Binaural sessions need at least 10 minutes; your selected mode stays saved.</p>}
       <div className="practice-actions">
         {session.releaseAvailable && <button className="primary" onClick={() => runtime.engine.releaseRetention()}>Release retention</button>}
         <button onClick={() => runtime.engine.stop(meditating ? 'ended-early' : undefined)}>{meditating ? 'End Early' : 'Stop practice'}</button>

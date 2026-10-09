@@ -51,7 +51,7 @@ export class DeterministicSessionEngine {
     start(input: PracticeSnapshot) {
         if (this.state.status === 'running')
             throw new Error('Stop the active practice before starting another.');
-        const snapshot = createSnapshot(input.config, input.id, input.startedAt);
+        const snapshot = createSnapshot(input.config, input.id, input.startedAt,input.meditationSound);
         this.generation++;
         this.index = 0;
         this.stagesCompleted = 0;
@@ -165,6 +165,7 @@ export class DeterministicSessionEngine {
         this.sound(() => { if (this.audio.finishSession) this.audio.finishSession(sessionId,outcome); else this.audio.cancelSession(sessionId); });
         const result: SessionResult = { id: sessionId, routineId: snapshot.config.kind === 'routine' ? snapshot.config.routine.id : snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
         if (this.endReason) result.endReason = this.endReason;
+        if(snapshot.meditationSound)result.soundProfile=structuredClone(snapshot.meditationSound);
         if (snapshot.config.kind === 'meditation') result.meditation = { plannedDurationSeconds: snapshot.config.durationSeconds, actualDurationSeconds: this.meditationSeconds };
         if (snapshot.config.kind === 'routine') {
             result.routineName = snapshot.name;
