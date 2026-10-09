@@ -1,8 +1,10 @@
+import { backgroundWanted, meditationWindow } from '../meditation/policy';
 import type { Preferences } from '../settings/preferences';
 import { defaultPreferences } from '../settings/preferences';
 import type { SessionState } from '../session/engine';
 import { mediaLibrary, type MediaLibrary } from './library';
 import { BackgroundGain } from './background-gain';
+import type { AudioEnvironmentPort } from '../audio/meditation-signals';
 
 export interface BackgroundState { source: string; name: string; playing: boolean; position: number; duration: number; error: string; preview: boolean; }
 /** One streaming player. Fade timers affect presentation only, never session deadlines. */
@@ -21,7 +23,8 @@ export class BackgroundController {
     private manualPause = false;
     private session?: SessionState;
     private sessionKey = '';
-    constructor(private library: Pick<MediaLibrary, 'resolve'> = mediaLibrary, createAudio = () => new Audio()) {
+    private mediaNode?: MediaElementAudioSourceNode;
+    constructor(private library: Pick<MediaLibrary, 'resolve'> = mediaLibrary, createAudio = () => new Audio(), private output?: () => AudioEnvironmentPort | undefined) {
         this.audio = createAudio();
         this.audio.preload = 'metadata';
         this.gain = new BackgroundGain(this.audio, () => { if (!this.intent) this.audio.pause(); this.publish(); });
@@ -38,7 +41,7 @@ export class BackgroundController {
     }
     getState = () => this.state;
     getMode = () => this.preferences.background.mode;
-    canPlay = () => this.session?.status !== 'running' || this.preferences.background.mode === 'entire' || this.preferences.background.mode === 'retention' && (this.session.snapshot?.config.kind === 'hormesis' || this.session.stage?.blockKind === 'hormesis') && this.session.stage?.phase === 'retention';
+    canPlay = () => this.session?.status !== 'running' || backgroundWanted(this.session,this.preferences);
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private publish() {
         this.state = { ...this.state, playing: !this.audio.paused && !this.audio.ended, position: this.audio.currentTime || 0, duration: Number.isFinite(this.audio.duration) ? this.audio.duration : 0 };
@@ -73,12 +76,12 @@ export class BackgroundController {
         this.gain.setBase(preferences.volumes.master * preferences.volumes.ambience, preferences.guidance.ducking);
         this.audio.loop = this.state.preview ? false : preferences.background.loop;
         if (previous.background.source !== preferences.background.source) { void this.select(preferences.background.source); return; }
-        if (previous.background.mode !== preferences.background.mode) { this.manualPause = false; this.state = { ...this.state, preview: false }; this.follow(); }
+        if (previous.background.mode !== preferences.background.mode || previous.meditation.music !== preferences.meditation.music) { this.manualPause = false; this.state = { ...this.state, preview: false }; this.follow(); }
     }
     setDucking(active: boolean) { this.gain.setVoice(active && this.intent && this.visible); }
     sync(session: SessionState) {
         this.session = session;
-        const key = `${session.sessionId}:${session.status}:${session.stage?.phase}`;
+        const key = `${session.sessionId}:${session.status}:${session.stageId}:${session.stage?.phase}`;
         if (key === this.sessionKey) return;
         const newSession = session.status === 'running' && (!this.sessionKey.startsWith(`${session.sessionId}:running:`));
         this.sessionKey = key;
@@ -93,12 +96,19 @@ export class BackgroundController {
     }
     private follow() {
         const s = this.session, mode = this.preferences.background.mode;
-        const wanted = !!s && !this.manualPause && !this.ended && (mode === 'entire' && s.status === 'running' || mode === 'retention' && s.status === 'running' && (s.snapshot?.config.kind === 'hormesis' || s.stage?.blockKind === 'hormesis') && s.stage?.phase === 'retention' || mode === 'after' && s.status === 'completed');
+        const wanted = !!s && !this.manualPause && !this.ended && backgroundWanted(s,this.preferences);
         if (wanted) this.play(false); else this.pause(false);
     }
     play(manual = true) {
         if (manual && !this.canPlay()) return;
         if (!this.url || !this.visible) return;
+        const output = this.output?.();
+        if (manual && output?.context.state === 'suspended') void output.context.resume().catch(() => { /* Autoplay errors remain presentation only. */ });
+        if (!this.mediaNode && output?.mediaInput && output.context.createMediaElementSource) {
+            // BackgroundGain already includes Master. Join the shared output limiter AFTER Master.
+            this.mediaNode = output.context.createMediaElementSource(this.audio);
+            this.mediaNode.connect(output.mediaInput);
+        }
         if (manual) { this.manualPause = false; if (this.ended) this.audio.currentTime = 0; this.ended = false; }
         if (this.intent && !this.audio.paused) return;
         this.intent = true;
@@ -107,7 +117,7 @@ export class BackgroundController {
         void this.audio.play().then(() => {
             if (epoch !== this.epoch || playGeneration !== this.playGeneration) return;
             if (!this.intent || !this.visible) { this.audio.pause(); return; }
-            this.state = { ...this.state, error: '' }; this.gain.play(); this.publish();
+            this.state = { ...this.state, error: '' }; const window = meditationWindow(this.session); const lead = window && this.session?.stage ? Math.max(700,window.fadeDeadline - this.session.stageStart! - this.session.stage.durationMs + this.session.remainingMs) : 700; this.gain.play(lead); this.publish();
         }).catch(() => { if (epoch === this.epoch && playGeneration === this.playGeneration) { this.intent = false; this.state = { ...this.state, error: 'Tap Play background to allow audio on this device. Practice continues normally.' }; this.publish(); } });
     }
     pause(manual = true) { if (manual) this.manualPause = true; if (!this.intent) return; this.intent = false; ++this.playGeneration; if (!this.audio.paused) this.gain.pause(); }
@@ -119,5 +129,5 @@ export class BackgroundController {
         else if (this.state.preview && this.intent) this.play(false); else this.follow();
     }
     removeSource(source: string) { if (this.state.source === source) { ++this.epoch; this.intent = false; this.clearSource(); this.state = { ...this.state, source: 'none', name: '', preview: false }; this.publish(); } }
-    dispose() { ++this.epoch; this.intent = false; this.clearSource(); this.listeners.clear(); }
+    dispose() { ++this.epoch; this.intent = false; this.clearSource(); this.mediaNode?.disconnect(); this.listeners.clear(); }
 }

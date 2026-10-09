@@ -19,8 +19,9 @@ export function History({ version = 0 }: {
     {error && <p role="alert" className="notice">{error}</p>}
     {loading ? <p>Loading your sessions…</p> : sessions.length === 0 ? <section className="panel"><h2>A fresh start</h2><p>Your completed and cancelled practices will appear here.</p></section> : <ol className="history-list">{sessions.map(result => <li className="panel" key={result.id}>
       <h2>{result.practiceName || result.routineId}</h2><p><time dateTime={result.startedAt}>{new Date(result.startedAt).toLocaleString()}</time></p>
-      <p>{result.outcome === 'completed' ? 'Completed' : 'Cancelled'} · {formatDuration(result.actualDurationSeconds)}</p>
-      {result.blocks && <><p className="muted">{result.blocksCompleted} of {result.totalBlocks} blocks completed</p><ul>{result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}{!!block.retentions.length && <span className="muted"> · Retentions: {block.retentions.map(retention => `${retention.durationSeconds.toFixed(1)}s`).join(' / ')}</span>}</li>)}</ul></>}
+      <p>{result.outcome === 'completed' ? 'Completed' : result.endReason === 'ended-early' ? 'Ended early' : 'Cancelled'} · {formatDuration(result.actualDurationSeconds)}</p>
+      {result.meditation && <p className="muted">Meditation: {formatDuration(result.meditation.actualDurationSeconds)} of {formatDuration(result.meditation.plannedDurationSeconds)} planned</p>}
+      {result.blocks && <><p className="muted">{result.blocksCompleted} of {result.totalBlocks} blocks completed</p><ul>{result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}{block.kind === 'meditation' && ` · ${formatDuration(block.actualDurationSeconds)} of ${formatDuration(block.plannedDurationSeconds)}`}{!!block.retentions.length && <span className="muted"> · Retentions: {block.retentions.map(retention => `${retention.durationSeconds.toFixed(1)}s`).join(' / ')}</span>}</li>)}</ul></>}
       {!!result.retentions?.length && <p className="muted">Retentions: {result.retentions.map(r => `${r.durationSeconds.toFixed(1)}s${r.outcome === 'released' ? ' (released)' : ''}`).join(' · ')}</p>}
     </li>)}</ol>}
   </>;

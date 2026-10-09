@@ -13,9 +13,14 @@ export type ExerciseConfig = {
     cycles: 20 | 30 | 40;
     retentions: readonly (60 | 90)[];
     recoveryHoldSeconds: 15;
+} | {
+    kind: 'meditation';
+    presetId: 'meditation';
+    durationSeconds: number;
+    audioPolicy: 'defaults' | 'silent';
 };
 export type PracticeConfig = ExerciseConfig | { kind: 'routine'; routine: Routine };
-export type Phase = 'block-transition' | 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
+export type Phase = 'meditation' | 'block-transition' | 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
 export interface PlannedStage {
     readonly phase: Phase;
     readonly label: string;
@@ -28,6 +33,7 @@ export interface PlannedStage {
     readonly blockIndex?: number;
     readonly blockName?: string;
     readonly blockKind?: ExerciseConfig['kind'];
+    readonly meditationPolicy?: 'defaults' | 'silent';
 }
 export interface PracticeSnapshot {
     readonly id: string;
@@ -44,9 +50,13 @@ export const patterns: Record<PatternId, {
     box: { name: 'Box 4-4-4-4', seconds: [4, 4, 4, 4] }, '478': { name: '4-7-8', seconds: [4, 7, 8, 0] }, calm: { name: 'Calm 4-4-6-2', seconds: [4, 4, 6, 2] }, coherent: { name: 'Coherent 6-6', seconds: [6, 0, 6, 0] },
 };
 const phases = ['inhale', 'hold-in', 'exhale', 'hold-out'] as const;
-const labels: Record<Phase, string> = { 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
+const labels: Record<Phase, string> = { meditation: 'Meditation', 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
 export function validateConfig(config: PracticeConfig) {
     if (config.kind === 'routine') { validateRoutine(config.routine); return; }
+    if (config.kind === 'meditation') {
+        if (config.presetId !== 'meditation' || !Number.isInteger(config.durationSeconds) || config.durationSeconds < 60 || config.durationSeconds > 3600 || config.durationSeconds % 60 || !['defaults','silent'].includes(config.audioPolicy)) throw new Error('Choose a meditation duration of 1–60 whole minutes and a supported sound policy.');
+        return;
+    }
     if (config.kind === 'patterned') {
         if (!Object.hasOwn(patterns, config.presetId) || !Number.isFinite(config.durationSeconds) || config.durationSeconds <= 0 || config.durationSeconds > 600)
             throw new Error('Choose a valid practice duration.');
@@ -91,6 +101,7 @@ export function compileStages(config: PracticeConfig): PlannedStage[] {
     }
     if (config.kind === 'patterned')
         return [...stages, ...patternedStages(patterns[config.presetId].seconds, config.durationSeconds)];
+    if (config.kind === 'meditation') return [...stages, { phase: 'meditation', label: 'Meditation', durationMs: config.durationSeconds * 1000, round: 0, totalRounds: 0, cycle: 0, totalCycles: 0, meditationPolicy: config.audioPolicy }];
     config.retentions.forEach((retention, index) => {
         const round = index + 1;
         const add = (phase: Phase, seconds: number, cycle: number) => stages.push({ phase, label: labels[phase], durationMs: seconds * 1000, round, totalRounds: config.retentions.length, cycle, totalCycles: config.cycles });
@@ -119,5 +130,5 @@ export function createSnapshot(config: PracticeConfig, id: string = crypto.rando
     const stages = compileStages(copy);
     if (!Number.isFinite(Date.parse(startedAt)))
         throw new Error('Invalid session start time.');
-    return deepFreeze({ id, startedAt, name: copy.kind === 'routine' ? copy.routine.name.trim() : copy.kind === 'patterned' ? patterns[copy.presetId].name : copy.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90', config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000 });
+    return deepFreeze({ id, startedAt, name: copy.kind === 'meditation' ? 'Meditation' : copy.kind === 'routine' ? copy.routine.name.trim() : copy.kind === 'patterned' ? patterns[copy.presetId].name : copy.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90', config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' || copy.kind === 'meditation' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000 });
 }

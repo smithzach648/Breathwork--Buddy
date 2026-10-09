@@ -13,6 +13,8 @@ import { createBrowserRuntime, canActivateUpdate, type PracticeRuntime } from '.
 import type { Preferences } from '../settings/preferences';
 import { Routines } from '../features/routines/Routines';
 import { routineRepository } from '../routines/repository';
+import { Meditation } from '../features/meditation/Meditation';
+import type { PracticeConfig } from '../session/config';
 export function App({ runtime: providedRuntime }: {
     runtime?: PracticeRuntime;
 } = {}) {
@@ -20,6 +22,7 @@ export function App({ runtime: providedRuntime }: {
     const practiceState = useSyncExternalStore(runtime.subscribe, runtime.getState);
     const [page, setPage] = useState<Page>('Home');
     const [routinesOpen, setRoutinesOpen] = useState(false);
+    const [meditationOpen, setMeditationOpen] = useState(false);
     const [prefs, setPrefs] = useState(defaultPreferences);
     const latestPrefs = useRef(prefs);
     const saves = useRef(Promise.resolve());
@@ -49,7 +52,7 @@ export function App({ runtime: providedRuntime }: {
         const visible = () => runtime.visibilityChanged(document.visibilityState === 'visible');
         document.addEventListener('visibilitychange', visible);
         visible();
-        return () => { document.removeEventListener('visibilitychange', visible); runtime.cancelStart(); runtime.engine.stop(); runtime.background?.dispose(); };
+        return () => { document.removeEventListener('visibilitychange', visible); runtime.cancelStart(); runtime.engine.stop(); runtime.background?.dispose(); runtime.noise?.dispose(); };
     }, [runtime]);
     useEffect(() => {
         const media = matchMedia('(prefers-color-scheme: dark)');
@@ -69,6 +72,8 @@ export function App({ runtime: providedRuntime }: {
     }
     function changeTheme(theme: Theme) { saveSettings({ ...latestPrefs.current, theme }); }
     function navigate(destination: Page) {
+        runtime.stopNoisePreview();
+        setMeditationOpen(false);
         setRoutinesOpen(false);
         setPage(destination);
         document.getElementById('content')?.focus();
@@ -91,6 +96,8 @@ export function App({ runtime: providedRuntime }: {
         try { await runtime.start({ kind: 'routine', routine }); }
         catch (error) { setError(error instanceof Error ? error.message : 'Routine could not start.'); throw error; }
     }
+    function openMeditation() { setRoutinesOpen(false); setMeditationOpen(true); document.getElementById('content')?.focus(); window.scrollTo({top:0,behavior:'instant'}); }
+    function startMeditation(config:PracticeConfig) { navigate('Practice'); try { const starting=runtime.start(config); void starting?.catch(error=>setError(error instanceof Error?error.message:'Meditation could not start.')); } catch(error) {setError(error instanceof Error?error.message:'Meditation could not start.');} }
     return <div className="shell">
     <a className="skip" href="#content">Skip to content</a>
     <header><button className="brand" onClick={() => navigate('Home')} aria-label="Breathwork Buddy home">
@@ -100,9 +107,9 @@ export function App({ runtime: providedRuntime }: {
       {error && <p role="alert" className="notice">{error}</p>}
       {practiceState.saveError && <div role="alert" className="notice">{practiceState.saveError} <button onClick={() => runtime.retrySaving()}>Retry saving</button></div>}
       {needRefresh && <div className="notice" role="status">{practiceState.starting || practiceState.session.status === 'running' ? 'An update is ready. Finish or stop your practice to update.' : <>A new version is ready. <button onClick={() => void update()}>Update app</button></>}</div>}
-      {routinesOpen ? <Routines onStart={startRoutine} onBack={() => navigate('Home')}/> : <>
-      {page === 'Home' && <Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine}/>}
-      {page === 'Practice' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => setRoutinesOpen(true)}/>}
+      {meditationOpen ? <Meditation preferences={prefs} onChange={saveSettings} runtime={runtime} onStart={startMeditation} onChooseTrack={() => navigate('Settings')}/> : routinesOpen ? <Routines onStart={startRoutine} onBack={() => navigate('Home')}/> : <>
+      {page === 'Home' && <Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine} onMeditation={openMeditation}/>}
+      {page === 'Practice' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => setRoutinesOpen(true)} onMeditation={openMeditation} preferences={prefs} onPreferencesChange={saveSettings}/>}
       {page === 'Journal' && <Journal />}
       {page === 'History' && <History version={practiceState.historyVersion}/>}
       {page === 'Settings' && <Settings theme={prefs.theme} volumes={prefs.volumes} ready={ready} saving={saving} storageFailed={!!error} legacy={legacy} onThemeChange={changeTheme} onVolumeChange={(bus, value) => saveSettings({ ...latestPrefs.current, volumes: { ...latestPrefs.current.volumes, [bus]: value } })} preferences={prefs} onPreferencesChange={saveSettings} background={runtime.background} running={practiceState.session.status === 'running'}/>}

@@ -34,6 +34,8 @@ export class DeterministicSessionEngine {
     private retentions: NonNullable<SessionResult['retentions']> = [];
     private blockTimes = new Map<string, number>();
     private completedBlocks = new Set<string>();
+    private meditationSeconds = 0;
+    private endReason?: 'ended-early';
     private audioEnabled = true;
     constructor(private clock: Clock, private scheduler: Scheduler, private audio: SessionAudio = silent) { }
     getState = () => this.state;
@@ -56,6 +58,7 @@ export class DeterministicSessionEngine {
         this.roundsCompleted = 0;
         this.retentions = [];
         this.blockTimes.clear(); this.completedBlocks.clear();
+        this.meditationSeconds = 0; this.endReason = undefined;
         this.startTime = this.clock.now();
         this.stageStart = this.startTime;
         this.deadline = this.stageStart + snapshot.stages[0].durationMs;
@@ -89,6 +92,10 @@ export class DeterministicSessionEngine {
     }
     private finishStage(end: number, outcome: 'completed' | 'released' | 'cancelled' = 'completed') {
         const stage = this.state.snapshot!.stages[this.index];
+        if (stage.phase === 'meditation') {
+            this.meditationSeconds += Math.max(0, end - this.stageStart) / 1000;
+            if (outcome === 'completed' && this.audioEnabled) this.sound(() => this.audio.completeStage?.({ sessionId: this.state.sessionId!, stageId: this.stageToken(), stage, start: this.stageStart, deadline: end }));
+        }
         if (stage.blockId) {
             this.blockTimes.set(stage.blockId, (this.blockTimes.get(stage.blockId) || 0) + Math.max(0, end - this.stageStart) / 1000);
             if (outcome !== 'cancelled' && this.state.snapshot!.stages[this.index + 1]?.blockId !== stage.blockId) this.completedBlocks.add(stage.blockId);
@@ -141,11 +148,12 @@ export class DeterministicSessionEngine {
         this.enterAudio();
         this.arm();
     }
-    stop() {
+    stop(reason?: 'ended-early') {
         this.reconcile();
         if (this.state.status !== 'running')
             return;
         const now = this.clock.now();
+        this.endReason = reason;
         this.finishStage(now, 'cancelled');
         this.finish('cancelled', now);
     }
@@ -154,8 +162,10 @@ export class DeterministicSessionEngine {
         const snapshot = this.state.snapshot!;
         this.cancelWakeup?.();
         this.cancelWakeup = undefined;
-        this.sound(() => this.audio.cancelSession(sessionId));
+        this.sound(() => { if (this.audio.finishSession) this.audio.finishSession(sessionId,outcome); else this.audio.cancelSession(sessionId); });
         const result: SessionResult = { id: sessionId, routineId: snapshot.config.kind === 'routine' ? snapshot.config.routine.id : snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
+        if (this.endReason) result.endReason = this.endReason;
+        if (snapshot.config.kind === 'meditation') result.meditation = { plannedDurationSeconds: snapshot.config.durationSeconds, actualDurationSeconds: this.meditationSeconds };
         if (snapshot.config.kind === 'routine') {
             result.routineName = snapshot.name;
             result.totalBlocks = snapshot.config.routine.stages.length;

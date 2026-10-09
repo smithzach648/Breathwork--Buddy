@@ -11,4 +11,6 @@ export interface SessionAudio {
     enter(stage: StageAudio): void;
     cancelStage(stageId: string): void;
     cancelSession(sessionId: string): void;
+    completeStage?(stage: StageAudio): void;
+    finishSession?(sessionId: string, outcome: 'completed' | 'cancelled'): void;
 }

@@ -56,3 +56,8 @@
 .routine-list h2, .quick-routines span { overflow-wrap: anywhere; }
 .quick-routines ul { padding: 0; list-style: none; }
 .quick-routines li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: .6rem 0; }
+
+.meditation-setup, .meditation-audio { display: grid; gap: 12px; }
+.meditation-setup select, .meditation-setup input[type=number], .meditation-audio select { width: 100%; min-width: 0; min-height: 48px; padding: .75rem; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+.meditation-audio { margin-top: 1rem; text-align: left; }
+.active-practice > p { overflow-wrap: anywhere; }

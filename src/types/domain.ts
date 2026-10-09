@@ -27,6 +27,8 @@ export interface SessionResult {
     outcome: 'completed' | 'cancelled';
     stagesCompleted: number;
     roundsCompleted?: number;
+    endReason?: 'ended-early';
+    meditation?: { plannedDurationSeconds: number; actualDurationSeconds: number };
     routineName?: string;
     blocksCompleted?: number;
     totalBlocks?: number;

@@ -4,6 +4,7 @@ import type { Preferences } from '../settings/preferences';
 import { assetUrl, resolveAsset, audioCatalog, type AudioBus } from './catalog';
 import { stageCues, type AudioCue } from './cues';
 import { cueEnabled, guidanceCategory } from './guidance';
+import { MeditationSignals, type AudioEnvironmentPort } from './meditation-signals';
 interface Track {
     source: AudioBufferSourceNode;
     gain: GainNode;
@@ -37,7 +38,11 @@ export class BrowserAudio implements SessionAudio {
     private failures = new Set<string>();
     private listeners = new Set<() => void>();
     private decoded = new Set<string>();
-    constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { }
+    readonly signals: MeditationSignals;
+    private mediaInput?: AudioNode;
+    constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { this.signals = new MeditationSignals(clock,()=>this.environmentPort(),preferences); }
+    /** Independent stereo-capable buses connect before this shared Master gain. */
+    environmentPort(): AudioEnvironmentPort | undefined { return this.context && this.buses.master ? { context: this.context, input: this.buses.master, mediaInput: this.mediaInput } : undefined; }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify() { this.listeners.forEach(listener => listener()); }
     diagnostics(): AudioDiagnostics { return { scheduled: this.scheduled, skipped: this.skipped, failures: [...this.failures], playing: this.tracks.size, state: this.context?.state || 'not initialized' }; }
@@ -47,7 +52,11 @@ export class BrowserAudio implements SessionAudio {
             if (!this.context) {
                 this.context = this.createContext();
                 this.buses.master = this.context.createGain();
-                this.buses.master.connect(this.context.destination);
+                if (this.context.createDynamicsCompressor) {
+                    const limiter = this.context.createDynamicsCompressor(); limiter.threshold.value = -6; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = .003; limiter.release.value = .15;
+                    this.buses.master.connect(limiter); limiter.connect(this.context.destination);
+                    this.mediaInput = limiter;
+                } else this.buses.master.connect(this.context.destination);
                 for (const bus of ['voice', 'breath'] as const) {
                     this.buses[bus] = this.context.createGain();
                     this.buses[bus]!.connect(this.buses.master);
@@ -60,7 +69,7 @@ export class BrowserAudio implements SessionAudio {
                         if (scope && !this.active?.started)
                             this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
                     }
-                    else { this.stopTracks(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
+                    else { this.stopTracks(); this.signals.stop(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
                     this.notify();
                 });
             }
@@ -84,6 +93,7 @@ export class BrowserAudio implements SessionAudio {
     }
     setPreferences(preferences: Preferences) {
         this.preferences = structuredClone(preferences);
+        this.signals.setPreferences(this.preferences);
         this.stopTracks(track => !cueEnabled(track.cueId, preferences));
         for (const bus of ['master', 'voice', 'breath'] as const) {
             const node = this.buses[bus];
@@ -127,6 +137,7 @@ export class BrowserAudio implements SessionAudio {
         return loading;
     }
     enter(scope: StageAudio) {
+        this.signals.begin(scope.sessionId);
         if (this.active?.started && this.active.scope.sessionId === scope.sessionId && this.active.scope.stageId === scope.stageId) return;
         this.stopTracks(track => !(track.scope.sessionId === scope.sessionId && track.continuesInto === scope.stage.phase && track.scope.deadline === scope.start));
         const epoch = ++this.epoch;
@@ -134,6 +145,7 @@ export class BrowserAudio implements SessionAudio {
         if (!this.context || this.context.state !== 'running')
             return;
         this.active.started = true;
+        this.signals.play(scope);
         for (const cue of stageCues(scope)) {
             if (!cueEnabled(cue.id, this.preferences)) continue;
             if (scope.resuming && cue.at <= this.clock.now() + 10)
@@ -204,6 +216,7 @@ export class BrowserAudio implements SessionAudio {
         }
     }
     cancelStage(stageId: string) {
+        this.signals.cancelStage(stageId);
         if (this.active?.scope.stageId !== stageId)
             return;
         this.epoch++;
@@ -212,6 +225,7 @@ export class BrowserAudio implements SessionAudio {
         this.notify();
     }
     cancelSession(sessionId: string) {
+        this.signals.stop(sessionId);
         if (this.active?.scope.sessionId === sessionId) {
             this.epoch++;
             this.active = undefined;
@@ -221,6 +235,12 @@ export class BrowserAudio implements SessionAudio {
     }
     /** Visibility or audio suspension changes the clock mapping; engine truth does not pause. */
     resynchronize() { this.mapClock(); }
+    completeStage(scope: StageAudio) { this.signals.play(scope,true); }
+    finishSession(sessionId: string, outcome: 'completed' | 'cancelled') {
+        this.signals.stop(sessionId,outcome === 'completed');
+        if (this.active?.scope.sessionId === sessionId) { ++this.epoch; this.active = undefined; }
+        this.stopTracks(track=>track.scope.sessionId === sessionId); this.notify();
+    }
     startReady() { return !this.preferences.guidance.generalVoice || this.context?.state === 'running' && (this.decoded.has('voice.prepare') || this.failures.has('voice.prepare')); }
     async readyForStart() { if (this.preferences.guidance.generalVoice) await this.load('voice.prepare'); }
     debugState() { return { epoch: this.epoch, context: this.context?.state, generalVoice: this.preferences.guidance.generalVoice, active: this.active ? { ...this.active, scope: { ...this.active.scope } } : null, decoded: [...this.decoded], tracks: [...this.tracks].map(t => ({ cueId: t.cueId, sessionId: t.scope.sessionId, stageId: t.scope.stageId, when: t.when, end: t.end })), now: this.clock.now(), audioNow: this.context?.currentTime }; }

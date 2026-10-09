@@ -18,12 +18,14 @@ export function validateRoutine(value: unknown): asserts value is Routine {
                 if (![180, 300, 600].includes(stage.durationSeconds as number)) throw new Error('Choose 3, 5, or 10 minutes.');
             } else if (stage.kind === 'hormesis') {
                 if (!Array.isArray(stage.retentions)) throw new Error('Choose a supported retention sequence.');
+            } else if (stage.kind === 'meditation') {
+                // Meditation validation includes its exact minute boundaries and minimal policy.
             } else throw new Error('Choose a supported breathing or Hormesis block.');
             validateConfig(stage as unknown as ExerciseConfig);
         } catch (error) { throw new Error(`Block ${index + 1}: ${error instanceof Error ? error.message : 'Invalid block.'}`); }
     });
 }
-export function blockName(block: ExerciseConfig) { return block.kind === 'patterned' ? patterns[block.presetId].name : block.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90'; }
+export function blockName(block: ExerciseConfig) { return block.kind === 'meditation' ? 'Meditation' : block.kind === 'patterned' ? patterns[block.presetId].name : block.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90'; }
 export function newBlock(): Extract<RoutineStage, { kind: 'patterned' }> { return { id: crypto.randomUUID(), kind: 'patterned', presetId: 'coherent', durationSeconds: 300 }; }
 /** Repair supplies an editable draft; nothing is written automatically. */
 export function repairDraft(value: unknown): Routine {

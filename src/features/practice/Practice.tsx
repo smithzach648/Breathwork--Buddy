@@ -1,13 +1,18 @@
+import { MeditationAudio } from '../meditation/Meditation';
+import { defaultPreferences, type Preferences } from '../../settings/preferences';
 import { useState } from 'react';
 import type { PracticeRuntime, RuntimeState } from '../../session/runtime';
 import { patterns, type PatternId, type PracticeConfig } from '../../session/config';
 import { formatDuration } from '../../shared/format';
 import { BackgroundControls } from '../../media/MediaSettings';
-export function Practice({ runtime, state, onDone, onRoutines }: {
+export function Practice({ runtime, state, onDone, onRoutines, onMeditation, preferences = defaultPreferences(), onPreferencesChange }: {
     runtime: PracticeRuntime;
     state: RuntimeState;
     onDone: () => void;
     onRoutines?: () => void;
+    onMeditation?: () => void;
+    preferences?: Preferences;
+    onPreferencesChange?: (p:Preferences)=>void;
 }) {
     const [preset, setPreset] = useState<PatternId | 'hormesis-60' | 'hormesis-progressive'>('box');
     const [duration, setDuration] = useState(300);
@@ -15,6 +20,7 @@ export function Practice({ runtime, state, onDone, onRoutines }: {
     const [cycles, setCycles] = useState<20 | 30 | 40>(30);
     const [error, setError] = useState('');
     const session = state.session;
+    const meditating = session.stage?.phase === 'meditation';
     const hormesis = preset.startsWith('hormesis');
     async function start(config?: PracticeConfig) {
         try {
@@ -28,29 +34,31 @@ export function Practice({ runtime, state, onDone, onRoutines }: {
     if (state.starting) return <><h1>Getting ready</h1><p role="status">Preparing your local audio before practice begins…</p><button onClick={() => runtime.cancelStart()}>Cancel start</button></>;
     if (session.status === 'running')
         return <>
-    <p className="eyebrow">YOUR PRACTICE</p><h1>Practice</h1>
+    <p className="eyebrow">YOUR PRACTICE</p><h1>{meditating ? 'Meditation' : 'Practice'}</h1>
     <section className="panel active-practice">
-      <p>{session.snapshot!.name}</p>
+      {(!meditating || session.snapshot!.config.kind === 'routine') && <p>{session.snapshot!.name}</p>}
       {session.stage?.blockId && <p className="muted">Block {session.stage.blockIndex! + 1} · {session.stage.blockName}</p>}
-      <p className="stage-title">{session.stage!.label}</p>
-      <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>
-      <p role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
+      <p className={meditating ? 'stage-title sr-only' : 'stage-title'}>{session.stage!.label}</p>
+      {(!meditating || preferences.meditation.showTimer) && <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>}
+      <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
       {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
+      {meditating && onPreferencesChange && <button onClick={() => onPreferencesChange({...preferences,meditation:{...preferences.meditation,showTimer:!preferences.meditation.showTimer}})}>{preferences.meditation.showTimer ? 'Hide timer' : 'Show timer'}</button>}
       <div className="practice-actions">
         {session.releaseAvailable && <button className="primary" onClick={() => runtime.engine.releaseRetention()}>Release retention</button>}
-        <button onClick={() => runtime.engine.stop()}>Stop practice</button>
+        <button onClick={() => runtime.engine.stop(meditating ? 'ended-early' : undefined)}>{meditating ? 'End Early' : 'Stop practice'}</button>
       </div>
-      <p className="muted">Elapsed {formatDuration(session.elapsedMs / 1000)}</p>
-      <BackgroundControls controller={runtime.background}/>
+      {!meditating && <p className="muted">Elapsed {formatDuration(session.elapsedMs / 1000)}</p>}
+      {meditating && session.stage?.meditationPolicy === 'silent' ? <p className="muted">Silent environment</p> : meditating && onPreferencesChange ? <MeditationAudio preferences={preferences} onChange={onPreferencesChange} runtime={runtime} running/> : <BackgroundControls controller={runtime.background}/>}
       {session.snapshot!.config.kind === 'patterned' && runtime.background?.getMode() === 'retention' && <p className="muted">Retention-only background is unavailable for this practice. Choose Entire practice in Settings to hear background audio.</p>}
       {state.audio.failures.length > 0 && <p className="muted">Some audio is unavailable. Practice timing continues normally.</p>}
     </section>
   </>;
     if (session.result)
         return <>
-    <p className="eyebrow">YOUR PRACTICE</p><h1>{session.status === 'completed' ? 'Completed' : 'Cancelled'}</h1>
+    <p className="eyebrow">YOUR PRACTICE</p><h1>{session.status === 'completed' ? 'Completed' : session.result.endReason === 'ended-early' ? 'Ended early' : 'Cancelled'}</h1>
     <section className="panel">
       <h2>{session.snapshot!.name}</h2><p>Duration {formatDuration(session.result.actualDurationSeconds)}</p>
+      {session.result.meditation && <p>Meditation time {formatDuration(session.result.meditation.actualDurationSeconds)} of {formatDuration(session.result.meditation.plannedDurationSeconds)} planned</p>}
       {session.result.blocks && <><p>{session.result.blocksCompleted} of {session.result.totalBlocks} blocks completed</p><ul>{session.result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}</li>)}</ul></>}
       {session.snapshot!.config.kind === 'hormesis' && <p>Rounds completed: {session.result.roundsCompleted} of {session.snapshot!.config.retentions.length}</p>}
       {!!session.result.retentions?.length && <ul className="retention-results">{session.result.retentions.map(r => <li key={r.stageId}>Round {r.round}: {r.durationSeconds.toFixed(1)} seconds{r.outcome === 'released' ? ' · released early' : r.outcome === 'cancelled' ? ' · cancelled' : ''}</li>)}</ul>}
@@ -62,6 +70,7 @@ export function Practice({ runtime, state, onDone, onRoutines }: {
     return <>
     <p className="eyebrow">MAKE A LITTLE SPACE</p><h1>Practice</h1>
     <p className="intro">Choose a rhythm. Follow the guidance at a pace that feels comfortable.</p>
+    {onMeditation && <p><button onClick={onMeditation}>Explore meditation</button></p>}
     {onRoutines && <p><button onClick={onRoutines}>My Routines</button></p>}
     {error && <p role="alert" className="notice">{error}</p>}
     <section className="panel practice-config">

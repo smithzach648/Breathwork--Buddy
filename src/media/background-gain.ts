@@ -41,10 +41,10 @@ export class BackgroundGain {
         else if (this.input) this.setVoice(true);
         this.write();
     }
-    play() {
+    play(milliseconds = 700) {
         this.update();
         if (this.transportFade?.to === 1 || this.transport === 1 && !this.transportFade) return;
-        this.transportFade = { from: this.transport, to: 1, start: performance.now(), duration: 700 }; this.arm();
+        this.transportFade = { from: this.transport, to: 1, start: performance.now(), duration: milliseconds }; this.arm();
     }
     pause() {
         this.update(); this.clearRestore(); this.input = false; this.held = false;

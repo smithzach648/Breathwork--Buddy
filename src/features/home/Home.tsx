@@ -1,6 +1,7 @@
 import { QuickRoutines } from '../routines/QuickRoutines';
-export function Home({ onExplore, onRoutines, onStartRoutine }: {
+export function Home({ onExplore, onRoutines, onStartRoutine, onMeditation }: {
     onExplore: () => void;
+    onMeditation: () => void;
     onRoutines: () => void;
     onStartRoutine: (id: string) => Promise<void>;
 }) {
@@ -14,6 +15,7 @@ export function Home({ onExplore, onRoutines, onStartRoutine }: {
       <p>Find a comfortable rhythm with local voice guidance, natural breath sounds, and space to pause.</p>
       <button className="primary" onClick={onExplore}>Explore the practice space <span aria-hidden="true">→</span></button>
     </section>
+    <section className="panel"><h2>Meditation</h2><p>Settle in with a familiar breath and a quiet sound environment.</p><button onClick={onMeditation}>Explore meditation</button></section>
     <QuickRoutines onOpen={onRoutines} onStart={onStartRoutine}/>
     <div className="cards">
       <section><span className="number">01</span><h2>Keep it personal</h2><p>Your preferences live on this device. No account needed.</p></section>
