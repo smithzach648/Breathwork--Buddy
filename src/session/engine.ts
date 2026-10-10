@@ -34,6 +34,7 @@ export class DeterministicSessionEngine {
     private retentions: NonNullable<SessionResult['retentions']> = [];
     private blockTimes = new Map<string, number>();
     private completedBlocks = new Set<string>();
+    private completedCycles = new Map<string, number>();
     private meditationSeconds = 0;
     private endReason?: 'ended-early';
     private audioEnabled = true;
@@ -57,7 +58,7 @@ export class DeterministicSessionEngine {
         this.stagesCompleted = 0;
         this.roundsCompleted = 0;
         this.retentions = [];
-        this.blockTimes.clear(); this.completedBlocks.clear();
+        this.blockTimes.clear(); this.completedBlocks.clear(); this.completedCycles.clear();
         this.meditationSeconds = 0; this.endReason = undefined;
         this.startTime = this.clock.now();
         this.stageStart = this.startTime;
@@ -98,6 +99,8 @@ export class DeterministicSessionEngine {
         }
         if (stage.blockId) {
             this.blockTimes.set(stage.blockId, (this.blockTimes.get(stage.blockId) || 0) + Math.max(0, end - this.stageStart) / 1000);
+            const next = this.state.snapshot!.stages[this.index + 1];
+            if (stage.blockKind === 'custom-pattern' && outcome === 'completed' && (next?.blockId !== stage.blockId || next.cycle !== stage.cycle)) this.completedCycles.set(stage.blockId, (this.completedCycles.get(stage.blockId) || 0) + 1);
             if (outcome !== 'cancelled' && this.state.snapshot!.stages[this.index + 1]?.blockId !== stage.blockId) this.completedBlocks.add(stage.blockId);
         }
         if (stage.phase === 'retention')
@@ -177,6 +180,8 @@ export class DeterministicSessionEngine {
                 plannedDurationSeconds: snapshot.stages.filter(stage => stage.blockId === block.id).reduce((sum, stage) => sum + stage.durationMs, 0) / 1000,
                 actualDurationSeconds: this.blockTimes.get(block.id) || 0,
                 retentions: structuredClone(this.retentions.filter(retention => retention.blockId === block.id)),
+                ...(block.kind === 'custom-pattern' ? { customPattern: { inhaleSeconds: block.inhaleSeconds, holdInSeconds: block.holdInSeconds, exhaleSeconds: block.exhaleSeconds, holdOutSeconds: block.holdOutSeconds, requestedCycles: block.cycles, completedCycles: this.completedCycles.get(block.id) || 0 } } : {}),
+                ...(block.kind === 'hormesis-round' ? { hormesisRound: { preparationBreaths: block.cycles, intervalSeconds: block.intervalSeconds, retentionTargetSeconds: block.retentionSeconds, recoveryCompleted: this.completedBlocks.has(block.id) } } : {}),
             }));
         }
         this.state = deepFreeze({ ...this.state, status: outcome, remainingMs: 0, elapsedMs: Math.max(0, end - this.startTime), stagesCompleted: this.stagesCompleted, roundsCompleted: this.roundsCompleted, releaseAvailable: false, result });

@@ -1,3 +1,4 @@
+import { BlockDetails } from '../history/BlockDetails';
 import { MeditationAudio } from '../meditation/Meditation';
 import { defaultPreferences, type Preferences } from '../../settings/preferences';
 import { useState } from 'react';
@@ -43,8 +44,8 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
       {session.stage?.blockId && <p className="muted">Block {session.stage.blockIndex! + 1} · {session.stage.blockName}</p>}
       <p className={meditating ? 'stage-title sr-only' : 'stage-title'}>{session.stage!.label}</p>
       {(!meditating || preferences.meditation.showTimer) && <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>}
-      <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
-      {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.stage!.blockKind === 'hormesis') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
+      <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
+      {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
       {meditating && onPreferencesChange && <button onClick={() => onPreferencesChange({...preferences,meditation:{...preferences.meditation,showTimer:!preferences.meditation.showTimer}})}>{preferences.meditation.showTimer ? 'Hide timer' : 'Show timer'}</button>}
       {envelope&&session.stage?.meditationPolicy!=='silent'&&<p className="muted">{elapsed<envelope.entry?'Entry':elapsed<envelope.entry+envelope.steady?'Steady':'Return'}</p>}
       {meditating && session.stage!.durationMs<600000 && session.snapshot?.meditationSound?.mode!=='off' && session.snapshot?.meditationSound && session.stage!.meditationPolicy!=='silent' && <p className="notice">This short block uses masking and selected audio only. Binaural sessions need at least 10 minutes; your selected mode stays saved.</p>}
@@ -52,6 +53,7 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
         {session.releaseAvailable && <button className="primary" onClick={() => runtime.engine.releaseRetention()}>Release retention</button>}
         <button onClick={() => runtime.engine.stop(meditating ? 'ended-early' : undefined)}>{meditating ? 'End Early' : 'Stop practice'}</button>
       </div>
+      {session.stage?.blockKind === 'hormesis-round' && <details><summary>Comfort and early Release</summary><p className="muted">The retention target is optional. Release whenever you wish and recover comfortably. Rapid breathing or retention can cause dizziness or fainting: practice seated or lying down, never in water, while driving, or where fainting could cause injury. Stop for dizziness, chest symptoms or significant discomfort.</p></details>}
       {!meditating && <p className="muted">Elapsed {formatDuration(session.elapsedMs / 1000)}</p>}
       {meditating && session.stage?.meditationPolicy === 'silent' ? <p className="muted">Silent environment</p> : meditating && onPreferencesChange ? <MeditationAudio preferences={preferences} onChange={onPreferencesChange} runtime={runtime} running/> : <BackgroundControls controller={runtime.background}/>}
       {session.snapshot!.config.kind === 'patterned' && runtime.background?.getMode() === 'retention' && <p className="muted">Retention-only background is unavailable for this practice. Choose Entire practice in Settings to hear background audio.</p>}
@@ -64,7 +66,7 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     <section className="panel">
       <h2>{session.snapshot!.name}</h2><p>Duration {formatDuration(session.result.actualDurationSeconds)}</p>
       {session.result.meditation && <p>Meditation time {formatDuration(session.result.meditation.actualDurationSeconds)} of {formatDuration(session.result.meditation.plannedDurationSeconds)} planned</p>}
-      {session.result.blocks && <><p>{session.result.blocksCompleted} of {session.result.totalBlocks} blocks completed</p><ul>{session.result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}</li>)}</ul></>}
+      {session.result.blocks && <><p>{session.result.blocksCompleted} of {session.result.totalBlocks} blocks completed</p><ul>{session.result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}<BlockDetails block={block}/></li>)}</ul></>}
       {session.snapshot!.config.kind === 'hormesis' && <p>Rounds completed: {session.result.roundsCompleted} of {session.snapshot!.config.retentions.length}</p>}
       {!!session.result.retentions?.length && <ul className="retention-results">{session.result.retentions.map(r => <li key={r.stageId}>Round {r.round}: {r.durationSeconds.toFixed(1)} seconds{r.outcome === 'released' ? ' · released early' : r.outcome === 'cancelled' ? ' · cancelled' : ''}</li>)}</ul>}
       <p className="muted">{state.saving ? 'Saving on this device…' : state.saveError ? 'Not yet saved. Retry using the message above.' : 'Saved on this device.'}</p>

@@ -21,5 +21,5 @@ export function backgroundWanted(session: SessionState | undefined, preferences:
     const meditation = meditationWindow(session);
     if (meditation) return !meditation.silent && (session?.snapshot?.meditationSound?.music ?? preferences.meditation.music);
     const mode = preferences.background.mode;
-    return mode === 'entire' && session.status === 'running' || mode === 'retention' && session.status === 'running' && (session.snapshot?.config.kind === 'hormesis' || session.stage?.blockKind === 'hormesis') && session.stage?.phase === 'retention' || mode === 'after' && session.status === 'completed';
+    return mode === 'entire' && session.status === 'running' || mode === 'retention' && session.status === 'running' && (session.snapshot?.config.kind === 'hormesis' || session.snapshot?.config.kind === 'hormesis-round' || session.stage?.blockKind === 'hormesis' || session.stage?.blockKind === 'hormesis-round') && session.stage?.phase === 'retention' || mode === 'after' && session.status === 'completed';
 }

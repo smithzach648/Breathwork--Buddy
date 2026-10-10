@@ -1,3 +1,4 @@
+import { BlockDetails } from './BlockDetails';
 import { useEffect, useState } from 'react';
 import { recentSessions } from '../../storage/repositories';
 import type { SessionResult } from '../../types/domain';
@@ -22,7 +23,7 @@ export function History({ version = 0 }: {
       <p>{result.outcome === 'completed' ? 'Completed' : result.endReason === 'ended-early' ? 'Ended early' : 'Cancelled'} · {formatDuration(result.actualDurationSeconds)}</p>
       {result.meditation && <p className="muted">Meditation: {formatDuration(result.meditation.actualDurationSeconds)} of {formatDuration(result.meditation.plannedDurationSeconds)} planned</p>}
       {result.soundProfile&&<p className="muted">Sound: {{off:'Off',baseline:'Baseline',layered:'Layered',modulated:'Experimental Modulated'}[result.soundProfile.mode]} · {{off:'masking Off',brown:'Warm',pink:'Balanced',white:'Broad Masking'}[result.soundProfile.texture]}{result.soundProfile.music?' · selected audio':''}. {result.soundProfile.mode!=='off'&&result.blocks?.some(block=>block.kind==='meditation'&&block.plannedDurationSeconds<600)&&'Short blocks use masking and selected audio only.'}</p>}
-      {result.blocks && <><p className="muted">{result.blocksCompleted} of {result.totalBlocks} blocks completed</p><ul>{result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}{block.kind === 'meditation' && ` · ${formatDuration(block.actualDurationSeconds)} of ${formatDuration(block.plannedDurationSeconds)}`}{!!block.retentions.length && <span className="muted"> · Retentions: {block.retentions.map(retention => `${retention.durationSeconds.toFixed(1)}s`).join(' / ')}</span>}</li>)}</ul></>}
+      {result.blocks && <><p className="muted">{result.blocksCompleted} of {result.totalBlocks} blocks completed</p><ul>{result.blocks.map(block => <li key={block.id}>{block.name} · {block.outcome === 'not-started' ? 'not started' : block.outcome}<BlockDetails block={block}/></li>)}</ul></>}
       {!!result.retentions?.length && <p className="muted">Retentions: {result.retentions.map(r => `${r.durationSeconds.toFixed(1)}s${r.outcome === 'released' ? ' (released)' : ''}`).join(' · ')}</p>}
     </li>)}</ol>}
   </>;

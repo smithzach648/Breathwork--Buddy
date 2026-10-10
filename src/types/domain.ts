@@ -42,6 +42,8 @@ export interface SessionResult {
         plannedDurationSeconds: number;
         actualDurationSeconds: number;
         retentions: NonNullable<SessionResult['retentions']>;
+        customPattern?: { inhaleSeconds: number; holdInSeconds: number; exhaleSeconds: number; holdOutSeconds: number; requestedCycles: number; completedCycles: number };
+        hormesisRound?: { preparationBreaths: number; intervalSeconds: number; retentionTargetSeconds: number; recoveryCompleted: boolean };
     }[];
     retentions?: {
         stageId: string;

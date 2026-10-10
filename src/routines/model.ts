@@ -20,12 +20,20 @@ export function validateRoutine(value: unknown): asserts value is Routine {
                 if (!Array.isArray(stage.retentions)) throw new Error('Choose a supported retention sequence.');
             } else if (stage.kind === 'meditation') {
                 // Meditation validation includes its exact minute boundaries and minimal policy.
-            } else throw new Error('Choose a supported breathing or Hormesis block.');
+            } else if (!['custom-pattern', 'hormesis-round', 'settling'].includes(stage.kind as string)) throw new Error('Choose a supported routine block. This record may need repair.');
             validateConfig(stage as unknown as ExerciseConfig);
         } catch (error) { throw new Error(`Block ${index + 1}: ${error instanceof Error ? error.message : 'Invalid block.'}`); }
     });
 }
-export function blockName(block: ExerciseConfig) { return block.kind === 'meditation' ? 'Meditation' : block.kind === 'patterned' ? patterns[block.presetId].name : block.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90'; }
+export function blockName(block: ExerciseConfig) {
+    if (block.kind === 'custom-pattern') {
+        const seconds = [block.inhaleSeconds, ...(block.holdInSeconds ? [block.holdInSeconds] : []), block.exhaleSeconds, ...(block.holdOutSeconds ? [block.holdOutSeconds] : [])];
+        return `Custom ${seconds.join('–')} × ${block.cycles}`;
+    }
+    if (block.kind === 'hormesis-round') return `One Hormesis Round · ${block.cycles} breaths · ${block.retentionSeconds}s target`;
+    if (block.kind === 'settling') return 'Breathe naturally / settle';
+    return block.kind === 'meditation' ? 'Meditation' : block.kind === 'patterned' ? patterns[block.presetId].name : block.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90';
+}
 export function newBlock(): Extract<RoutineStage, { kind: 'patterned' }> { return { id: crypto.randomUUID(), kind: 'patterned', presetId: 'coherent', durationSeconds: 300 }; }
 /** Repair supplies an editable draft; nothing is written automatically. */
 export function repairDraft(value: unknown): Routine {

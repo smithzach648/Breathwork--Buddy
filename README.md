@@ -1,6 +1,6 @@
 # Breathwork Buddy 2.0
 
-A personal, local-first breathwork PWA. Phase 3A stabilizes Prepare and background ducking, and adds saved routines compiled through the existing deterministic engine. The deterministic engine, preparation/recovery flow, and History remain intact. No accounts, runtime cloud services, external fonts, breath animation, or gamification.
+A personal, local-first breathwork PWA. Phase 4A adds exact-cycle custom patterns, independent hormesis rounds and timed natural settling to saved routines compiled through the existing deterministic engine. The preparation/recovery flow, local data and meditation sound environment remain intact. Earlier phase sections below document their original delivery.
 
 The modernization branch is `breathwork-buddy-2`. Preserve legacy `main` at `ea409acd59ecb440530d9c4938139720b7aecada`; do not merge or change it during this phased build.
 
@@ -213,4 +213,40 @@ At Start, the synthesis mode, masking choice, music inclusion and recipe version
 
 No new meditation timer, Pause/Skip, database schema or locked-screen service was introduced. Whole-parent End Early, actual durations, one result per run, Prepare once, retention Release, Full Exhale, wake-lock/update protections and existing audio assets are preserved. Optional sound metadata is additive to History. Hiding disconnects old tone graphs; returning joins at the current envelope, without replaying Prepare or expired signals.
 
-Validation: **294 tests across 11 files**, type check, production build, PWA artifact check, native Chrome OfflineAudioContext frequencies/stereo/sidebands/envelope/mixed-headroom measurements, full breathing/media regressions and 320/360/390/430-pixel layouts at 16/24/32-pixel root font sizes. The optional native DSP harness lives in `scripts/dsp-harness`; build it with `vite build --config scripts/dsp-harness/vite.config.mjs --configLoader native`, then run `node scripts/verify-meditation-dsp.cjs all` with Playwright available through NODE_PATH and Chrome installed (CHROME_PATH may override). It is excluded from the production PWA. Physical phone/headphone listening remains a user acceptance step; do not begin the next phase before that review.
+Validation at Phase 3B.1 delivery: **294 tests across 11 files**, type check, production build, PWA artifact check, native Chrome OfflineAudioContext frequencies/stereo/sidebands/envelope/mixed-headroom measurements, full breathing/media regressions and 320/360/390/430-pixel layouts at 16/24/32-pixel root font sizes. The optional native DSP harness lives in `scripts/dsp-harness`; build it with `vite build --config scripts/dsp-harness/vite.config.mjs --configLoader native`, then run `node scripts/verify-meditation-dsp.cjs all` with Playwright available through NODE_PATH and Chrome installed (CHROME_PATH may override). It is excluded from the production PWA. Physical phone/headphone listening remains a user acceptance step.
+
+## Phase 4A — composable breathing blocks
+
+Version `2.0.0-phase4a`. Home/Practice → My Routines retains saved practices and adds **Custom Pattern**, **One Hormesis Round** and **Natural Settling** alongside the existing preset patterns, full three-round hormesis and meditation. Each block can be reordered, duplicated with a fresh ID, removed and saved. Editing retains identity. Invalid fields stay in the draft with contextual explanations; unsupported records still require explicit repair. Routine names remain 1–80 characters and routines 1–20 blocks.
+
+New additive persisted shapes (each also carries its stable `id`):
+
+```json
+{"kind":"custom-pattern","presetId":"custom-pattern","inhaleSeconds":4,"holdInSeconds":4,"exhaleSeconds":6,"holdOutSeconds":0,"cycles":5}
+{"kind":"hormesis-round","presetId":"hormesis-round","intervalSeconds":2,"cycles":20,"retentionSeconds":90}
+{"kind":"settling","presetId":"settling","durationSeconds":120}
+```
+
+Custom inhale/exhale accept whole seconds 1–20, independent holds 0–20, cycles 1–100, and total breathing duration at most 1,800 seconds. Zero holds create no stages or cues. The exact duration and hold roles appear in the editor. Legacy presets remain duration-based. Existing generic In/Out/Hold clips and breath samples are bounded by stage deadlines; no spoken custom-duration asset or time stretching is introduced. Breath recordings can end before a longer custom phase, while the engine and visual deadline continue.
+
+Independent hormesis supports only 20/30/40 breaths, 2/3-second inhale/exhale, and 60/90-second retention targets. It shares a round compiler with legacy full prescriptions and omits multi-round announcements. The final normal exhale is replaced by the established four-second Full Exhale. Release works immediately, cancels pending retention cues and begins the same 4/15/6/3-second recovery. The target is optional, never a requirement. Safety guidance explains seated/lying practice, early Release, dizziness/fainting, unsafe settings and stopping with symptoms.
+
+Settling accepts 30–600 whole seconds and has one `natural-settling` stage labeled **Breathe naturally / settle**, with no breath pacing, hold or countdown cues. It proceeds automatically. A ready-gate is deferred.
+
+All saved blocks compile into one immutable parent: Prepare 4/6/3 once, precisely one silent three-second transition between blocks, and one result. Planned routine duration includes Prepare, transitions and target retentions; early Release shortens actual time and shifts every later deadline. Stop cancels the parent and reports completed/cancelled/not-started blocks. Custom History adds configured phase durations and requested/completed full cycles; single-round History adds preparation, target, actual retention outcome and recovery completion. Settling uses existing planned/actual block durations. Prior History fields and rows remain readable. Start Again retains the Start-time timing/sound snapshot.
+
+Dexie remains schema **3**: no row rewrite, migration, deletion, new table, preference reset or imported-media change. Warm/other textures, oscillator recipes, gains/ducking, the single long-media player, meditation policy and PWA scope remain as in 3B.1. Retention-only background now recognizes the new round kind. Continuous sound across breathing/recovery/settling is reserved for **4B**; the existing `sessionId`, `stageId`, `blockId`, `stageStart`, `deadline` and meditation-window events are its integration boundary.
+
+Phase 4A automated regression: **347 tests / 12 files**, including all 294 prior tests. Type checking, production build and PWA artifact checks pass. Native Chrome QA covers the exact example, immediate Release/full recovery, natural settling, Warm/Layered meditation, Stop/cleanup, imported Blob preservation, offline browser-process restart and editor widths 320/360/390/430 with 16/24/32-pixel root text. Desktop tests do not establish physical Android/iOS or headphone behavior.
+
+Optional reproducible browser checks (Playwright must be available through `NODE_PATH`; `CHROME_PATH` can override Chrome):
+
+```sh
+pnpm exec vite build --config scripts/routine-harness/vite.config.mjs --configLoader native
+node scripts/verify-modular-routines.cjs
+node scripts/verify-modular-installed.cjs
+# After deploying this branch, verify HTTPS installed PWA:
+node scripts/verify-modular-installed.cjs --live
+```
+
+The QA entry uses an injected clock with native Web Audio; the normal production/offline and installed checks use the actual app build. Generated profiles, screenshots and evidence stay in ignored `qa/`; the harness is excluded from the production bundle and service-worker precache. Consult the Phase 4A handoff for actual installed/deployment status and the physical-phone checklist.
