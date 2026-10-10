@@ -10,6 +10,9 @@ import { defaultPreferences } from '../../src/settings/preferences';
 import { WakeLockController } from '../../src/session/wake-lock';
 import { FakeTiming } from '../../src/test/fake-time';
 import '../../src/styles/global.css';
+import {createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude} from '../../src/audio/binaural';
+import {generateMaskingBuffer} from '../../src/audio/noise-spectrum';
+import {createOutput} from '../../src/audio/output';
 
 // Optional QA entry only. Never shipped by the application build or service worker.
 const timing = new FakeTiming();
@@ -36,7 +39,8 @@ const background = new BackgroundController(undefined, undefined, () => audio.en
 const noise = new NoiseController(() => audio.environmentPort());
 const binaural = new BinauralController(() => audio.environmentPort(), timing);
 runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), undefined, background, noise, binaural);
-Object.assign(window, { routineQA: { runtime, timing, database, noise, binaural, events,
+Object.assign(window, { acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
+    jump(ms:number){timing.jump(ms);runtime.engine.reconcile();audio.resynchronize();},
     advance(ms: number) {
         timing.advance(ms); audio.resynchronize();
         const state = runtime.engine.getState();

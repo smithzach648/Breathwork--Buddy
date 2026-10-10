@@ -250,3 +250,46 @@ node scripts/verify-modular-installed.cjs --live
 ```
 
 The QA entry uses an injected clock with native Web Audio; the normal production/offline and installed checks use the actual app build. Generated screenshots and evidence stay in ignored `qa/`; installed-PWA profiles use a short OS temporary path to avoid Windows CacheStorage path limits; the harness is excluded from the production bundle and service-worker precache. Consult the Phase 4A handoff for actual installed/deployment status and the physical-phone checklist.
+
+
+## Phase 4B — one acoustic environment and recorded bowl
+
+Version `2.0.0-phase4b`. My Routines now configures **Sound from Start**, with Warm generated, Selected audio, Warm + Companion, or Off. New routines start with Warm; opening an old row leaves its foundation absent and retains its old background choice. A legacy Entire-practice track also continues into an inherited Meditation block, fixing the reported Floating cutoff. Custom blocks and explicit Silent take precedence.
+
+Meditation blocks support **Use Meditation sound defaults**, **Customize This Block**, and **Silent, including signals**. Custom stores an exact independent recipe: masking/media identity, levels, loop, established binaural mode, and independent opening/closing signal choices and level. Defaults resolve at Start. New custom blocks default opening Off / recorded closing Bowl On at 50% signal level. Short blocks remain valid and omit tones under 10 minutes. Standalone meditation retains legacy signal defaults and adds an explicit Recorded singing bowl choice. Balanced/Broad are moved to advanced legacy choices; their IDs and synthesis remain supported.
+
+Additive JSON fields, without changing Dexie schema 3 / browser version 30:
+
+```json
+{
+  "foundation": {
+    "version": 1, "texture": "brown", "source": "none",
+    "noiseLevel": 0.1, "musicLevel": 0.4, "loop": true,
+    "mode": "off", "toneLevel": 0.08,
+    "opening": "off", "closing": "off", "signalLevel": 0.7
+  }
+}
+```
+
+A custom meditation adds `audioPolicy: "custom"` and `sound` with the same versioned shape. Signals are `off`, `legacy`, or `bowl`; sources are `none`, existing built-in IDs or device-local import IDs. Invalid saved recipes are rejected and remain stored until explicit repair/Save. No silent clamp, migration, new table, upload, or rewriting of older rows occurs.
+
+`FrozenSound` retains its version-1 fields and optionally adds `environment: {version:1, foundation?, blocks, legacyBackground, legacyMusicLevel}`. Runtime resolves every inherited/custom/Silent block once. Compiled meditation stages carry their resolved `soundRecipe`; History records the resolved metadata per block. Source choices, loop and signal design remain fixed for the run; existing live level adjustments remain available. Start Again reuses the entire frozen environment.
+
+One parent identity owns the Warm source through compatible boundaries. Binaural profiles still begin only in the established meditation lead-in, with original stereo carriers/envelopes. Warm is steady without repetitive voice ducking; the single media player retains BackgroundGain as its sole volume writer and its established voice attenuation. Same-source boundaries preserve transport/position. True changes use conservative linear 25-second ramps; the last 25 seconds of a predictable settling window can begin the handoff. A three-second transition alone starts the long fade into meditation. Explicit silence instead fades within the available pre-boundary window and enforces silence at the block. Incoming media/generated readiness is checked before retiring the outgoing other component. Missing media reports an error and keeps an available prior bed rather than deleting data. Media-to-media uses one controlled fade-out/switch/fade-in, without a second player. Stop, hide and superseding identities invalidate late work; no session clock or breathing scheduler was added.
+
+The original user recording `public/audio/signals/Singing Bowl Signal.wav` is bundled byte-identically: stereo signed 24-bit PCM, 44,100 Hz, 14.988027 seconds, 3,966,522 bytes. SHA-256: `a51cd3515750342723df6db5322878534b11e9661be69d7f73241b0a8ffda1ee`. No conversion, trimming or normalization was necessary for tested Chrome. Retaining the authentic PCM costs 3.78 MiB; the per-file precache budget is explicitly 5 MiB. This is the only newly published recording, authorized by its owner for this phase. Source sample peak is 0.015229 / -36.35 dBFS, RMS 0.001598 / -55.93 dBFS, with no clipped samples. A bounded fixed playback multiplier of 8, independent signal level, 8 ms attack and 25 ms terminal taper preserve its natural dynamics/decay through the shared Master/output. The new custom default is intentionally quiet, pending physical headphone acceptance.
+
+Closing fires once on natural block completion, can ring for the true 15-second tail after parent completion, and does not extend History or hold wake lock. End Early never closes. Stop/new Start/hide/Silent cancel tails and pending decode callbacks. Consecutive enabled strikes replace earlier tails rather than overlapping. Environment previews remain bounded to 20 seconds; signal preview uses the actual sample, with navigation/Stop/source changes/Start/hide cancellation.
+
+Phase 4B regression: **393 passing tests / 13 files**, retaining all 347 earlier cases and adding 46 acoustic recipe, lifecycle, recording, storage and editor cases. Native browser QA adds custom block duplication/independence, real library selection without accidental form submission, 320/360/390/430 widths at 16/24/32 root text, offline full-process restart with imported synthetic Blob preservation, uninterrupted Warm, Floating identity/position, long fade, Silent, early Release/full recovery, natural bowl tail, hide/rejoin and maximum layered mix. Desktop Chrome installation verifies actual standalone offline Start/Stop, custom saved shapes, database version 30 and cached bowl. See the external Phase 4B handoff for final live deployment evidence and physical phone limitations.
+
+```powershell
+$env:NODE_PATH='C:\Users\smith\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules'
+pnpm exec vite build --config scripts/routine-harness/vite.config.mjs --configLoader native
+node scripts/verify-acoustic-environment.cjs
+node scripts/verify-modular-routines.cjs
+node scripts/verify-modular-installed.cjs
+node scripts/verify-modular-installed.cjs --live
+```
+
+QA profiles/evidence are isolated/ignored. Native graph measurement cannot establish acoustic headphone comfort, Bluetooth, Android/iOS playback, lock screen or calls. Use the normal idle update path; do not clear app data or uninstall the user's PWA. Phase 4C is not started.

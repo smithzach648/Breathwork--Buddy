@@ -1,12 +1,14 @@
 export type StageKind = 'settling' | 'patterned-breathing' | 'hormesis' | 'timed-retention' | 'manual-retention' | 'recovery-inhale' | 'recovery-hold' | 'meditation' | 'journal';
 import type { ExerciseConfig } from '../session/config';
 import type { FrozenSound } from '../meditation/profile';
+import type { SoundRecipe } from '../meditation/environment';
 export type RoutineStage = ExerciseConfig & { readonly id: string };
 export interface Routine {
     readonly id: string;
     readonly name: string;
     readonly description?: string;
     readonly favorite?: boolean;
+    readonly foundation?: SoundRecipe;
     readonly createdAt: string;
     readonly updatedAt: string;
     readonly stages: readonly RoutineStage[];
@@ -42,6 +44,7 @@ export interface SessionResult {
         plannedDurationSeconds: number;
         actualDurationSeconds: number;
         retentions: NonNullable<SessionResult['retentions']>;
+        soundRecipe?: SoundRecipe;
         customPattern?: { inhaleSeconds: number; holdInSeconds: number; exhaleSeconds: number; holdOutSeconds: number; requestedCycles: number; completedCycles: number };
         hormesisRound?: { preparationBreaths: number; intervalSeconds: number; retentionTargetSeconds: number; recoveryCompleted: boolean };
     }[];

@@ -27,7 +27,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png}', 'audio/voice/*.{mp3,wav}', 'audio/breath/*.{mp3,wav}'],
+        globPatterns: ['**/*.{js,css,html,png}', 'audio/voice/*.{mp3,wav}', 'audio/breath/*.{mp3,wav}', 'audio/signals/*.{mp3,wav}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: `${base}index.html`,
       },

@@ -41,7 +41,7 @@ export class BrowserAudio implements SessionAudio {
     private decoded = new Set<string>();
     readonly signals: MeditationSignals;
     private mediaInput?: AudioNode;
-    constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { this.signals = new MeditationSignals(clock,()=>this.environmentPort(),preferences); }
+    constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { this.signals = new MeditationSignals(clock,()=>this.environmentPort(),preferences,()=>this.load('signals.bowl')); }
     /** Independent stereo-capable buses connect before this shared Master gain. */
     environmentPort(): AudioEnvironmentPort | undefined { return this.context && this.buses.master ? { context: this.context, input: this.buses.master, mediaInput: this.mediaInput } : undefined; }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
@@ -135,6 +135,7 @@ export class BrowserAudio implements SessionAudio {
     }
     enter(scope: StageAudio) {
         this.signals.begin(scope.sessionId);
+        if(scope.stage.meditationPolicy==='silent')this.signals.stop(scope.sessionId);
         if (this.active?.started && this.active.scope.sessionId === scope.sessionId && this.active.scope.stageId === scope.stageId) return;
         this.stopTracks(track => !(track.scope.sessionId === scope.sessionId && track.continuesInto === scope.stage.phase && track.scope.deadline === scope.start));
         const epoch = ++this.epoch;
@@ -238,8 +239,13 @@ export class BrowserAudio implements SessionAudio {
         if (this.active?.scope.sessionId === sessionId) { ++this.epoch; this.active = undefined; }
         this.stopTracks(track=>track.scope.sessionId === sessionId); this.notify();
     }
-    startReady() { return !this.preferences.guidance.generalVoice || this.context?.state === 'running' && (this.decoded.has('voice.prepare') || this.failures.has('voice.prepare')); }
-    async readyForStart() { if (this.preferences.guidance.generalVoice) await this.load('voice.prepare'); }
+    startReady() { return this.context?.state==='running'&&(this.decoded.has('signals.bowl')||this.failures.has('signals.bowl'))&&(!this.preferences.guidance.generalVoice || this.decoded.has('voice.prepare') || this.failures.has('voice.prepare')); }
+    async readyForStart() { await Promise.all([this.preferences.guidance.generalVoice?this.load('voice.prepare'):undefined,this.load('signals.bowl')]); }
+    async previewSignal(recipe:import('../meditation/environment').SoundRecipe) {
+        const now=this.clock.now();this.signals.begin('preview');
+        this.signals.play({sessionId:'preview',stageId:'preview/'+now,start:now,deadline:now+15000,stage:{phase:'meditation',label:'Preview',durationMs:15000,round:0,totalRounds:0,cycle:0,totalCycles:0,soundRecipe:{...recipe,opening:recipe.closing!=='off'?recipe.closing:recipe.opening}}});
+    }
+    stopSignalPreview(){this.signals.stop('preview');}
     debugState() { return { epoch: this.epoch, context: this.context?.state, generalVoice: this.preferences.guidance.generalVoice, active: this.active ? { ...this.active, scope: { ...this.active.scope } } : null, decoded: [...this.decoded], tracks: [...this.tracks].map(t => ({ cueId: t.cueId, sessionId: t.scope.sessionId, stageId: t.scope.stageId, when: t.when, end: t.end })), now: this.clock.now(), audioNow: this.context?.currentTime }; }
     voiceActive() { if (!this.preferences.volumes.master || !this.preferences.volumes.voice) return false; const now = this.context?.currentTime ?? -1; return [...this.tracks].some(track => guidanceCategory(track.cueId) !== 'breath-sound' && now >= track.when && now < track.end); }
 }

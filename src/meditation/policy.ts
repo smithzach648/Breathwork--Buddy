@@ -14,7 +14,7 @@ export function meditationWindow(session?: SessionState) {
     } else return undefined;
     const stage = stages[target];
     if (stage?.phase !== 'meditation') return undefined;
-    return { key: `${session.sessionId}/meditation/${stage.blockId || 'standalone'}`, silent: stage.meditationPolicy === 'silent', start, fadeDeadline: start + fadeMs, meditationStart:start+fadeMs,durationSeconds:stage.durationMs/1000,leadSeconds:fadeMs/1000 };
+    return { key: `${session.sessionId}/meditation/${stage.blockId || 'standalone'}`, blockId:stage.blockId||'standalone', silent: stage.meditationPolicy === 'silent', start, fadeDeadline: start + fadeMs, meditationStart:start+fadeMs,durationSeconds:stage.durationMs/1000,leadSeconds:fadeMs/1000 };
 }
 export function backgroundWanted(session: SessionState | undefined, preferences: Preferences): boolean {
     if (!session) return false;

@@ -46,11 +46,11 @@ export class BackgroundGain {
         if (this.transportFade?.to === 1 || this.transport === 1 && !this.transportFade) return;
         this.transportFade = { from: this.transport, to: 1, start: performance.now(), duration: milliseconds }; this.arm();
     }
-    pause() {
+    pause(milliseconds = 700) {
         this.update(); this.clearRestore(); this.input = false; this.held = false;
         // Preserve the audible level when clearing ducking, then fade that level to silence.
         this.transport *= this.duck; this.duck = 1; this.duckFade = undefined;
-        this.transportFade = { from: this.transport, to: 0, start: performance.now(), duration: 700 }; this.arm();
+        this.transportFade = { from: this.transport, to: 0, start: performance.now(), duration: milliseconds }; this.arm();
     }
     private toDuck(to: number) {
         this.update();

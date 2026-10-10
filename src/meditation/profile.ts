@@ -1,7 +1,8 @@
 import type { BinauralMode, Preferences, NoiseColor } from '../settings/preferences';
-export interface FrozenSound {version:1;mode:BinauralMode;texture:NoiseColor|'off';music:boolean}
+import {validEnvironment,type FrozenEnvironment} from './environment';
+export interface FrozenSound {version:1;mode:BinauralMode;texture:NoiseColor|'off';music:boolean;environment?:FrozenEnvironment}
 export function freezeSound(p:Preferences):FrozenSound{return{version:1,mode:p.meditation.binaural.mode,texture:p.meditation.noise,music:p.meditation.music};}
-export function validSound(s:FrozenSound){return !!s && s.version===1 && ['off','baseline','layered','modulated'].includes(s.mode)&&['off','white','pink','brown'].includes(s.texture)&&typeof s.music==='boolean';}
+export function validSound(s:FrozenSound){return !!s && s.version===1 && ['off','baseline','layered','modulated'].includes(s.mode)&&['off','white','pink','brown'].includes(s.texture)&&typeof s.music==='boolean'&&(!s.environment||validEnvironment(s.environment));}
 export interface SignalProfile {entry:number;steady:number;return:number}
 const allocations:Record<number,readonly[number,number,number]>={10:[1,8,1],15:[2,11,2],20:[2,15,3],30:[3,23,4],45:[4,35,6],60:[5,48,7]};
 /** Envelope allocation only: no frequency sweep or claimed neurological protocol. */

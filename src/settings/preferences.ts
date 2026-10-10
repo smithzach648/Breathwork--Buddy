@@ -12,6 +12,8 @@ export interface MeditationPreferences {
     openingSignal: boolean;
     completionSignal: boolean;
     showTimer: boolean;
+    signalKind?: 'legacy' | 'bowl';
+    signalLevel?: number;
     binaural: BinauralPreferences;
 }
 export const meditationDefaults = (): MeditationPreferences => ({ durationMinutes: 10, music: false, noise: 'brown', noiseVolume: .1, openingSignal: true, completionSignal: true, showTimer: true, binaural:{mode:'off',level:.08} });
@@ -21,7 +23,7 @@ function validMeditationBase(value: unknown): value is MeditationPreferences {
     return Number.isInteger(m.durationMinutes) && m.durationMinutes >= 1 && m.durationMinutes <= 60 && ['off','white','pink','brown'].includes(m.noise) && Number.isFinite(m.noiseVolume) && m.noiseVolume >= 0 && m.noiseVolume <= .35 && ['music','openingSignal','completionSignal','showTimer'].every(key => typeof m[key as keyof MeditationPreferences] === 'boolean');
 }
 export function validBinaural(value:unknown):value is BinauralPreferences {const b=value as BinauralPreferences;return !!b && ['off','baseline','layered','modulated'].includes(b.mode) && Number.isFinite(b.level) && b.level>=0 && b.level<=.3;}
-export function validMeditation(value:unknown):value is MeditationPreferences{return validMeditationBase(value)&&validBinaural(value.binaural);}
+export function validMeditation(value:unknown):value is MeditationPreferences{return validMeditationBase(value)&&validBinaural(value.binaural)&&(value.signalKind===undefined||['legacy','bowl'].includes(value.signalKind))&&(value.signalLevel===undefined||Number.isFinite(value.signalLevel)&&value.signalLevel>=0&&value.signalLevel<=1);}
 export interface Preferences {
     id: 'preferences';
     theme: Theme;

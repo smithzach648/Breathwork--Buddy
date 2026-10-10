@@ -11,6 +11,7 @@ import { BackgroundController } from '../media/background';
 import { NoiseController } from '../audio/noise';
 import { freezeSound, type FrozenSound } from '../meditation/profile';
 import { BinauralController } from '../audio/binaural';
+import {resolveEnvironment,preferencesFromRecipe,recipeFromPreferences,type SoundRecipe} from '../meditation/environment';
 export interface RuntimeAudio extends SessionAudio {
     unlock(): Promise<void>;
     setPreferences(p: Preferences): void;
@@ -20,6 +21,8 @@ export interface RuntimeAudio extends SessionAudio {
     voiceActive?(): boolean;
     startReady?(): boolean;
     readyForStart?(): Promise<void>;
+    previewSignal?(recipe:SoundRecipe):Promise<void>;
+    stopSignalPreview?():void;
 }
 export interface RuntimeState {
     session: SessionState;
@@ -43,6 +46,8 @@ export class PracticeRuntime {
     private previewTimer?:ReturnType<typeof setTimeout>;
     constructor(clock: Clock, scheduler: Scheduler, readonly audio: RuntimeAudio, private wake: WakeLockController, private persist: (result: SessionResult) => Promise<unknown> = saveSessionResult, readonly background?: BackgroundController, readonly noise?: NoiseController, readonly binaural?:BinauralController) {
         this.engine = new DeterministicSessionEngine(clock, scheduler, audio);
+        background?.setNoiseReady?.(()=>!!noise?.getState().playing);
+        noise?.setMediaReady?.(source=>background?.getState().source===source&&!!background.getState().playing);
         this.state = { session: this.engine.getState(), audio: audio.diagnostics(), saveError: '', saving: false, historyVersion: 0, starting: false };
         this.engine.subscribe(() => {
             const session = this.engine.getState();
@@ -61,7 +66,8 @@ export class PracticeRuntime {
         this.stopNoisePreview();
         if (this.state.starting || this.engine.getState().status === 'running') throw new Error('Finish or stop the current practice first.');
         const containsMeditation = config.kind === 'meditation' || config.kind === 'routine' && config.routine.stages.some(block=>block.kind==='meditation');
-        const snapshot = createSnapshot(config, undefined, undefined, containsMeditation ? sound || freezeSound(this.preferences) : undefined);
+        const frozen=sound || {...freezeSound(this.preferences),environment:resolveEnvironment(config,this.preferences)};
+        const snapshot = createSnapshot(config, undefined, undefined, containsMeditation || config.kind==='routine' ? frozen : undefined);
         const generation = ++this.startGeneration;
         const ready = !this.audio.startReady || this.audio.startReady();
         const unlocking = this.audio.unlock();
@@ -77,10 +83,11 @@ export class PracticeRuntime {
         })();
     }
     cancelStart() { ++this.startGeneration; this.state = { ...this.state, starting: false }; this.publish(); }
-    preferencesChanged(p: Preferences) { if(JSON.stringify(freezeSound(p))!==JSON.stringify(freezeSound(this.preferences))||p.background.source!==this.preferences.background.source)this.stopNoisePreview();this.preferences=structuredClone(p); this.audio.setPreferences(p); this.media(() => this.background?.setPreferences(p)); this.media(()=>this.noise?.setPreferences(p));this.media(()=>this.binaural?.setPreferences(p)); }
+    preferencesChanged(p: Preferences) { if(JSON.stringify(recipeFromPreferences(p))!==JSON.stringify(recipeFromPreferences(this.preferences))||p.background.source!==this.preferences.background.source)this.stopNoisePreview();this.preferences=structuredClone(p); this.audio.setPreferences(p); this.media(() => this.background?.setPreferences(p)); this.media(()=>this.noise?.setPreferences(p));this.media(()=>this.binaural?.setPreferences(p)); }
     visibilityChanged(visible: boolean) { if (!visible) this.stopNoisePreview(); if (!visible && this.state.starting) this.cancelStart(); this.media(()=>this.noise?.visibilityChanged(visible));this.media(()=>this.binaural?.visibilityChanged(visible)); this.audio.resynchronize(); this.engine.setVisible(visible); this.media(() => this.background?.visibilityChanged(visible)); this.wake.visibilityChanged(); }
-    stopNoisePreview() { ++this.previewGeneration;if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();}); }
-    async previewNoise() { if (this.engine.getState().status === 'running' || this.state.starting) return;this.stopNoisePreview(); const generation=++this.previewGeneration; await this.audio.unlock(); if (generation===this.previewGeneration && this.engine.getState().status !== 'running' && !this.state.starting) {this.noise?.preview();this.binaural?.preview();if(this.preferences.meditation.music)this.background?.preview(this.preferences.background.source);this.previewTimer=setTimeout(()=>this.stopNoisePreview(),20000);} }
+    stopNoisePreview() { ++this.previewGeneration;this.audio.stopSignalPreview?.();if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();});this.media(()=>this.noise?.setPreferences(this.preferences));this.media(()=>this.binaural?.setPreferences(this.preferences));this.media(()=>this.background?.setPreferences(this.preferences)); }
+    async previewSignal(recipe:SoundRecipe) {if(this.engine.getState().status==='running'||this.state.starting)return;this.stopNoisePreview();const generation=++this.previewGeneration;await this.audio.unlock();await this.audio.readyForStart?.();if(generation===this.previewGeneration&&this.engine.getState().status!=='running')await this.audio.previewSignal?.(recipe);}
+    async previewNoise(recipe?:SoundRecipe) { if (this.engine.getState().status === 'running' || this.state.starting) return;this.stopNoisePreview(); const generation=++this.previewGeneration; await this.audio.unlock(); if (generation===this.previewGeneration && this.engine.getState().status !== 'running' && !this.state.starting) {const p=recipe?preferencesFromRecipe(this.preferences,recipe):this.preferences;this.noise?.setPreferences(p);this.binaural?.setPreferences(p);this.background?.setPreferences(p);this.noise?.preview();this.binaural?.preview();if(p.meditation.music)this.background?.preview(p.background.source);this.previewTimer=setTimeout(()=>this.stopNoisePreview(),20000);} }
     private async save(result: SessionResult) {
         if (this.pending.has(result.id))
             return;

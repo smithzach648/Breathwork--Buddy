@@ -40,7 +40,7 @@ async function storeState(page) {
 (async () => {
     await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve)); let context;
     try {
-        const profile=path.join(output,`modular-profile-${Date.now()}`);
+        const profile=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'bb4b-mod-'));
         context=await chromium.launchPersistentContext(profile,options); let page=context.pages()[0] || await context.newPage(); watch(page);
         await page.goto(url); await page.getByRole('button',{name:'My Routines',exact:true}).waitFor(); await page.evaluate(async()=>navigator.serviceWorker.ready); await page.reload();
         await page.getByRole('button',{name:'Meditation',exact:true}).click(); await page.getByLabel('Binaural layer').selectOption('layered');

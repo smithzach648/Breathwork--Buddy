@@ -180,6 +180,7 @@ export class DeterministicSessionEngine {
                 plannedDurationSeconds: snapshot.stages.filter(stage => stage.blockId === block.id).reduce((sum, stage) => sum + stage.durationMs, 0) / 1000,
                 actualDurationSeconds: this.blockTimes.get(block.id) || 0,
                 retentions: structuredClone(this.retentions.filter(retention => retention.blockId === block.id)),
+                ...(block.kind==='meditation'&&snapshot.meditationSound?.environment?.blocks[block.id]?{soundRecipe:structuredClone(snapshot.meditationSound.environment.blocks[block.id])}:{}),
                 ...(block.kind === 'custom-pattern' ? { customPattern: { inhaleSeconds: block.inhaleSeconds, holdInSeconds: block.holdInSeconds, exhaleSeconds: block.exhaleSeconds, holdOutSeconds: block.holdOutSeconds, requestedCycles: block.cycles, completedCycles: this.completedCycles.get(block.id) || 0 } } : {}),
                 ...(block.kind === 'hormesis-round' ? { hormesisRound: { preparationBreaths: block.cycles, intervalSeconds: block.intervalSeconds, retentionTargetSeconds: block.retentionSeconds, recoveryCompleted: this.completedBlocks.has(block.id) } } : {}),
             }));

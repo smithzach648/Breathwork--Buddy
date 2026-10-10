@@ -1,5 +1,6 @@
 import { patterns, validateConfig, type ExerciseConfig } from '../session/config';
 import type { Routine, RoutineStage } from '../types/domain';
+import {validateRecipe} from '../meditation/environment';
 export const MAX_BLOCKS = 20;
 export const MAX_NAME = 80;
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value);
@@ -9,6 +10,7 @@ export function validateRoutine(value: unknown): asserts value is Routine {
     if (typeof value.name !== 'string' || !value.name.trim() || value.name.trim().length > MAX_NAME) throw new Error('Give your routine a name of 1–80 characters.');
     if (typeof value.createdAt !== 'string' || typeof value.updatedAt !== 'string' || !Number.isFinite(Date.parse(value.createdAt)) || !Number.isFinite(Date.parse(value.updatedAt))) throw new Error('Routine dates are invalid. Edit and save to repair them.');
     if (!Array.isArray(value.stages) || !value.stages.length || value.stages.length > MAX_BLOCKS) throw new Error('Add between 1 and 20 blocks.');
+    if(value.foundation!==undefined) validateRecipe(value.foundation);
     const ids = new Set<string>();
     Array.from(value.stages).forEach((stage: unknown, index: number) => {
         try {

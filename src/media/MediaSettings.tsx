@@ -12,7 +12,7 @@ export function BackgroundControls({ controller }: { controller?: BackgroundCont
     return <div className="background-controls">
         <p>Background: {state.name || 'Selected audio'}{state.preview ? ' · Preview' : ''}</p>
         <p className="muted">{formatDuration(state.position)}{state.duration > 0 ? ` / ${formatDuration(state.duration)}` : ''}</p>
-        <div className="practice-actions"><button disabled={!state.playing && !controller.canPlay()} onClick={() => state.playing ? controller.pause() : controller.play()}>{state.playing ? 'Pause background' : 'Play background'}</button><button onClick={() => controller.stop()}>Stop background</button></div>
+        <div className="practice-actions"><button type="button" disabled={!state.playing && !controller.canPlay()} onClick={() => state.playing ? controller.pause() : controller.play()}>{state.playing ? 'Pause background' : 'Play background'}</button><button type="button" onClick={() => controller.stop()}>Stop background</button></div>
         {state.error && <p role="status" className="notice">{state.error}</p>}
     </div>;
 }
@@ -54,8 +54,8 @@ export function MediaSettings({ preferences, onChange, controller, running, libr
             {builtins.map(item => {
                 const offline = records.some(record => record.id === `offline:${item.id}`);
                 return <div className="media-item" key={item.id}><h4>{item.name}</h4><p className="muted">{offline ? 'Available offline' : 'Available online · not saved offline'}</p>
-                    <div className="practice-actions">{!libraryOnly&&<button disabled={running} aria-label={`Preview ${item.name}`} onClick={() => controller?.preview(item.id)}>Preview</button>}<button disabled={running} onClick={() => update({ source: item.id })} aria-label={`Select ${item.name}`}>{preferences.background.source === item.id ? 'Selected' : 'Select'}</button>
-                        <button disabled={!!busy || running} onClick={() => void action(item.id, async () => {
+                    <div className="practice-actions">{!libraryOnly&&<button type="button" disabled={running} aria-label={`Preview ${item.name}`} onClick={() => controller?.preview(item.id)}>Preview</button>}<button type="button" disabled={running} onClick={() => update({ source: item.id })} aria-label={`Select ${item.name}`}>{preferences.background.source === item.id ? 'Selected' : 'Select'}</button>
+                        <button type="button" disabled={!!busy || running} onClick={() => void action(item.id, async () => {
                             if (offline) { controller?.removeSource(item.id); await mediaLibrary.remove(`offline:${item.id}`); }
                             else await mediaLibrary.download(item.id);
                             if (latest.current.background.source === item.id && !controller?.getState().preview) await controller?.select(item.id);
@@ -70,7 +70,7 @@ export function MediaSettings({ preferences, onChange, controller, running, libr
             {busy === 'import' && <p role="status">Checking and saving audio…</p>}
             {!imported.length && <p className="muted">Your local audio will appear here.</p>}
             {imported.map(item => <div className="media-item" key={item.id}><h4>{item.displayName}</h4><p className="muted">{size(item.byteSize)}{item.durationSeconds ? ` · ${formatDuration(item.durationSeconds)}` : ''} · On this device</p>
-                <div className="practice-actions">{!libraryOnly&&<button disabled={running} aria-label={`Preview ${item.displayName}`} onClick={() => controller?.preview(item.id)}>Preview</button>}<button disabled={running} aria-label={`Select ${item.displayName}`} onClick={() => update({ source: item.id })}>{preferences.background.source === item.id ? 'Selected' : 'Select'}</button><button disabled={!!busy || running} aria-label={`Delete ${item.displayName}`} onClick={() => void action(item.id, async () => {
+                <div className="practice-actions">{!libraryOnly&&<button type="button" disabled={running} aria-label={`Preview ${item.displayName}`} onClick={() => controller?.preview(item.id)}>Preview</button>}<button type="button" disabled={running} aria-label={`Select ${item.displayName}`} onClick={() => update({ source: item.id })}>{preferences.background.source === item.id ? 'Selected' : 'Select'}</button><button type="button" disabled={!!busy || running} aria-label={`Delete ${item.displayName}`} onClick={() => void action(item.id, async () => {
                     controller?.removeSource(item.id); await mediaLibrary.remove(item.id);
                     if (latest.current.background.source === item.id) update({ source: 'none' });
                 })}>Delete</button></div>

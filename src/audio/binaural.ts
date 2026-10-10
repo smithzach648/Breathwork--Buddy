@@ -3,6 +3,7 @@ import { defaultPreferences } from '../settings/preferences';
 import type { AudioEnvironmentPort } from './meditation-signals';
 import type { Clock } from '../session/clock';
 import type { SessionState } from '../session/engine';
+import {activeRecipe} from '../meditation/environment';
 import { meditationWindow } from '../meditation/policy';
 import { signalProfile, toneEnvelope, type SignalProfile } from '../meditation/profile';
 
@@ -46,27 +47,29 @@ export function scheduleToneEnvelope(param:AudioParam,now:number,elapsed:number,
     for(const [time,target] of points)if(time>elapsed+join)param.linearRampToValueAtTime(target,now+time-elapsed);
     return value;
 }
-type Track={graph:ToneGraph;context:AudioContext;key:string;mode:BinauralMode};
+type Track={graph:ToneGraph;context:AudioContext;key:string;mode:BinauralMode;levelValue:number};
 export class BinauralController {
     private preferences=defaultPreferences();private session?:SessionState;private visible=true;private previewing=false;
+    private sessionId?:string;private liveLevels=new Map<string,number>();
+    private levelKey(){return meditationWindow(this.session)?.blockId||'standalone';}
     private current?:Track;private tracks=new Set<Track>();private held=false;private restore?:ReturnType<typeof setTimeout>;
     private error='';private listeners=new Set<()=>void>();private state={playing:false,preview:false,mode:'off' as BinauralMode,error:''};
     constructor(private port:()=>AudioEnvironmentPort|undefined,private clock:Clock){}
     getState=()=>this.state;
     subscribe=(listener:()=>void)=>{this.listeners.add(listener);return()=>{this.listeners.delete(listener);};};
     private publish(){this.state={playing:!!this.current,preview:this.previewing,mode:this.current?.mode||'off',error:this.error};this.listeners.forEach(listener=>listener());}
-    setPreferences(p:Preferences){this.preferences=structuredClone(p);if(this.current)this.current.graph.level.gain.setTargetAtTime(toneAmplitude*p.meditation.binaural.level,this.current.context.currentTime,.05);if(!p.guidance.ducking)this.setDucking(false);this.sync(this.session);}
+    setPreferences(p:Preferences){if(this.session?.status==='running'&&p.meditation.binaural.level!==this.preferences.meditation.binaural.level)this.liveLevels.set(this.levelKey(),p.meditation.binaural.level);this.preferences=structuredClone(p);if(this.current)this.current.graph.level.gain.setTargetAtTime(toneAmplitude*p.meditation.binaural.level,this.current.context.currentTime,.05);if(!p.guidance.ducking)this.setDucking(false);this.sync(this.session);}
     sync(session?:SessionState){
-        this.session=session;if(session?.status==='running'&&this.previewing){this.previewing=false;this.stop();}
-        const window=meditationWindow(session),mode=session?.status==='running'?session.snapshot?.meditationSound?.mode??this.preferences.meditation.binaural.mode:this.preferences.meditation.binaural.mode;
+        this.session=session;if(session?.sessionId!==this.sessionId){this.sessionId=session?.sessionId;this.liveLevels.clear();}if(session?.status==='running'&&this.previewing){this.previewing=false;this.stop();}
+        const recipe=activeRecipe(session),window=meditationWindow(session),mode=recipe?.mode ?? (session?.status==='running'?session.snapshot?.meditationSound?.mode??this.preferences.meditation.binaural.mode:this.preferences.meditation.binaural.mode);
         if(!this.visible||mode==='off'||!this.previewing&&(!window||window.silent||window.durationSeconds<600)){if(this.current)this.stop();return;}
         const port=this.port();if(!port||port.context.state!=='running'){if(this.current)this.stop();return;}
-        const key=this.previewing?`preview/${mode}`:`${window!.key}/${mode}`;if(this.current?.key===key)return;
+        const key=this.previewing?`preview/${mode}`:`${window!.key}/${mode}`;if(this.current?.key===key){if(recipe){const value=this.liveLevels.get(this.levelKey())??recipe.toneLevel;if(value!==this.current.levelValue){this.current.levelValue=value;this.current.graph.level.gain.setTargetAtTime(toneAmplitude*value,this.current.context.currentTime,.05);}}return;}
         this.stop();this.error='';
         try{
-            const {context,input}=port,now=context.currentTime,graph=createToneGraph(context,input,mode,this.preferences.meditation.binaural.level);
+            const {context,input}=port,now=context.currentTime,graph=createToneGraph(context,input,mode,this.liveLevels.get(this.levelKey())??recipe?.toneLevel??this.preferences.meditation.binaural.level);
             if(!graph.sources.length){graph.disconnect();return;}
-            const track={context,graph,key,mode};this.current=track;this.tracks.add(track);
+            const track={context,graph,key,mode,levelValue:this.liveLevels.get(this.levelKey())??recipe?.toneLevel??this.preferences.meditation.binaural.level};this.current=track;this.tracks.add(track);
             graph.duck.gain.value=this.held&&this.preferences.guidance.ducking?.4:1;
             let remaining=20;
             if(this.previewing){graph.envelope.gain.setValueAtTime(0,now);graph.envelope.gain.linearRampToValueAtTime(1,now+.7);}
@@ -83,5 +86,5 @@ export class BinauralController {
     stopPreview(){if(this.previewing){this.previewing=false;this.stop();}}
     visibilityChanged(visible:boolean){this.visible=visible;if(!visible){this.previewing=false;this.stop();for(const track of [...this.tracks])this.retire(track,true);}else this.sync(this.session);}
     dispose(){this.visibilityChanged(false);this.listeners.clear();}
-    diagnostics(){return{...this.state,activeGraphs:this.tracks.size,activeOscillators:[...this.tracks].reduce((n,track)=>n+track.graph.sources.length,0),held:this.held,level:this.preferences.meditation.binaural.level};}
+    diagnostics(){return{...this.state,activeGraphs:this.tracks.size,activeOscillators:[...this.tracks].reduce((n,track)=>n+track.graph.sources.length,0),held:this.held,level:this.liveLevels.get(this.levelKey())??activeRecipe(this.session)?.toneLevel??this.preferences.meditation.binaural.level};}
 }

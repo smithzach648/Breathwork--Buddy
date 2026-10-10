@@ -2,6 +2,7 @@ import { roundAnnouncementMs } from '../audio/voice-metadata';
 import type { Routine } from '../types/domain';
 import { validateRoutine, blockName } from '../routines/model';
 import { validSound, type FrozenSound } from '../meditation/profile';
+import {validateRecipe,type SoundRecipe} from '../meditation/environment';
 export type PatternId = 'box' | '478' | 'calm' | 'coherent';
 export type ExerciseConfig = {
     kind: 'patterned';
@@ -18,7 +19,8 @@ export type ExerciseConfig = {
     kind: 'meditation';
     presetId: 'meditation';
     durationSeconds: number;
-    audioPolicy: 'defaults' | 'silent';
+    audioPolicy: 'defaults' | 'silent' | 'custom';
+    sound?: SoundRecipe;
 } | {
     kind: 'custom-pattern';
     presetId: 'custom-pattern';
@@ -52,7 +54,8 @@ export interface PlannedStage {
     readonly blockIndex?: number;
     readonly blockName?: string;
     readonly blockKind?: ExerciseConfig['kind'];
-    readonly meditationPolicy?: 'defaults' | 'silent';
+    readonly meditationPolicy?: 'defaults' | 'silent' | 'custom';
+    readonly soundRecipe?: SoundRecipe;
 }
 export interface PracticeSnapshot {
     readonly id: string;
@@ -88,7 +91,8 @@ export function validateConfig(config: PracticeConfig) {
         return;
     }
     if (config.kind === 'meditation') {
-        if (config.presetId !== 'meditation' || !Number.isInteger(config.durationSeconds) || config.durationSeconds < 60 || config.durationSeconds > 3600 || config.durationSeconds % 60 || !['defaults','silent'].includes(config.audioPolicy)) throw new Error('Choose a meditation duration of 1–60 whole minutes and a supported sound policy.');
+        if (config.presetId !== 'meditation' || !Number.isInteger(config.durationSeconds) || config.durationSeconds < 60 || config.durationSeconds > 3600 || config.durationSeconds % 60 || !['defaults','silent','custom'].includes(config.audioPolicy)) throw new Error('Choose a meditation duration of 1–60 whole minutes and a supported sound policy.');
+        if (config.audioPolicy==='custom') validateRecipe(config.sound);
         return;
     }
     if (config.kind === 'patterned') {
@@ -177,6 +181,10 @@ export function createSnapshot(config: PracticeConfig, id: string = crypto.rando
     const copy = structuredClone(config);
     const stages = compileStages(copy);
     if(meditationSound && !validSound(meditationSound))throw new Error('Invalid meditation sound profile');
+    if(meditationSound?.environment) for(let i=0;i<stages.length;i++) if(stages[i].phase==='meditation') {
+        const recipe=meditationSound.environment.blocks[stages[i].blockId||'standalone'];validateRecipe(recipe);
+        stages[i]={...stages[i],soundRecipe:structuredClone(recipe)};
+    }
     if (!Number.isFinite(Date.parse(startedAt)))
         throw new Error('Invalid session start time.');
     return deepFreeze({ id, startedAt, name: copy.kind === 'routine' ? copy.routine.name.trim() : blockName(copy), config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' || copy.kind === 'meditation' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000, ...(meditationSound?{meditationSound:structuredClone(meditationSound)}:{}) });
