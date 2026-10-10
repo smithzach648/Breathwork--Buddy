@@ -1,4 +1,4 @@
-/* Isolated desktop Chrome PWA installation. Never touches the user's app data. */
+/* Short temp profile avoids Windows CacheStorage path limits. Never touches the user's app data. */
 const { chromium } = require('playwright');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const live=process.argv.includes('--live');
@@ -8,7 +8,7 @@ const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(req
 (async()=>{
     if(!live)await new Promise(resolve=>server.listen(4185,'127.0.0.1',resolve)); let context,cdp,installed=false;
     try {
-        context=await chromium.launchPersistentContext(path.join(output,`installed-profile-${Date.now()}`),{executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,viewport:{width:390,height:844}});
+        context=await chromium.launchPersistentContext(fs.mkdtempSync(path.join(require('node:os').tmpdir(),'bb4a-install-')),{executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,viewport:{width:390,height:844}});
         console.log('Isolated installed-PWA browser launched');
         const page=context.pages()[0]||await context.newPage(); await page.goto(url); await page.getByRole('button',{name:'My Routines',exact:true}).waitFor();
         await page.evaluate(async()=>Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Service worker not ready after 45 seconds')),45000))])); await page.reload();

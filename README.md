@@ -249,4 +249,4 @@ node scripts/verify-modular-installed.cjs
 node scripts/verify-modular-installed.cjs --live
 ```
 
-The QA entry uses an injected clock with native Web Audio; the normal production/offline and installed checks use the actual app build. Generated profiles, screenshots and evidence stay in ignored `qa/`; the harness is excluded from the production bundle and service-worker precache. Consult the Phase 4A handoff for actual installed/deployment status and the physical-phone checklist.
+The QA entry uses an injected clock with native Web Audio; the normal production/offline and installed checks use the actual app build. Generated screenshots and evidence stay in ignored `qa/`; installed-PWA profiles use a short OS temporary path to avoid Windows CacheStorage path limits; the harness is excluded from the production bundle and service-worker precache. Consult the Phase 4A handoff for actual installed/deployment status and the physical-phone checklist.
