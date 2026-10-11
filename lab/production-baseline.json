@@ -1,0 +1,146 @@
+[
+  {
+    "Path": "index.html",
+    "Hash": "CE7A032AA207C4CC147242F4C5919382BA3B6DE7A7C13C5B815D8C26A2FADC40"
+  },
+  {
+    "Path": "manifest.webmanifest",
+    "Hash": "CAF43CC608203B4AAFC12B14E2FB3C2FEC321EDF882CAA13E02723ECA89E0FE0"
+  },
+  {
+    "Path": "assets\\index-4x-fE5vm.css",
+    "Hash": "57A7266900DBAE27C8037E63BC37D970E0FBE7EEF7033BB2F651A6B6C94B0844"
+  },
+  {
+    "Path": "assets\\index-B5HajXIo.js",
+    "Hash": "F7E3C61A4040EFE86D80A467182AD12C831303DC5183C1D6B8B97F42D54A6893"
+  },
+  {
+    "Path": "assets\\workbox-window.prod.es5-BBnX5xw4.js",
+    "Hash": "CADD21BE4A88598A4DEC91A26A025DF0A5790FF6BAEC54A884E401C3F5C95557"
+  },
+  {
+    "Path": "audio\\ambience\\.gitkeep",
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  {
+    "Path": "audio\\ambience\\Floating.mp3",
+    "Hash": "A018971686368083394F230EFA3664D8CCFBF6C3DA7ECD8EA6C714E306765935"
+  },
+  {
+    "Path": "audio\\ambience\\Home Again.mp3",
+    "Hash": "C47DCA1721E3199E397A3E74A46C99C4212EBF31E071463786F293858B06E4D7"
+  },
+  {
+    "Path": "audio\\breath\\.gitkeep",
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  {
+    "Path": "audio\\breath\\Exhale 4 seconds.wav",
+    "Hash": "614288F155BB8FBBECA728375131BF8C83CBBC4E1FEBC842AFF812F75C50DBEC"
+  },
+  {
+    "Path": "audio\\breath\\Exhale 8 seconds.wav",
+    "Hash": "D39925166B4DD150D0BF04598708366042849E0FF25E05643555810E6378AD16"
+  },
+  {
+    "Path": "audio\\breath\\Inhale 4 second.wav",
+    "Hash": "232ACFD9FDD80AD2708585D929F66CA4D06EB869BA6CEB336AE13074AA8AE74C"
+  },
+  {
+    "Path": "audio\\breath\\Inhale 6 second.wav",
+    "Hash": "125C0F1868352447562C56D776D2608A32B4B2497060172AE69572E84A5B54B8"
+  },
+  {
+    "Path": "audio\\signals\\.gitkeep",
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  {
+    "Path": "audio\\signals\\Singing Bowl Signal.wav",
+    "Hash": "A51CD3515750342723DF6DB5322878534B11E9661BE69D7F73241B0A8FFDA1EE"
+  },
+  {
+    "Path": "audio\\voice\\.gitkeep",
+    "Hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  {
+    "Path": "audio\\voice\\voice.60 second hold.wav",
+    "Hash": "CB34ADCF3D2647933223BAA1BDE2BA27A5286878FC649EEC6691CED6AAAC33EB"
+  },
+  {
+    "Path": "audio\\voice\\voice.90 second hold.wav",
+    "Hash": "96B4C350F5D20EFA750377597AEF3A9B7481496F39E2917BD4A679A21A0A6616"
+  },
+  {
+    "Path": "audio\\voice\\voice.breath-in.wav",
+    "Hash": "7751492B9577AEB8AB0B322BDCBB6667393EC3BC9CE3C363C6D9FA954D7D8447"
+  },
+  {
+    "Path": "audio\\voice\\voice.breath-out.wav",
+    "Hash": "779857CD80756CE97A93F7C1F2C5CE40EE640226B159E16DFF4C26B74797DF26"
+  },
+  {
+    "Path": "audio\\voice\\voice.count-1.wav",
+    "Hash": "A1F4E7ACB1959D3FA0A282B10292333A969196CB3496A163232387D6CADB2765"
+  },
+  {
+    "Path": "audio\\voice\\voice.count-2.wav",
+    "Hash": "542A12410CF3C427DFBF730D480C0D7C838EFE4167BE711622B1DCF48F6D7126"
+  },
+  {
+    "Path": "audio\\voice\\voice.count-3.wav",
+    "Hash": "892C1C161EED77DBA33BBEBC0F9329B121F149DA15E99F5844B4AC3EE6AB2A21"
+  },
+  {
+    "Path": "audio\\voice\\voice.count-4.wav",
+    "Hash": "8AC7729230AA15136BF363F76B2C797B3F5FAB59FF1FD7578095E4EA419BB2FB"
+  },
+  {
+    "Path": "audio\\voice\\voice.count-5.wav",
+    "Hash": "CC6E20DAB865A866A66207E9ABC0C9B266CD49EC872E6ED11E4562BA4DCE7946"
+  },
+  {
+    "Path": "audio\\voice\\voice.Final round.mp3",
+    "Hash": "0D0437866ADA407459C970097B9A9D2C6743C0EA1C1E0C19D60D300CD59DB552"
+  },
+  {
+    "Path": "audio\\voice\\voice.Full Exhale.mp3",
+    "Hash": "1AD2DA24820895AD4C9E21BA94CD3D8C8EEE4546E2223AA03C179197D9474956"
+  },
+  {
+    "Path": "audio\\voice\\voice.Hold.wav",
+    "Hash": "FBF795B40CDAEEB07099561C002F7628410BC76E5A7EC0D1F94100D9CB5EDBC3"
+  },
+  {
+    "Path": "audio\\voice\\voice.Prepare.mp3",
+    "Hash": "78BAD12BDF61A56CFE2CAF6D02AB55DC68E3A80A7234A6A35B810C979E7F48D7"
+  },
+  {
+    "Path": "audio\\voice\\voice.Recovery breath exhale.mp3",
+    "Hash": "69C91AE3DC98C98653319A92552F4AE35253456E42020D10033DA0C4C8AD7CA8"
+  },
+  {
+    "Path": "audio\\voice\\voice.Recovery breath inhale 15 second hold.mp3",
+    "Hash": "ADBCFA14D336B9C146C048FE75C006BB66D037972D27639C55BA5F387116B16A"
+  },
+  {
+    "Path": "audio\\voice\\voice.Round 1.mp3",
+    "Hash": "87B4CC6B55F27467BD013C4BDA8D183D335C897FCB33180840399C7D331B1C11"
+  },
+  {
+    "Path": "audio\\voice\\voice.Round 2.mp3",
+    "Hash": "7B21AD875536E3031245ADC71193065394A2E8BBB026DD9DB85FA5C549D8F6C3"
+  },
+  {
+    "Path": "icons\\icon-192.png",
+    "Hash": "35CB8A65516492DD3E454D4920679FBF76D24112D3363B7B835DBE206C69EFD0"
+  },
+  {
+    "Path": "icons\\icon-512.png",
+    "Hash": "FEF242CB1D491AEB90EA883D867F519ADD9E33C6D3E9758E5F11606C084FA2A7"
+  },
+  {
+    "Path": "icons\\maskable-512.png",
+    "Hash": "FEF242CB1D491AEB90EA883D867F519ADD9E33C6D3E9758E5F11606C084FA2A7"
+  }
+]
