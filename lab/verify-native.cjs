@@ -180,15 +180,15 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
       name: 'Add carrier pair',
       exact: true
     }).click();
-    assert.equal(await page.locator('fieldset').count(), 3);
+    assert.equal(await page.locator('section[aria-labelledby="generator"] fieldset').count(), 3);
     await page.getByRole('button', {
       name: 'Remove pair 3',
       exact: true
     }).click();
-    await page.locator('fieldset').nth(1).getByLabel('Enabled', {
+    await page.locator('section[aria-labelledby="generator"] fieldset').nth(1).getByLabel('Enabled', {
       exact: true
     }).check();
-    await page.locator('fieldset').nth(1).getByLabel('Solo this pair', {
+    await page.locator('section[aria-labelledby="generator"] fieldset').nth(1).getByLabel('Solo this pair', {
       exact: true
     }).check();
     await page.getByRole('button', {

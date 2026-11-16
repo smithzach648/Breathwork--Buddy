@@ -47,3 +47,7 @@ node lab/verify-native.cjs
 ```
 
 Native checks use disposable browser contexts, require the separate dev server running, and save screenshots, actual WAVs, recipes and machine-readable evidence in ignored `qa/acoustic-laboratory/`. The separate compiled lab lands in ignored `qa/acoustic-lab/`; no public media directory is copied. Existing app/PWA verification scripts remain unchanged. Research notes and future integration design are in `lab/docs/` and downloadable from the lab footer.
+
+## Sound journeys
+
+Select **Build a journey** near the top of the lab to arrange environments, set minutes and transitions, save complete journeys, or export a stereo excerpt. Start full journey begins at zero; the preview picker can jump to a transition. The default is four five-minute stops. **Make a short test version** changes those to 30 seconds each for a two-minute audition. See lab/docs/JOURNEYS.md for timing, format and verification details. The main app remains unchanged.

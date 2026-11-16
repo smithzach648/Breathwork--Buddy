@@ -1,5 +1,5 @@
-import { Synth, type RenderOptions } from './dsp';
-import type { Recipe } from './model';
+import type { RenderOptions } from './dsp';
+import { createSynth, type SoundProgram } from './program';
 declare const sampleRate: number;
 declare class AudioWorkletProcessor {
   port: MessagePort;
@@ -7,7 +7,7 @@ declare class AudioWorkletProcessor {
 }
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 class LaboratoryProcessor extends AudioWorkletProcessor {
-  synth: Synth;
+  synth: ReturnType<typeof createSynth>;
   frame = 0;
   stopFrame = Infinity;
   finished = false;
@@ -19,14 +19,14 @@ class LaboratoryProcessor extends AudioWorkletProcessor {
   };
   constructor(options: {
     processorOptions: {
-      recipe: Recipe;
+      recipe: SoundProgram;
       options: RenderOptions;
       wave: Float32Array;
     };
   }) {
     super();
     const p = options.processorOptions;
-    this.synth = new Synth(p.recipe, {
+    this.synth = createSynth(p.recipe, {
       ...p.options,
       sampleRate
     }, p.wave);

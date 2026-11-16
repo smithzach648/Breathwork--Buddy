@@ -1,6 +1,6 @@
 import workletUrl from './worklet.ts?worker&url';
 export { workletUrl };
-import type { Recipe } from './model';
+import type { SoundProgram } from './program';
 import type { RenderOptions, measure, spectrum } from './dsp';
 export type RenderResult = {
   wav: ArrayBuffer;
@@ -8,7 +8,7 @@ export type RenderResult = {
   spectra?: ReturnType<typeof spectrum>[];
   renderMilliseconds: number;
 };
-export function workerJob<T>(task: 'wave' | 'render', recipe: Recipe, options: RenderOptions, spectra = false, signal?: AbortSignal): Promise<T> {
+export function workerJob<T>(task: 'wave' | 'render', recipe: SoundProgram, options: RenderOptions, spectra = false, signal?: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(new DOMException('Cancelled', 'AbortError'));
@@ -59,6 +59,12 @@ export class Player {
   private state = 'Stopped';
   private count = 0;
   private retirement: Promise<void> = Promise.resolve();
+  private playback?: {
+    id: string;
+    startSeconds: number;
+    startedAt: number;
+    durationSeconds: number;
+  };
   private captureResult?: {
     resolve: (r: {
       left: Float32Array;
@@ -81,6 +87,8 @@ export class Player {
       activeGraphs: this.count,
       contextState: this.context?.state ?? 'closed',
       generation: this.generation,
+      programId: this.playback?.id,
+      positionSeconds: this.playback && this.context ? this.playback.startSeconds + Math.min(this.playback.durationSeconds, Math.max(0, this.context.currentTime - this.playback.startedAt)) : undefined,
       measuredLiveRms: Math.sqrt(pcm.reduce((s, x) => s + x * x, 0) / Math.max(1, pcm.length))
     };
   }
@@ -121,6 +129,7 @@ export class Player {
       node = this.node;
     this.context = undefined;
     this.node = undefined;
+    this.playback = undefined;
     const previous = this.retirement;
     const retire = async () => {
       await previous;
@@ -147,7 +156,7 @@ export class Player {
     this.count = 0;
     this.publish('Stopped');
   }
-  async start(recipe: Recipe, options: RenderOptions) {
+  async start(recipe: SoundProgram, options: RenderOptions) {
     // Resume is invoked synchronously from the listener's button before asynchronous preparation.
     // UI serializes swaps; no second graph may overlap an outgoing graph.
     const token = ++this.generation;
@@ -188,6 +197,12 @@ export class Player {
         }
       });
       this.node = node;
+      this.playback = {
+        id: recipe.id,
+        startSeconds: options.startSeconds,
+        startedAt: context.currentTime,
+        durationSeconds: options.durationSeconds
+      };
       this.count = 1;
       this.preparing = undefined;
       node.port.onmessage = e => {

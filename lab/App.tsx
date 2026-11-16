@@ -1,3 +1,5 @@
+import JourneyBuilder from './JourneyBuilder';
+import type { SoundProgram } from './program';
 import { useEffect, useRef, useState } from 'react';
 import { PRESETS, duplicate, diagnostic, pair, validateRecipe, importRecipe, exportRecipe, gains, ENGINE_VERSION, type Recipe, type Selection, type Pair } from './model';
 import { carrier, matchLevels, type RenderOptions } from './dsp';
@@ -127,7 +129,7 @@ export default function App() {
     setMatched(undefined);
     setError('');
   };
-  const begin = async (r = recipe, gain = 1, label = '') => {
+  const beginSound = async (r: SoundProgram, renderOptions: RenderOptions, label: string) => {
     setError('');
     setBusy(true);
     const token = ++action.current;
@@ -135,8 +137,7 @@ export default function App() {
       await player.current!.stop();
       if (token !== action.current) return;
       await player.current!.start(r, {
-        ...options(r, long),
-        matchGain: gain
+        ...renderOptions
       });
       if (token === action.current) setPlayingLabel(label || r.name);
     } catch (e) {
@@ -145,7 +146,11 @@ export default function App() {
       if (token === action.current) setBusy(false);
     }
   };
-  const exportAudio = async () => {
+  const begin = (r = recipe, gain = 1, label = '') => beginSound(r, {
+    ...options(r, long),
+    matchGain: gain
+  }, label || r.name);
+  const exportSound = async (program: SoundProgram, renderOptions: RenderOptions) => {
     const token = ++action.current;
     job.current?.abort();
     setBusy(true);
@@ -156,22 +161,22 @@ export default function App() {
     job.current = abort;
     setError('');
     try {
-      const o = options(recipe),
-        result = await workerJob<RenderResult>('render', recipe, o, true, abort.signal);
+      const o = renderOptions,
+        result = await workerJob<RenderResult>('render', program, o, true, abort.signal);
       if (token !== action.current) return;
       if (result.metrics.invalidSamples) throw new Error('Invalid samples; export cancelled.');
       setMetrics(result);
-      download(`${recipe.id}-${fmt(o.startSeconds)}s.wav`, new Blob([result.wav], {
+      download(`${program.id}-${fmt(o.startSeconds)}s.wav`, new Blob([result.wav], {
         type: 'audio/wav'
       }));
-      download(`${recipe.id}-render-report.json`, new Blob([JSON.stringify({
-        engineVersion: ENGINE_VERSION,
-        recipe,
+      download(`${program.id}-render-report.json`, new Blob([JSON.stringify({
+        engineVersion: program.engineVersion,
+        recipe: program,
         render: {
           ...o,
           bitDepth: 16,
           noiseSize: 1 << 20,
-          algorithm: 'Shared sample DSP; honest excerpt, fades .5s by default'
+          algorithm: `Shared sample DSP; honest excerpt; ${program.output.fadeSeconds}s audition fades`
         },
         ...result,
         wav: undefined
@@ -184,6 +189,7 @@ export default function App() {
       if (token === action.current) setBusy(false);
     }
   };
+  const exportAudio = () => exportSound(recipe, options(recipe));
   const match = async () => {
     const token = ++action.current;
     job.current?.abort();
@@ -269,6 +275,7 @@ export default function App() {
   const silent = recipe.output.level === 0 || (selection === 'noise' || recipe.output.toneLevel === 0 || gains(recipe).length === 0) && (selection === 'tones' || recipe.noise.kind === 'off' || recipe.noise.level === 0);
   return <main>
     <header><p className="eyebrow">BREATHWORK BUDDY · LOCAL RESEARCH SPACE</p><h1>Acoustic Laboratory</h1><p className="intro">Create the conditions. Release the effort. Let the experience unfold.</p><p>This separate laboratory lets you explore sound before choosing what belongs in your practice.</p><span className="tag">Phase 4C.1 · local only</span></header>
+    <nav className="lab-tools" aria-label="Laboratory tools"><a href="#worlds">Single environments</a><a href="#journey-title">Build a journey</a></nav>
     <aside className="guidance"><strong>Stereo headphones required.</strong> Start at low device volume, seated comfortably. Avoid listening while driving, near machinery, or in water. Stop if dizzy, uncomfortable or overstimulated. Breathwork and retention are not required.<br /><span>Exploratory intentions are not guaranteed states. Headphone comfort and personal experience need your own listening.</span></aside>
     <section aria-labelledby="worlds"><div className="section-title"><h2 id="worlds">Choose a sound environment</h2><span>Four experiments + a familiar control</span></div><div className="worlds">{presets.map(p => <button key={p.id} className={`world ${builtIn && recipe.id === p.id ? 'selected' : ''}`} aria-pressed={builtIn && recipe.id === p.id} onClick={() => load(p)}><span className="world-label">{p.sourceClassification === '4b-reference' ? '4B CONTROL' : p.id === 'threshold' ? 'PUBLISHED TONES + ORIGINAL NOISE' : 'ORIGINAL EXPERIMENT'}</span><strong>{p.name}</strong><span>{p.description}</span><span>{p.carrierPairs.filter(q => q.enabled).map(q => q.curve.length ? `${q.curve.map(k => k.hz).join(' → ')} L / ${q.curve.map(k => k.hz + q.deltaHz).join(' → ')} R Hz` : `${q.leftHz} L / ${q.leftHz + q.deltaHz} R Hz`).join(' · ')}</span><small>Exploratory intention, not guaranteed state</small></button>)}</div></section>
     <section className="listen" aria-labelledby="listen"><div><p className="eyebrow">{builtIn ? 'BUILT-IN · READ-ONLY' : 'MY DRAFT · EDITABLE'}</p><h2 id="listen">{recipe.name}</h2><p>{recipe.intentLabel}. {recipe.noise.kind === 'off' ? 'No noise' : recipe.noise.kind === 'warm-static' ? 'Static, centered 4B Warm' : 'Original coordinated delay movement over 4B Warm'}.</p><p className="carriers">At selected excerpt start: {recipe.carrierPairs.map(p => {
@@ -395,6 +402,7 @@ export default function App() {
           })} /></div><p>Amplitude modulation defaults Off, changes tones only, and has no claimed neurological target. All components share the session time origin.</p></details>
       <details><summary>One-variable comparisons</summary><div className="actions">{(['septon', 'single', 'all4', '375', 'fixed', 'static', 'movement-off'] as const).map((kind, i) => <button key={kind} onClick={() => load(diagnostic(recipe, kind), false)}>{['Published Septon · tones only', 'Single 200 / 204 · tones only', 'Expansion · all 4 Hz', 'Timeless · 3.75 Hz variant', 'Open · fixed 160 / 164', 'Same carriers · static Warm', 'Same recipe · movement Off'][i]}</button>)}</div><p>Use these as drafts in A/B against the original. Choose the matching original before creating its comparison variant.</p></details>
     </section>
+    <JourneyBuilder choices={choices} player={player.current!} busy={busy} state={state} error={error} onStop={() => stop()} onPlay={beginSound} onExport={exportSound} />
     <section aria-labelledby="observations"><h2 id="observations">Your listening notes</h2><p>Personal observations, not EEG measurements. Notes stay here unless you export them.</p><label>Preparation context<select aria-label="Preparation context" value={prep} onChange={e => setPrep(e.target.value)}>{['No prep', 'After breathwork', 'After natural settling', 'Other'].map(x => <option key={x}>{x}</option>)}</select></label><label>Attention, comfort, mental chatter, spatial impression, or distraction<textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="What did you notice? No particular experience is expected." rows={4} /></label><button onClick={() => download('acoustic-lab-notes.json', new Blob([JSON.stringify({
         context: prep,
         notes,

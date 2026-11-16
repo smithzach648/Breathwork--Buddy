@@ -1,5 +1,5 @@
-import { warmSteps, render, measure, spectrum, encodeWav, type RenderOptions } from './dsp';
-import { validateRecipe, type Recipe } from './model';
+import { warmSteps, measure, spectrum, encodeWav, type RenderOptions } from './dsp';
+import { validateProgram, renderProgram, type SoundProgram } from './program';
 const scope = self as unknown as {
   postMessage: (data: unknown, transfer?: Transferable[]) => void;
 };
@@ -9,7 +9,7 @@ let cache: {
 } | undefined;
 self.onmessage = async (event: MessageEvent<{
   id: number;
-  recipe: Recipe;
+  recipe: SoundProgram;
   options: RenderOptions;
   task: 'wave' | 'render';
   spectra?: boolean;
@@ -20,7 +20,7 @@ self.onmessage = async (event: MessageEvent<{
     task
   } = event.data;
   try {
-    const recipe = validateRecipe(event.data.recipe),
+    const recipe = validateProgram(event.data.recipe),
       key = `${options.sampleRate}/${recipe.sampleSeed}`;
     if (cache?.key !== key) {
       const steps = warmSteps(options.sampleRate, recipe.sampleSeed);
@@ -42,10 +42,10 @@ self.onmessage = async (event: MessageEvent<{
       return;
     }
     const started = performance.now(),
-      channels = render(recipe, options, cache.wave),
+      channels = renderProgram(recipe, options, cache.wave),
       metrics = measure(channels, options.sampleRate),
       wav = encodeWav(channels, options.sampleRate);
-    const spectra = event.data.spectra ? channels.map(c => spectrum(c.subarray(Math.min(options.sampleRate, Math.max(0, c.length - (1 << 18)))), options.sampleRate)) : undefined;
+    const spectra = event.data.spectra && channels[0].length >= 1 << 18 ? channels.map(c => spectrum(c.subarray(Math.min(options.sampleRate, Math.max(0, c.length - (1 << 18)))), options.sampleRate)) : undefined;
     scope.postMessage({
       id,
       wav,

@@ -82,7 +82,11 @@ export interface RenderOptions {
   matchGain?: number;
   fade?: boolean;
 }
-export function validateOptions(r: Recipe, o: RenderOptions, live = false) {
+export function validateOptions(r: {
+  timeline: {
+    durationSeconds: number;
+  };
+}, o: RenderOptions, live = false) {
   if (![44100, 48000].includes(o.sampleRate) || !Number.isFinite(o.startSeconds) || o.startSeconds < 0 || o.startSeconds >= r.timeline.durationSeconds || !Number.isFinite(o.durationSeconds) || o.durationSeconds <= 0 || o.durationSeconds > (live ? 3600 : 120) || o.startSeconds + o.durationSeconds > r.timeline.durationSeconds + 1 / o.sampleRate || !['combined', 'tones', 'noise'].includes(o.selection) || o.matchGain !== undefined && (!Number.isFinite(o.matchGain) || o.matchGain < 0 || o.matchGain > 1)) throw new Error('Render: use 44.1/48 kHz, a valid session excerpt, up to 120s export, and matching attenuation 0–1.');
 }
 /** A single sample core powers AudioWorklet blocks and chunked worker WAV export. No feedback, stateful filter or seek pre-roll. */
@@ -92,15 +96,33 @@ export class Synth {
   readonly layers: ReturnType<typeof gains>;
   readonly frames: number;
   readonly offset: number;
-  constructor(recipe: Recipe, options: RenderOptions, readonly wave: Float32Array) {
+  constructor(recipe: Recipe, options: RenderOptions, readonly wave: Float32Array, readonly stageClock?: {
+    durationSeconds: number;
+    originFrames: number;
+  }) {
     this.recipe = validateRecipe(recipe);
-    validateOptions(this.recipe, options, true);
+    validateOptions({
+      timeline: {
+        durationSeconds: stageClock?.durationSeconds ?? this.recipe.timeline.durationSeconds
+      }
+    }, options, true);
     this.options = {
       ...options
     };
     this.layers = gains(this.recipe);
     this.frames = Math.round(options.durationSeconds * options.sampleRate);
     this.offset = Math.round(options.startSeconds * options.sampleRate);
+    if (stageClock) {
+      if (!Number.isInteger(stageClock.durationSeconds) || stageClock.durationSeconds < 30 || stageClock.durationSeconds > 3600 || !Number.isInteger(stageClock.originFrames) || stageClock.originFrames < 0) throw new Error('Invalid journey stage clock.');
+      // A journey holds each environment's steady mix. Only the journey owns entry/exit fades.
+      // This internal, cloned timeline never changes the original recipe or its standalone renderer.
+      this.recipe.timeline = {
+        durationSeconds: stageClock.durationSeconds,
+        entrySeconds: 0,
+        returnSeconds: 0,
+        anchorDomain: 'steady'
+      };
+    }
     if (wave.length !== NOISE_SIZE) throw new Error('Warm buffer must use the unchanged 4B length.');
   }
   private noise(frame: number, delaySamples: number) {
@@ -128,7 +150,9 @@ export class Synth {
         continue;
       }
       const absolute = this.offset + frame,
-        t = absolute / rate;
+        t = absolute / rate,
+        sourceFrame = absolute + (this.stageClock?.originFrames ?? 0),
+        sourceTime = sourceFrame / rate;
       let l = 0,
         rr = 0;
       if (tones) {
@@ -137,21 +161,22 @@ export class Synth {
           gain
         } of this.layers) {
           const state = carrier(p, t, r);
-          l += gain * Math.sin(tau * (state.cycles % 1) + p.leftPhase);
-          rr += gain * Math.sin(tau * ((state.cycles + p.deltaHz * t) % 1) + p.rightPhase);
+          const cycles = state.cycles + (this.stageClock ? this.stageClock.originFrames / rate * p.leftHz : 0);
+          l += gain * Math.sin(tau * (cycles % 1) + p.leftPhase);
+          rr += gain * Math.sin(tau * ((cycles + p.deltaHz * sourceTime) % 1) + p.rightPhase);
         }
-        const env = toneEnvelopeAt(r, t) * toneGain;
-        l *= env * (am.enabled ? 1 + am.depth * Math.sin(tau * am.rateHz * t + am.phase) : 1);
-        rr *= env * (am.enabled ? 1 + am.depth * Math.sin(tau * am.rateHz * t + am.phase + am.channelPhase) : 1);
+        const env = (this.stageClock ? 1 : toneEnvelopeAt(r, t)) * toneGain;
+        l *= env * (am.enabled ? 1 + am.depth * Math.sin(tau * am.rateHz * sourceTime + am.phase) : 1);
+        rr *= env * (am.enabled ? 1 + am.depth * Math.sin(tau * am.rateHz * sourceTime + am.phase + am.channelPhase) : 1);
       }
       if (noise) {
-        const x = this.wave[absolute % this.wave.length];
+        const x = this.wave[sourceFrame % this.wave.length];
         if (n.kind === 'warm-static') {
           l += x * n.level;
           rr += x * n.level;
         } else {
-          l += n.level * ((1 - n.mix) * x + n.mix * this.noise(absolute, delayAt(r, t, 0) * rate));
-          rr += n.level * ((1 - n.mix) * x + n.mix * this.noise(absolute, delayAt(r, t, 1) * rate));
+          l += n.level * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 0) * rate));
+          rr += n.level * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 1) * rate));
         }
       }
       const fade = o.fade === false ? 1 : Math.max(0, Math.min(1, frame / fadeFrames, (this.frames - 1 - frame) / fadeFrames));
