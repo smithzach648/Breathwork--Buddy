@@ -15,6 +15,7 @@ import { Routines } from '../features/routines/Routines';
 import { routineRepository } from '../routines/repository';
 import { Meditation } from '../features/meditation/Meditation';
 import type { PracticeConfig } from '../session/config';
+import { Meditate } from '../features/meditation-suite/Meditate';
 export function App({ runtime: providedRuntime }: {
     runtime?: PracticeRuntime;
 } = {}) {
@@ -109,10 +110,12 @@ export function App({ runtime: providedRuntime }: {
     <main id="content" tabIndex={-1}>
       {error && <p role="alert" className="notice">{error}</p>}
       {practiceState.saveError && <div role="alert" className="notice">{practiceState.saveError} <button onClick={() => runtime.retrySaving()}>Retry saving</button></div>}
+      {practiceState.session.status==='running'&&practiceState.session.snapshot?.config.kind==='meditation-journey'&&page!=='Meditate'&&page!=='Practice'&&<p className="notice">A journey is in progress. <button onClick={()=>navigate('Meditate')}>Return to journey</button></p>}
       {needRefresh && <div className="notice" role="status">{practiceState.starting || practiceState.session.status === 'running' ? 'An update is ready. Finish or stop your practice to update.' : <>A new version is ready. <button onClick={() => void update()}>Update app</button></>}</div>}
       {routinesOpen ? <Routines preferences={prefs} runtime={runtime} onStart={startRoutine} onBack={() => navigate('Home')} binauralSelected={prefs.meditation.binaural.mode!=='off'}/> : <>
-      {page === 'Home' && <><Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine} onMeditation={openMeditation}/>{prefs.meditation.binaural.mode!=='off'&&<p className="notice">Saved meditation blocks shorter than 10 minutes use masking and selected audio only. Your binaural selection remains saved for longer blocks.</p>}</>}
-      {page === 'Practice' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => setRoutinesOpen(true)} onMeditation={openMeditation} preferences={prefs} onPreferencesChange={saveSettings}/>}
+      {page === 'Home' && <><Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine} onMeditation={openMeditation} onMeditate={()=>navigate('Meditate')}/>{prefs.meditation.binaural.mode!=='off'&&<p className="notice">Saved meditation blocks shorter than 10 minutes use masking and selected audio only. Your binaural selection remains saved for longer blocks.</p>}</>}
+      {(page==='Meditate'||page==='Practice'&&practiceState.session.snapshot?.config.kind==='meditation-journey')&&<Meditate runtime={runtime} state={practiceState} onTimer={openMeditation}/>}
+      {page === 'Practice' && practiceState.session.snapshot?.config.kind!=='meditation-journey' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => setRoutinesOpen(true)} onMeditation={openMeditation} preferences={prefs} onPreferencesChange={saveSettings}/>}
       {page === 'Meditation' && !ready && <p role="status">Loading your saved settings…</p>}
       {page === 'Meditation' && ready && (practiceState.starting || practiceState.session.snapshot?.config.kind==='meditation' && (practiceState.session.status==='running' || practiceState.session.result) ? <Practice runtime={runtime} state={practiceState} onDone={()=>navigate('Meditation')} preferences={prefs} onPreferencesChange={saveSettings}/> : <Meditation preferences={prefs} onChange={saveSettings} runtime={runtime} onStart={startMeditation} onChooseTrack={()=>navigate('Settings')}/>)}
       {page === 'Journal' && <Journal />}

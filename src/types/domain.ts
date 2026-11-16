@@ -20,6 +20,7 @@ export interface SessionSnapshot {
     readonly plannedDurationSeconds?: number;
 }
 export interface SessionResult {
+    journey?: { snapshot: import('../meditation-suite/model').JourneyConfig; naturalBreathingAtSeconds?: number };
     id: string;
     routineId: string;
     practiceName?: string;

@@ -3,6 +3,7 @@ import type { Routine } from '../types/domain';
 import { validateRoutine, blockName } from '../routines/model';
 import { validSound, type FrozenSound } from '../meditation/profile';
 import {validateRecipe,type SoundRecipe} from '../meditation/environment';
+import { compileJourney, validateJourneyConfig, journeyDefinition, type JourneyConfig, type Section } from '../meditation-suite/model';
 export type PatternId = 'box' | '478' | 'calm' | 'coherent';
 export type ExerciseConfig = {
     kind: 'patterned';
@@ -40,8 +41,8 @@ export type ExerciseConfig = {
     presetId: 'settling';
     durationSeconds: number;
 };
-export type PracticeConfig = ExerciseConfig | { kind: 'routine'; routine: Routine };
-export type Phase = 'natural-settling' | 'meditation' | 'block-transition' | 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
+export type PracticeConfig = ExerciseConfig | { kind: 'routine'; routine: Routine } | JourneyConfig;
+export type Phase = 'journey-preparation' | 'journey-rest' | 'journey-return' | 'natural-settling' | 'meditation' | 'block-transition' | 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
 export interface PlannedStage {
     readonly phase: Phase;
     readonly label: string;
@@ -56,6 +57,7 @@ export interface PlannedStage {
     readonly blockKind?: ExerciseConfig['kind'];
     readonly meditationPolicy?: 'defaults' | 'silent' | 'custom';
     readonly soundRecipe?: SoundRecipe;
+    readonly journeySection?: Section;
 }
 export interface PracticeSnapshot {
     readonly id: string;
@@ -73,8 +75,9 @@ export const patterns: Record<PatternId, {
     box: { name: 'Box 4-4-4-4', seconds: [4, 4, 4, 4] }, '478': { name: '4-7-8', seconds: [4, 7, 8, 0] }, calm: { name: 'Calm 4-4-6-2', seconds: [4, 4, 6, 2] }, coherent: { name: 'Coherent 6-6', seconds: [6, 0, 6, 0] },
 };
 const phases = ['inhale', 'hold-in', 'exhale', 'hold-out'] as const;
-const labels: Record<Phase, string> = { 'natural-settling': 'Breathe naturally / settle', meditation: 'Meditation', 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
+const labels: Record<Phase, string> = { 'journey-preparation': 'Preparation', 'journey-rest': 'Rest and notice', 'journey-return': 'Return', 'natural-settling': 'Breathe naturally / settle', meditation: 'Meditation', 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
 export function validateConfig(config: PracticeConfig) {
+    if (config.kind === 'meditation-journey') { validateJourneyConfig(config); return; }
     if (config.kind === 'routine') { validateRoutine(config.routine); return; }
     if (config.kind === 'custom-pattern') {
         const integer = (n: number, min: number, max: number) => Number.isInteger(n) && n >= min && n <= max;
@@ -129,6 +132,7 @@ export function patternedStages(seconds: readonly number[], durationSeconds: num
 }
 export function compileStages(config: PracticeConfig): PlannedStage[] {
     validateConfig(config);
+    if (config.kind === 'meditation-journey') return compileJourney(config);
     const stages: PlannedStage[] = (['prepare-inhale', 'prepare-exhale', 'prepare-settle'] as const).map((phase, i) => ({ phase, label: labels[phase], durationMs: [4000, 6000, 3000][i], round: 0, totalRounds: config.kind === 'hormesis' ? 3 : 1, cycle: 0, totalCycles: 0 }));
     if (config.kind === 'routine') {
         config.routine.stages.forEach((block, index) => {
@@ -187,5 +191,5 @@ export function createSnapshot(config: PracticeConfig, id: string = crypto.rando
     }
     if (!Number.isFinite(Date.parse(startedAt)))
         throw new Error('Invalid session start time.');
-    return deepFreeze({ id, startedAt, name: copy.kind === 'routine' ? copy.routine.name.trim() : blockName(copy), config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' || copy.kind === 'meditation' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000, ...(meditationSound?{meditationSound:structuredClone(meditationSound)}:{}) });
+    return deepFreeze({ id, startedAt, name: copy.kind === 'routine' ? copy.routine.name.trim() : copy.kind === 'meditation-journey' ? journeyDefinition(copy.presetId).name : blockName(copy), config: copy, stages, plannedDurationSeconds: copy.kind === 'patterned' || copy.kind === 'meditation' ? copy.durationSeconds : stages.reduce((sum, s) => sum + s.durationMs, 0) / 1000, ...(meditationSound?{meditationSound:structuredClone(meditationSound)}:{}) });
 }

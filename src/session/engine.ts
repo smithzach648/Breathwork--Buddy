@@ -64,6 +64,7 @@ export class DeterministicSessionEngine {
         this.stageStart = this.startTime;
         this.deadline = this.stageStart + snapshot.stages[0].durationMs;
         this.state = { ...idle, status: 'running', sessionId: `${snapshot.id}/${this.generation}`, snapshot };
+        this.sound(() => this.audio.beginSession?.(snapshot, this.startTime, this.state.sessionId!));
         this.publish(this.startTime);
         this.enterAudio();
         this.arm();
@@ -168,6 +169,7 @@ export class DeterministicSessionEngine {
         this.sound(() => { if (this.audio.finishSession) this.audio.finishSession(sessionId,outcome); else this.audio.cancelSession(sessionId); });
         const result: SessionResult = { id: sessionId, routineId: snapshot.config.kind === 'routine' ? snapshot.config.routine.id : snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
         if (this.endReason) result.endReason = this.endReason;
+        if (snapshot.config.kind === 'meditation-journey') result.journey = { snapshot: structuredClone(snapshot.config) };
         if(snapshot.meditationSound)result.soundProfile=structuredClone(snapshot.meditationSound);
         if (snapshot.config.kind === 'meditation') result.meditation = { plannedDurationSeconds: snapshot.config.durationSeconds, actualDurationSeconds: this.meditationSeconds };
         if (snapshot.config.kind === 'routine') {

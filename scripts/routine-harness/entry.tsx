@@ -13,10 +13,13 @@ import '../../src/styles/global.css';
 import {createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude} from '../../src/audio/binaural';
 import {generateMaskingBuffer} from '../../src/audio/noise-spectrum';
 import {createOutput} from '../../src/audio/output';
+import {createJourneyConfig} from '../../src/meditation-suite/model';
+import {JourneySynth} from '../../src/audio/acoustic/journey';
+import {warm} from '../../src/audio/acoustic/dsp';
 
 // Optional QA entry only. Never shipped by the application build or service worker.
 const timing = new FakeTiming();
-const events: { id?: string; phase?: string; stopped: boolean }[] = [];
+const events: { id?: string; phase?: string; stopped: boolean; when?:number; duration?:number }[] = [];
 const buffers = new WeakMap<AudioBuffer, string>();
 let runtime: PracticeRuntime;
 const audio = new BrowserAudio(timing, defaultPreferences(), () => {
@@ -25,7 +28,7 @@ const audio = new BrowserAudio(timing, defaultPreferences(), () => {
         const source = create(), start = source.start.bind(source), stop = source.stop.bind(source);
         let event: typeof events[number];
         source.start = (when = 0, offset = 0, duration?: number) => {
-            event = { id: buffers.get(source.buffer!), phase: runtime.engine.getState().stage?.phase, stopped: false }; events.push(event);
+            event = { id: buffers.get(source.buffer!), phase: runtime.engine.getState().stage?.phase, stopped: false, when, duration:source.buffer?.duration }; events.push(event);
             duration === undefined ? start(when, offset) : start(when, offset, duration);
         };
         source.stop = when => { if (event) event.stopped = true; when === undefined ? stop() : stop(when); };
@@ -39,7 +42,7 @@ const background = new BackgroundController(undefined, undefined, () => audio.en
 const noise = new NoiseController(() => audio.environmentPort());
 const binaural = new BinauralController(() => audio.environmentPort(), timing);
 runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), undefined, background, noise, binaural);
-Object.assign(window, { acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
+Object.assign(window, { suiteQA:{createJourneyConfig,JourneySynth,warm},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
     jump(ms:number){timing.jump(ms);runtime.engine.reconcile();audio.resynchronize();},
     advance(ms: number) {
         timing.advance(ms); audio.resynchronize();

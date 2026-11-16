@@ -1,4 +1,5 @@
 import type { PlannedStage } from './config';
+import type { PracticeSnapshot } from './config';
 export interface StageAudio {
     readonly sessionId: string;
     readonly stageId: string;
@@ -8,6 +9,7 @@ export interface StageAudio {
     readonly resuming?: boolean;
 }
 export interface SessionAudio {
+    beginSession?(snapshot: PracticeSnapshot, start: number, sessionId: string): void;
     enter(stage: StageAudio): void;
     cancelStage(stageId: string): void;
     cancelSession(sessionId: string): void;

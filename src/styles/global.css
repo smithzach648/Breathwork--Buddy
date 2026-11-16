@@ -84,3 +84,29 @@ details summary { cursor:pointer; min-height:48px; padding:.8rem 0; }
 
 .routine-editor label.theme { display:flex; align-items:center; gap:.6rem; }
 .routine-editor input[type=checkbox] { width:24px; flex:0 0 24px; min-height:48px; }
+
+/* Journeys share the existing app, with independent preparation and precise audio pacing. */
+nav { grid-template-columns:repeat(7,minmax(0,1fr)); }
+.suite-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.suite-card { display:flex; flex-direction:column; min-width:0; }
+.suite-card.selected { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.suite-card button { margin-top:auto; white-space:normal; }
+.suite-duration { font-size:2rem; margin:.2rem 0; font-variant-numeric:tabular-nums; }
+.suite-setup { display:grid; gap:12px; }
+.suite-setup details { min-width:0; }
+.suite-setup .theme { margin-block:.75rem; }
+.suite-setup input[type=checkbox] { width:24px; height:24px; flex-shrink:0; }
+.suite-setup select { min-height:48px; }
+.suite-setup input[type=range] { min-height:48px; }
+.suite-active { text-align:center; }
+.suite-phase { font-size:clamp(1.75rem,6vw,3rem); }
+.suite-prompt { font-size:1.15rem; line-height:1.8; max-width:42rem; margin:1.5rem auto; }
+.suite-clock { display:flex; justify-content:center; flex-wrap:wrap; gap:2rem; margin:2rem 0; }
+.suite-clock div { display:grid; gap:.4rem; }
+.suite-clock strong { font-size:clamp(2rem,7vw,3rem); font-weight:500; font-variant-numeric:tabular-nums; }
+.suite-clock span { color:var(--muted); }
+.suite-active progress { width:100%; height:.65rem; accent-color:var(--accent); }
+.suite-tour button { margin:.4rem; }
+.suite-card p,.suite-tour p,.suite-setup p,.suite-active p { overflow-wrap:anywhere; }
+@media(max-width:600px) { .suite-cards { grid-template-columns:1fr; } }
+@media(max-width:540px) { nav { grid-template-columns:repeat(4,minmax(0,1fr)); } main { padding-bottom:calc(12rem + env(safe-area-inset-bottom)); } .suite-setup,.suite-active,.suite-tour { padding:18px; } .suite-tour button { max-width:100%; margin-inline:0; } }

@@ -1,9 +1,15 @@
-name: Deploy Breathwork Buddy to Pages
+name: Check Breathwork Buddy (publish only on explicit dispatch)
 
 on:
   push:
     branches: [breathwork-buddy-2]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the tested development build to public Pages (requires release authorization)
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -36,6 +42,8 @@ jobs:
         run: pnpm build
       - name: Check project-path PWA artifact
         run: node scripts/check-pwa-build.mjs
+      - name: Check shared sound and preserved assets
+        run: node scripts/check-suite-build.mjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload production artifact
@@ -44,6 +52,7 @@ jobs:
           path: dist
 
   deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
     permissions:
