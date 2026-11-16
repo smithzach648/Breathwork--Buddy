@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createJourneyConfig, JOURNEYS, BREATHING, SECTION_NAMES, timeline, type JourneyId, type GuidanceStyle, type BreathingChoice, type JourneyConfig, type Section } from '../../meditation-suite/model';
-import { guidanceText, hasApprovedNarration } from '../../meditation-suite/narration';
+import { guidanceText, hasApprovedNarration } from '../../meditation-suite/voice-narration';
 import type { PracticeRuntime, RuntimeState } from '../../session/runtime';
 import { formatDuration } from '../../shared/format';
+import { changeMix, MIX_KEYS, MIX_PRESETS, normalizeMix, presetMix, type ListenerMix } from '../../meditation-suite/mix';
+import type { Preferences } from '../../settings/preferences';
 
 const tourSteps: { section: Section; description: string; practice: string }[] = [
   {section:'ecb', description:'The Energy Conversion Box is a way to acknowledge concerns and put them aside temporarily. Imagine a container, or simply think of a place to return to later. You do not have to solve or suppress a feeling.',practice:'Try setting aside one small distraction. You can leave it there for this practice.'},
@@ -13,15 +15,17 @@ const tourSteps: { section: Section; description: string; practice: string }[] =
   {section:'affirmation',description:'A short intention sets the direction. Use the provided secular statement, the optional spiritual version, or quietly use your own words. Nothing private is recorded.',practice:'Choose a simple intention such as giving yourself time to rest and explore.'},
   {section:'entry',description:'After preparation, instructions become quieter and less frequent. There is nothing to achieve. Every journey ends with three minutes to reorient, and Stop is always available.',practice:'A rehearsal runs the actual ten-minute preparation, followed by a three-minute return.'},
 ];
-export function Meditate({runtime,state,onTimer}:{runtime:PracticeRuntime;state:RuntimeState;onTimer:()=>void}) {
+export function Meditate({runtime,state,onTimer,preferences,onPreferencesChange}:{runtime:PracticeRuntime;state:RuntimeState;onTimer:()=>void;preferences?:Preferences;onPreferencesChange?:(p:Preferences)=>void}) {
   const [selected,setSelected]=useState<JourneyId>('foundation'),[guidance,setGuidance]=useState<GuidanceStyle>('guided'),[breathing,setBreathing]=useState<BreathingChoice>('5-5');
   const [humming,setHumming]=useState(true),[space,setSpace]=useState(true),[affirmation,setAffirmation]=useState<'secular'|'spiritual'>('secular');
-  const [levels,setLevels]=useState({environment:.8,breathingTones:.45,voice:1,bowl:.45});
+  const [mix,setMix]=useState(()=>normalizeMix(preferences?.journeyMix));
+  useEffect(()=>{setMix(normalizeMix(preferences?.journeyMix));},[preferences?.journeyMix]);
+  function updateMix(next:ListenerMix){setMix(next);if(preferences)onPreferencesChange?.({...preferences,journeyMix:next});}
   const [tour,setTour]=useState<'learn'|'refresh'|null>(null),[step,setStep]=useState(0),[error,setError]=useState('');
   const session=state.session, activeConfig=session.snapshot?.config.kind==='meditation-journey'?session.snapshot.config:undefined;
   useEffect(()=>{runtime.stopNoisePreview();},[runtime]);
   async function start(id=selected, saved?:JourneyConfig) {
-    try {setError('');await runtime.start(saved??createJourneyConfig(id,{guidance,breathing,humming,surroundingSpace:space,affirmation,levels}));setTour(null);}
+    try {setError('');await runtime.start(saved??createJourneyConfig(id,{guidance,breathing,humming,surroundingSpace:space,affirmation,mix}));setTour(null);}
     catch(e){setError(e instanceof Error?e.message:'Your journey could not start.');}
   }
   if(state.starting)return <><p className="eyebrow">YOUR JOURNEY</p><h1>Getting ready</h1><p role="status">Preparing sound on this device. Your journey clock has not started.</p><button onClick={()=>runtime.cancelStart()}>Cancel start</button></>;
@@ -36,10 +40,11 @@ export function Meditate({runtime,state,onTimer}:{runtime:PracticeRuntime;state:
     <section className="panel suite-setup"><h2>Your journey</h2><label htmlFor="suite-guidance">Guidance</label><select id="suite-guidance" value={guidance} disabled={busy} onChange={e=>setGuidance(e.target.value as GuidanceStyle)}><option value="guided">Guided · more on-screen support</option><option value="familiar">Familiar · fewer prompts</option></select>
       {!hasApprovedNarration()&&<p className="muted">Guidance is currently on-screen, with musical breathing tones and the recorded bowl. New spoken guidance has not been added.</p>}
       <button className="primary" disabled={busy} onClick={()=>void start()}>Start journey</button>
-      <details><summary>Customize</summary><label htmlFor="suite-breathing">Preparation breathing</label><select id="suite-breathing" value={breathing} disabled={busy} onChange={e=>setBreathing(e.target.value as BreathingChoice)}>{Object.entries(BREATHING).map(([id,p])=><option key={id} value={id}>{p.name}</option>)}</select><p className="muted">4–7–8 uses four complete cycles, then natural settling. 4–4–6 uses twelve complete cycles and a short natural settle. Choose natural breathing whenever you prefer.</p>
+      <fieldset className="suite-mix-presets"><legend>Sound balance</legend>{(Object.keys(MIX_PRESETS) as (keyof typeof MIX_PRESETS)[]).map(preset=><button key={preset} aria-pressed={mix.preset===preset} disabled={busy} onClick={()=>updateMix(presetMix(preset))}>{preset[0].toUpperCase()+preset.slice(1)}</button>)}</fieldset><p className="muted" role="status">{mix.preset==='custom'?'Custom sound mix':`${mix.preset[0].toUpperCase()+mix.preset.slice(1)} sound mix`} · saved on this device for your next journey.</p>
+      <details><summary>Customize</summary><label htmlFor="suite-breathing">Preparation breathing</label><select id="suite-breathing" value={breathing} disabled={busy} onChange={e=>setBreathing(e.target.value as BreathingChoice)}>{Object.entries(BREATHING).map(([id,p])=><option key={id} value={id}>{p.name}</option>)}</select><p className="muted">A short introduction fits inside the breathing window. 5–5 uses sixteen complete cycles; 4–4–6 uses eleven plus a short settle; 4–7–8 uses four plus natural settling. Choose natural breathing whenever you prefer.</p>
         <label className="theme"><input type="checkbox" checked={humming} disabled={busy} onChange={e=>setHumming(e.target.checked)}/>Offer optional soft humming</label><label className="theme"><input type="checkbox" checked={space} disabled={busy} onChange={e=>setSpace(e.target.checked)}/>Offer surrounding-space imagery</label>
         <label htmlFor="suite-affirmation">Affirmation</label><select id="suite-affirmation" value={affirmation} disabled={busy} onChange={e=>setAffirmation(e.target.value as 'secular'|'spiritual')}><option value="secular">Open and grounded</option><option value="spiritual">Spiritual · optional</option></select>
-        {Object.entries(levels).map(([key,value])=><label className="volume-control" key={key}><span>{{environment:'Sound environment',breathingTones:'Breathing tones',voice:'Voice · available when approved clips are added',bowl:'Singing bowl'}[key]} <output>{Math.round(value*100)}%</output></span><input aria-label={`Journey ${key} level`} type="range" min="0" max="1" step=".01" value={value} disabled={busy||key==='voice'&&!hasApprovedNarration()} onChange={e=>setLevels(v=>({...v,[key]:Number(e.target.value)}))}/></label>)}
+        <fieldset className="suite-mixer"><legend>Sound mix</legend>{MIX_KEYS.map(key=><label className="volume-control" key={key}><span>{{warm:'Warm masking',binaural:'Binaural tones',breathingTones:'Breathing tones',voice:'Narration',bowl:'Singing bowl'}[key]} <output>{Math.round(mix.levels[key]*100)}%</output></span><input aria-label={`Journey ${key} level`} type="range" min="0" max="1" step=".01" value={mix.levels[key]} disabled={busy||key==='voice'&&!hasApprovedNarration()} onChange={e=>updateMix(changeMix(mix,key,Number(e.target.value)))}/></label>)}<button disabled={busy} onClick={()=>updateMix(presetMix())}>Reset mix</button></fieldset><p className="muted">Mix changes apply to the next journey. Each session keeps its starting mix in History. Narration will become available after approved recordings are added.</p>
       </details>
       <p className="muted">Use stereo headphones to preserve the sound's stereo effects. Keep volume comfortable. Text guidance works without audio. Focus-inspired practice does not certify a Focus level or a particular experience.</p><p className="muted">After the app shows Ready offline, its journey sounds and bowl work without a connection. Keep the app visible: sound stops when hidden or interrupted; the timer continues. On return, paced breathing rejoins at the next complete inhale. Phone screen-lock playback is not verified.</p>
     </section>
@@ -48,18 +53,20 @@ export function Meditate({runtime,state,onTimer}:{runtime:PracticeRuntime;state:
 }
 export function JourneySession({runtime,state,config}:{runtime:PracticeRuntime;state:RuntimeState;config:JourneyConfig}) {
   const session=state.session,section=session.stage!.journeySection!,elapsed=session.elapsedMs/1000,end=session.snapshot!.plannedDurationSeconds;
+  useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});},[session.sessionId]);
   const rows=useMemo(()=>timeline(config),[config]);
   const row=rows.find(r=>r.stage.journeySection===section)!;
   const sectionElapsed=elapsed-row.start, audio=state.audio.journey;
   const natural=audio?.naturalBreathing||elapsed<(audio?.naturalUntilSeconds??0);
   const phase=natural&&section==='breathwork'?'Breathe naturally':session.stage!.label;
-  return <><p className="eyebrow">YOUR JOURNEY · {config.guidance==='guided'?'GUIDED':'FAMILIAR'}</p><h1>{session.snapshot!.name}</h1><section className="panel suite-active"><p className="eyebrow">{SECTION_NAMES[section]}</p><h2 className="suite-phase" role="status" aria-live="polite">{phase}</h2><p className="suite-prompt">{section==='breathwork'&&(natural||session.stage?.phase==='natural-settling')?'Let your breath find its own comfortable rhythm. There is no counting or holding to follow.':guidanceText(config,section,sectionElapsed)}</p>
+  return <><p className="eyebrow">YOUR JOURNEY · {config.guidance==='guided'?'GUIDED':'FAMILIAR'}</p><h1>{session.snapshot!.name}</h1><div className="suite-stop"><button className="primary" onClick={()=>runtime.engine.stop('ended-early')}>Stop journey</button></div><section className="panel suite-active"><p className="eyebrow">{SECTION_NAMES[section]}</p><h2 className="suite-phase" role="status" aria-live="polite">{phase}</h2><p className="suite-prompt">{section==='breathwork'&&(natural||session.stage?.phase==='natural-settling')?'Let your breath find its own comfortable rhythm. There is no counting or holding to follow.':guidanceText(config,section,sectionElapsed)}</p>
     <div className="suite-clock"><div><span>Remaining</span><strong role="timer" aria-label="Journey time remaining" aria-live="off">{formatDuration(Math.max(0,end-elapsed))}</strong></div><div><span>Elapsed</span><strong>{formatDuration(elapsed)}</strong></div></div>
     <progress aria-label="Journey progress" max={end} value={Math.min(end,elapsed)}/>
-    {section==='breathwork'&&<><p className="muted">{natural||session.stage?.phase==='natural-settling'?'Let the breath find its own comfortable rhythm.':`${Math.ceil(session.remainingMs/1000)} seconds · cycle ${session.stage!.cycle} of ${session.stage!.totalCycles}. Rising notes: in. Falling notes: out. Steady notes: optional hold.`}</p><button onClick={()=>runtime.breatheNaturally()}>Breathe naturally instead</button></>}
+    {section==='breathwork'&&<><p className="muted">{natural||session.stage?.phase==='natural-settling'?'Let the breath find its own comfortable rhythm.':session.stage?.phase==='journey-preparation'?'Read the introduction; the musical pacing will begin shortly.':`${Math.ceil(session.remainingMs/1000)} seconds · cycle ${session.stage!.cycle} of ${session.stage!.totalCycles}. Rising notes: in. Falling notes: out. Steady notes: optional hold.`}</p><button onClick={()=>runtime.breatheNaturally()}>Breathe naturally instead</button></>}
     {audio?.error&&<p role="status" className="notice">{audio.error}</p>}
+    {!!audio?.skippedVoices?.length&&<p className="muted">On-screen guidance is available. Some voice passages are awaiting approved recordings or do not fit their cue window.</p>}
     {state.audio.state!=='running'&&<p className="notice">Audio is unavailable or paused. Text guidance and the timer continue. <button onClick={()=>void runtime.audio.unlock()}>Resume sound</button></p>}
     {state.audio.failures.includes('signals.bowl')&&<p className="muted">The bowl is unavailable. Stage labels still mark the transitions.</p>}
-    <div className="practice-actions"><button className="primary" onClick={()=>runtime.engine.stop('ended-early')}>Stop journey</button></div><p className="muted">Return to natural breathing at any time. You do not need to produce a particular feeling.</p>
+    <p className="muted">Return to natural breathing at any time. You do not need to produce a particular feeling.</p>
   </section></>;
 }

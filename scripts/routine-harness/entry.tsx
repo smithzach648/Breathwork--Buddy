@@ -11,11 +11,17 @@ import { WakeLockController } from '../../src/session/wake-lock';
 import { FakeTiming } from '../../src/test/fake-time';
 import '../../src/styles/global.css';
 import {createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude} from '../../src/audio/binaural';
-import {generateMaskingBuffer} from '../../src/audio/noise-spectrum';
+import {generateMaskingBuffer,fftSteps} from '../../src/audio/noise-spectrum';
 import {createOutput} from '../../src/audio/output';
-import {createJourneyConfig} from '../../src/meditation-suite/model';
+import {createJourneyConfig as createRefinedJourneyConfig,createLegacyJourneyConfig as createJourneyConfig,layerMix} from '../../src/meditation-suite/model';
+import {scheduleSoftNote} from '../../src/meditation-suite/instrument';
+import {journeyNotes,softNoteHz,noteHz} from '../../src/meditation-suite/tones';
+import {presetMix,changeMix} from '../../src/meditation-suite/mix';
+import {SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT} from '../../src/meditation-suite/narration-content';
+import {narrationPlan} from '../../src/meditation-suite/voice-narration';
+import {JourneyAudio} from '../../src/meditation-suite/audio';
 import {JourneySynth} from '../../src/audio/acoustic/journey';
-import {warm} from '../../src/audio/acoustic/dsp';
+import {warm,encodeWav} from '../../src/audio/acoustic/dsp';
 
 // Optional QA entry only. Never shipped by the application build or service worker.
 const timing = new FakeTiming();
@@ -37,12 +43,12 @@ const audio = new BrowserAudio(timing, defaultPreferences(), () => {
     return context;
 });
 const load = audio.load.bind(audio);
-audio.load = async id => { const buffer = await load(id); if (buffer) buffers.set(buffer, id); return buffer; };
+audio.load = async (id,sha) => { const buffer = await load(id,sha); if (buffer) buffers.set(buffer, id); return buffer; };
 const background = new BackgroundController(undefined, undefined, () => audio.environmentPort());
 const noise = new NoiseController(() => audio.environmentPort());
 const binaural = new BinauralController(() => audio.environmentPort(), timing);
 runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), undefined, background, noise, binaural);
-Object.assign(window, { suiteQA:{createJourneyConfig,JourneySynth,warm},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
+Object.assign(window, { suiteQA:{createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
     jump(ms:number){timing.jump(ms);runtime.engine.reconcile();audio.resynchronize();},
     advance(ms: number) {
         timing.advance(ms); audio.resynchronize();

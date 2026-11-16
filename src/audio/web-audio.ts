@@ -46,7 +46,7 @@ export class BrowserAudio implements SessionAudio {
     readonly journeys: JourneyAudio;
     private journeySession?: string;
     private mediaInput?: AudioNode;
-    constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { this.signals = new MeditationSignals(clock,()=>this.environmentPort(),preferences,()=>this.load('signals.bowl')); this.journeys = new JourneyAudio(clock,()=>this.environmentPort(),id=>this.load(id),()=>this.notify()); }
+    constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { this.signals = new MeditationSignals(clock,()=>this.environmentPort(),preferences,()=>this.load('signals.bowl')); this.journeys = new JourneyAudio(clock,()=>this.environmentPort(),(id,sha)=>this.load(id,sha),()=>this.notify()); }
     /** Independent stereo-capable buses connect before this shared Master gain. */
     environmentPort(): AudioEnvironmentPort | undefined { return this.context && this.buses.master ? { context: this.context, input: this.buses.master, mediaInput: this.mediaInput } : undefined; }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
@@ -95,6 +95,7 @@ export class BrowserAudio implements SessionAudio {
     }
     setPreferences(preferences: Preferences) {
         this.preferences = structuredClone(preferences);
+        this.journeys.setVoicePreferences(preferences.volumes.voice,preferences.guidance.generalVoice,preferences.guidance.ducking);
         this.signals.setPreferences(this.preferences);
         this.stopTracks(track => !cueEnabled(track.cueId, preferences));
         for (const bus of ['master', 'voice', 'breath'] as const) {
@@ -104,8 +105,9 @@ export class BrowserAudio implements SessionAudio {
         }
         this.notify();
     }
-    load(id: string): Promise<AudioBuffer | undefined> {
-        const existing = this.loads.get(id);
+    load(id: string, expectedSha256?:string): Promise<AudioBuffer | undefined> {
+        const cacheKey=expectedSha256?`${id}/${expectedSha256}`:id;
+        const existing = this.loads.get(cacheKey);
         if (existing)
             return existing;
         const asset = resolveAsset(id);
@@ -120,7 +122,9 @@ export class BrowserAudio implements SessionAudio {
                     (async () => {
                         const response = await this.fetcher(assetUrl(asset), { signal: abort.signal });
                         if (!response.ok) throw new Error('Missing file');
-                        return context.decodeAudioData(await response.arrayBuffer());
+                        const bytes=await response.arrayBuffer();
+                        if(expectedSha256){const digest=await crypto.subtle.digest('SHA-256',bytes),actual=Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,'0')).join('');if(actual!==expectedSha256)throw new Error('Audio fingerprint mismatch');}
+                        return context.decodeAudioData(bytes);
                     })(),
                     new Promise<never>((_, reject) => { timeout = setTimeout(() => { abort.abort(); reject(new Error('Audio load timed out')); }, 5000); }),
                 ]);
@@ -129,13 +133,13 @@ export class BrowserAudio implements SessionAudio {
             }
             catch {
                 this.failures.add(id);
-                this.loads.delete(id);
+                this.loads.delete(cacheKey);
                 this.notify();
                 return undefined;
             }
             finally { if (timeout) clearTimeout(timeout); }
         })();
-        this.loads.set(id, loading);
+        this.loads.set(cacheKey, loading);
         return loading;
     }
     beginSession(snapshot: PracticeSnapshot, start: number, sessionId: string) {

@@ -2,11 +2,12 @@ import workletUrl from '../audio/acoustic/suite-worklet.ts?worker&url';
 import type { AudioEnvironmentPort } from '../audio/meditation-signals';
 import type { Clock } from '../session/clock';
 import type { JourneyConfig } from './model';
-import { JOURNEY_AUDIO_ASSETS, nextInhale, timeline } from './model';
+import { JOURNEY_AUDIO_ASSETS, layerMix, nextInhale } from './model';
 import { journeyNotes, bowlTimes } from './tones';
-import { NARRATION_MANIFEST, narrationFits, type NarrationAsset } from './narration';
+import { APPROVED_NARRATION, narrationPlan, validRecording, type ApprovedNarrationAsset } from './voice-narration';
+import { scheduleSoftNote } from './instrument';
 
-type Track = { source: OscillatorNode | AudioBufferSourceNode; gain: GainNode; kind: 'note' | 'bowl' | 'voice'; at: number; end: number; when:number };
+type Track = { source: OscillatorNode | AudioBufferSourceNode; gain: GainNode; kind: 'note' | 'bowl' | 'voice'; at: number; end: number; when:number;clipId?:string };
 export class JourneyAudio {
   private config?: JourneyConfig;
   private start = 0;
@@ -16,6 +17,10 @@ export class JourneyAudio {
   private buses?: { environment: GainNode; duck: GainNode; notes: GainNode; bowl: GainNode; voice: GainNode };
   private tracks = new Set<Track>();
   private soundedBowls = new Set<number>();
+  private soundedVoices = new Set<string>();
+  private skippedVoices:string[]=[];
+  private voiceScale=1;
+  private ducking=true;
   private ready?: Promise<void>;
   private wave?: Float32Array;
   private bowl?: AudioBuffer;
@@ -29,7 +34,7 @@ export class JourneyAudio {
   private retirement: Promise<void> = Promise.resolve();
   private error = '';
   private capturePending?: { resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> };
-  constructor(private clock: Clock, private port: () => AudioEnvironmentPort | undefined, private load: (id: string) => Promise<AudioBuffer | undefined>, private changed: () => void, private makeNode = (context: AudioContext, options: AudioWorkletNodeOptions) => new AudioWorkletNode(context, 'meditation-suite-v1', options)) {}
+  constructor(private clock: Clock, private port: () => AudioEnvironmentPort | undefined, private load: (id: string,sha256?:string) => Promise<AudioBuffer | undefined>, private changed: () => void, private makeNode = (context: AudioContext, options: AudioWorkletNodeOptions) => new AudioWorkletNode(context, 'meditation-suite-v1', options), private recordings:Readonly<Record<string,ApprovedNarrationAsset>>=APPROVED_NARRATION) {}
   async prepare() {
     await this.retirement;
     if (this.ready) return this.ready;
@@ -50,7 +55,7 @@ export class JourneyAudio {
             worker.postMessage({ sampleRate: context.sampleRate, seed: 104729 });
           }),
           this.load(JOURNEY_AUDIO_ASSETS.bowl).then(buffer => { this.bowl = buffer; }),
-          ...Object.values(NARRATION_MANIFEST.assets).map(async raw => { const asset = raw as NarrationAsset; if (asset.assetId) { const buffer = await this.load(asset.assetId); if (buffer) this.voices.set(asset.id, buffer); } }),
+          ...Object.values(this.recordings).map(async asset => { if(asset.approved!==true)return;const buffer=await this.load(asset.assetId,asset.sha256);if(buffer&&Math.abs(buffer.duration-asset.decodedDurationSeconds)<=1/buffer.sampleRate)this.voices.set(asset.id,buffer); }),
         ]);
       } catch (error) { this.error = error instanceof Error ? error.message : 'The environment is unavailable. Text and tones still work.'; }
       finally { this.ready = undefined; this.changed(); }
@@ -60,7 +65,19 @@ export class JourneyAudio {
   begin(config: JourneyConfig, start: number, session: string) {
     this.stop(); this.config = structuredClone(config); this.start = start; this.session = session;
     this.soundedBowls.clear();
+    this.soundedVoices.clear();this.skippedVoices=[];
     this.natural = false; this.notesScheduled = this.bowlsScheduled = 0; this.resumeNaturalUntil = 0;
+  }
+  setVoicePreferences(level:number,enabled:boolean,ducking:boolean) {
+    this.voiceScale=enabled?level:0;this.ducking=ducking;
+    const context=this.port()?.context;
+    if(this.buses&&context){this.buses.voice.gain.setTargetAtTime((this.config?.levels.voice??1)*this.voiceScale,context.currentTime,.05);this.refreshDucking();}
+  }
+  private refreshDucking(){
+    const context=this.port()?.context,bus=this.buses?.duck;if(!context||!bus)return;
+    const now=context.currentTime;bus.gain.cancelScheduledValues(now);bus.gain.setTargetAtTime(1,now,.05);
+    if(!this.ducking||!this.voiceScale||!this.config?.levels.voice)return;
+    for(const track of this.tracks)if(track.kind==='voice'&&track.when+track.end-track.at>now){bus.gain.setTargetAtTime(.65,Math.max(now,track.when),.08);bus.gain.setTargetAtTime(1,track.when+track.end-track.at,.2);}
   }
   play(resuming = false) {
     const config = this.config, port = this.port();
@@ -71,12 +88,12 @@ export class JourneyAudio {
     this.active = true;
     if (resuming && elapsed >= 90 && elapsed < 270) this.resumeNaturalUntil = nextInhale(config, elapsed + .05);
     const environment = context.createGain(), duck = context.createGain(), notes = context.createGain(), bowl = context.createGain(), voice = context.createGain();
-    environment.gain.value = config.levels.environment; notes.gain.value = config.levels.breathingTones; bowl.gain.value = config.levels.bowl; voice.gain.value = config.levels.voice;
+    environment.gain.value = config.levels.environment; notes.gain.value = config.levels.breathingTones; bowl.gain.value = config.levels.bowl; voice.gain.value = config.levels.voice*this.voiceScale;
     environment.connect(duck); duck.connect(input); notes.connect(input); bowl.connect(input); voice.connect(input);
     this.buses = { environment, duck, notes, bowl, voice };
     if (this.wave && this.workletReady) {
       try {
-        const node = this.makeNode(context, { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit', processorOptions: { program: config.sound, wave: this.wave, origin } });
+        const node = this.makeNode(context, { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit', processorOptions: { program: config.sound, wave: this.wave, origin, mix:layerMix(config) } });
         this.node = node; node.connect(environment);
         node.port.onmessage = event => {
           if (event.data.capture && this.capturePending) { const pending = this.capturePending; this.capturePending = undefined; clearTimeout(pending.timer); pending.resolve({ ...event.data, sampleRate: context.sampleRate }); }
@@ -87,6 +104,10 @@ export class JourneyAudio {
     }
     for (const event of journeyNotes(config)) {
       if (this.natural || event.at < this.resumeNaturalUntil || event.at < elapsed - .02) continue;
+      if(config.toneVersion==='soft-steps.2'){
+        const when=Math.max(context.currentTime,origin+event.at),{oscillator,gain}=scheduleSoftNote(context,notes,event.hz,when,event.phase.startsWith('hold'));
+        this.track(oscillator,gain,'note',event.at,event.at+event.duration,when);this.notesScheduled++;continue;
+      }
       const oscillator = context.createOscillator(), gain = context.createGain(), when = Math.max(context.currentTime, origin + event.at);
       oscillator.type = event.phase.startsWith('hold') ? 'sine' : 'triangle'; oscillator.frequency.setValueAtTime(event.hz, when);
       oscillator.connect(gain); gain.connect(notes);
@@ -98,17 +119,14 @@ export class JourneyAudio {
       if (!this.bowl || this.soundedBowls.has(at) || at < elapsed) continue;
       this.buffer(this.bowl, bowl, 'bowl', at, origin, 8); this.bowlsScheduled++;
     }
-    // Empty asset IDs are intentional: text remains fully functional with no generation service.
-    for (const { stage, start, end } of timeline(config)) {
-      const section = stage.journeySection!;
-      const asset = NARRATION_MANIFEST.assets[section] as NarrationAsset, buffer = this.voices.get(asset.id);
-      if (!buffer || config.guidance === 'familiar' && !['ecb', 'entry', 'return'].includes(section)) continue;
-      if (section === 'breathwork') continue; // Version 1 reserves no spoken intro; never talk over paced cycles.
-      const bowlAt = bowlTimes(config).includes(start) ? start : undefined;
-      const at = start + (bowlAt === undefined ? 0 : 16);
-      if (at < elapsed || !narrationFits({ ...asset, decodedDurationSeconds: buffer.duration }, { start: at, end }, bowlAt)) continue;
-      this.buffer(buffer, voice, 'voice', at, origin, 1);
-      duck.gain.setTargetAtTime(.65, origin + at, .08); duck.gain.setTargetAtTime(1, origin + at + buffer.duration, .2);
+    // Missing/unapproved/oversize recordings never move the timeline or introduce live TTS.
+    for (const cue of narrationPlan(config)) {
+      const initialEntry=cue.at===0&&!resuming&&elapsed<.25;
+      if(config.levels.voice===0||this.voiceScale===0||cue.at<elapsed&&!initialEntry||this.soundedVoices.has(cue.clip.id)||this.natural&&cue.section==='breathwork')continue;
+      const asset=this.recordings[cue.clip.id],buffer=this.voices.get(cue.clip.id);
+      if(!asset||!validRecording(cue,asset,config.audioAssets.voice)||config.audioAssets.voiceSha256?.[asset.assetId]!==asset.sha256||!buffer){this.skippedVoices.push(cue.clip.id);continue;}
+      this.buffer(buffer,voice,'voice',cue.at,origin,1,cue.clip.id);
+      if(this.ducking){duck.gain.setTargetAtTime(.65,origin+cue.at,.08);duck.gain.setTargetAtTime(1,origin+cue.at+buffer.duration,.2);}
     }
     this.changed();
   }
@@ -116,16 +134,16 @@ export class JourneyAudio {
     gain.gain.setValueAtTime(0, at); gain.gain.linearRampToValueAtTime(level, at + Math.min(.025, seconds / 3));
     gain.gain.setValueAtTime(level, at + seconds - Math.min(.18, seconds / 3)); gain.gain.linearRampToValueAtTime(0, at + seconds);
   }
-  private track(source: Track['source'], gain: GainNode, kind: Track['kind'], at: number, end: number, when:number) {
-    const track = { source, gain, kind, at, end, when }; this.tracks.add(track);
+  private track(source: Track['source'], gain: GainNode, kind: Track['kind'], at: number, end: number, when:number,clipId?:string) {
+    const track = { source, gain, kind, at, end, when,clipId }; this.tracks.add(track);
     source.onended = () => { this.tracks.delete(track); source.disconnect(); gain.disconnect(); };
   }
-  private buffer(buffer: AudioBuffer, bus: GainNode, kind: 'bowl' | 'voice', at: number, origin: number, level: number) {
+  private buffer(buffer: AudioBuffer, bus: GainNode, kind: 'bowl' | 'voice', at: number, origin: number, level: number,clipId?:string) {
     const context = this.port()!.context, when = Math.max(context.currentTime, origin + at), source = context.createBufferSource(), gain = context.createGain();
     source.buffer = buffer; source.connect(gain); gain.connect(bus); this.envelope(gain, when, buffer.duration, level);
-    this.track(source, gain, kind, at, at + buffer.duration, when); source.start(when); source.stop(when + buffer.duration);
+    this.track(source, gain, kind, at, at + buffer.duration, when,clipId); source.start(when); source.stop(when + buffer.duration);
   }
-  breatheNaturally() { this.natural = true; this.clearTracks(track => track.kind === 'note'); this.changed(); }
+  breatheNaturally() { this.natural = true; this.clearTracks(track => track.kind === 'note'||track.kind==='voice'&&!!track.clipId?.startsWith('suite.breath-'));this.refreshDucking();this.changed(); }
   private clearTracks(predicate: (track: Track) => boolean = () => true) {
     for (const track of [...this.tracks]) if (predicate(track)) {
       const context = this.port()?.context;
@@ -138,6 +156,7 @@ export class JourneyAudio {
     ++this.generation; this.active = false;
     const context=this.port()?.context,node=this.node,buses=this.buses,tracks=[...this.tracks];
     for(const track of tracks)if(track.kind==='bowl'&&context&&context.currentTime>=track.when)this.soundedBowls.add(track.at);
+    for(const track of tracks)if(track.kind==='voice'&&track.clipId&&context&&context.currentTime>=track.when)this.soundedVoices.add(track.clipId);
     this.node=undefined;this.buses=undefined;
     const dispose=()=>{for(const track of tracks){try{track.source.stop();}catch{/* Already ended. */}track.source.disconnect();track.gain.disconnect();}node?.disconnect();node?.port.close();if(buses)Object.values(buses).forEach(bus=>bus.disconnect());};
     if(smooth&&context?.state==='running'&&(node||tracks.length)){
@@ -159,5 +178,5 @@ export class JourneyAudio {
     });
   }
   voiceActive() { const elapsed = (this.clock.now() - this.start) / 1000; return [...this.tracks].some(t => t.kind === 'voice' && elapsed >= t.at && elapsed < t.end); }
-  diagnostics() { return { active: this.active, environmentGraphs: this.node ? 1 : 0, activeTracks: this.tracks.size, notesScheduled: this.notesScheduled, bowlsScheduled: this.bowlsScheduled, naturalBreathing: this.natural, naturalUntilSeconds: this.resumeNaturalUntil, sourceBytes: this.wave?.byteLength ?? 0, error: this.error, session: this.session }; }
+  diagnostics() { return { active: this.active, environmentGraphs: this.node ? 1 : 0, activeTracks: this.tracks.size, notesScheduled: this.notesScheduled, bowlsScheduled: this.bowlsScheduled, naturalBreathing: this.natural, naturalUntilSeconds: this.resumeNaturalUntil, sourceBytes: this.wave?.byteLength ?? 0, error: this.error, session: this.session,skippedVoices:[...new Set(this.skippedVoices)],layerMix:this.config?layerMix(this.config):undefined }; }
 }

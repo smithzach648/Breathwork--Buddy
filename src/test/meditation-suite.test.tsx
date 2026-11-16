@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { createJourneyConfig, compileJourney, breathworkStages, timeline, nextInhale, validateJourneyConfig, JOURNEYS } from '../meditation-suite/model';
+// These original assertions remain a regression contract for Phase 1 frozen snapshots.
+import { createLegacyJourneyConfig as createJourneyConfig, compileJourney, breathworkStages, timeline, nextInhale, validateJourneyConfig, JOURNEYS } from '../meditation-suite/model';
 import { noteHz, phaseNotes, journeyNotes, bowlTimes, returnEnvelope } from '../meditation-suite/tones';
 import { NARRATION_MANIFEST, hasApprovedNarration, narrationFits, guidanceText } from '../meditation-suite/narration';
 import { createSnapshot, compileStages } from '../session/config';

@@ -1,5 +1,5 @@
 import { PRESETS, validateRecipe, type Recipe } from './model';
-import { Synth, validateOptions, type RenderOptions } from './dsp';
+import { Synth, validateOptions, type RenderOptions, type LayerMix } from './dsp';
 export const JOURNEY_ENGINE_VERSION = 'journey.1.0';
 export interface JourneyStage {
   id: string;
@@ -192,7 +192,7 @@ export class JourneySynth {
       })
     }));
   }
-  block(left: Float32Array, right: Float32Array, firstFrame: number) {
+  block(left: Float32Array, right: Float32Array, firstFrame: number, mix?:LayerMix) {
     if (left.length > 8192 || left.length !== right.length) throw new Error('Journey blocks must be stereo and at most 8192 frames.');
     if (this.aL.length !== left.length) {
       this.aL = new Float32Array(left.length);
@@ -226,10 +226,10 @@ export class JourneySynth {
         to = from + count;
       const aL = this.aL.subarray(from, to),
         aR = this.aR.subarray(from, to);
-      current.synth.block(aL, aR, absolute - current.start);
+      current.synth.block(aL, aR, absolute - current.start, mix);
       const bL = this.bL.subarray(from, to),
         bR = this.bR.subarray(from, to);
-      if (next && absolute + count > current.end - blendFrames) next.synth.block(bL, bR, absolute - next.start);else {
+      if (next && absolute + count > current.end - blendFrames) next.synth.block(bL, bR, absolute - next.start, mix);else {
         bL.fill(0);
         bR.fill(0);
       }

@@ -82,6 +82,8 @@ export interface RenderOptions {
   matchGain?: number;
   fade?: boolean;
 }
+/** Production-only relative layer scaling. Omission preserves every laboratory sample. */
+export interface LayerMix { warm:number; binaural:number }
 export function validateOptions(r: {
   timeline: {
     durationSeconds: number;
@@ -132,16 +134,17 @@ export class Synth {
       fraction = index - floor;
     return this.wave[floor] * (1 - fraction) + this.wave[(floor + 1) % this.wave.length] * fraction;
   }
-  block(left: Float32Array, right: Float32Array, firstFrame: number) {
+  block(left: Float32Array, right: Float32Array, firstFrame: number, mix?:LayerMix) {
     const r = this.recipe,
       o = this.options,
       rate = o.sampleRate,
       n = r.noise,
       am = r.modulations.am,
-      tones = o.selection !== 'noise',
-      noise = o.selection !== 'tones' && n.kind !== 'off',
+      tones = o.selection !== 'noise' && (mix === undefined || mix.binaural > 0),
+      noise = o.selection !== 'tones' && n.kind !== 'off' && (mix === undefined || mix.warm > 0),
       master = r.output.level * r.output.trim * (o.matchGain ?? 1),
-      toneGain = toneAmplitude * r.output.toneLevel,
+      toneGain = toneAmplitude * r.output.toneLevel * (mix?.binaural ?? 1),
+      noiseLevel = n.level * (mix?.warm ?? 1),
       fadeFrames = r.output.fadeSeconds * rate;
     for (let i = 0; i < left.length; i++) {
       const frame = firstFrame + i;
@@ -172,11 +175,11 @@ export class Synth {
       if (noise) {
         const x = this.wave[sourceFrame % this.wave.length];
         if (n.kind === 'warm-static') {
-          l += x * n.level;
-          rr += x * n.level;
+          l += x * noiseLevel;
+          rr += x * noiseLevel;
         } else {
-          l += n.level * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 0) * rate));
-          rr += n.level * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 1) * rate));
+          l += noiseLevel * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 0) * rate));
+          rr += noiseLevel * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 1) * rate));
         }
       }
       const fade = o.fade === false ? 1 : Math.max(0, Math.min(1, frame / fadeFrames, (this.frames - 1 - frame) / fadeFrames));

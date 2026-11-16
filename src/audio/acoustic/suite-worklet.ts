@@ -1,4 +1,5 @@
 import { JourneySynth, type Journey } from './journey';
+import type { LayerMix } from './dsp';
 declare const sampleRate: number;
 declare const currentFrame: number;
 declare class AudioWorkletProcessor { port: MessagePort; constructor(options?: unknown); }
@@ -9,10 +10,13 @@ class SuiteProcessor extends AudioWorkletProcessor {
   origin: number;
   began?: number;
   stopped?: number;
+  mix?:LayerMix;
   capture?: { left: Float32Array; right: Float32Array; first: number; written: number };
-  constructor(options: { processorOptions: { program: Journey; wave: Float32Array; origin: number } }) {
+  constructor(options: { processorOptions: { program: Journey; wave: Float32Array; origin: number; mix?:LayerMix } }) {
     super();
     const p = options.processorOptions;
+    if(p.mix&&(!Number.isFinite(p.mix.warm)||p.mix.warm<0||p.mix.warm>3||!Number.isFinite(p.mix.binaural)||p.mix.binaural<0||p.mix.binaural>4))throw new Error('Invalid listener layer gains');
+    this.mix=p.mix;
     this.origin = p.origin * sampleRate;
     this.synth = new JourneySynth(p.program, { sampleRate, startSeconds: 0, durationSeconds: p.program.timeline.durationSeconds, selection: 'combined', fade: false }, p.wave);
     this.port.onmessage = event => {
@@ -27,7 +31,7 @@ class SuiteProcessor extends AudioWorkletProcessor {
     this.began ??= currentFrame;
     const prefix = Math.min(left.length, Math.max(0, -frame));
     left.fill(0); right.fill(0);
-    if (prefix < left.length) this.synth.block(left.subarray(prefix), right.subarray(prefix), frame + prefix);
+    if (prefix < left.length) this.synth.block(left.subarray(prefix), right.subarray(prefix), frame + prefix, this.mix);
     for (let i = 0; i < left.length; i++) {
       const t = (frame + i) / sampleRate;
       const envelope = Math.max(0, Math.min(1, t / 5, (this.synth.recipe.timeline.durationSeconds - t) / 180, (currentFrame + i - this.began) / (sampleRate * .05)));

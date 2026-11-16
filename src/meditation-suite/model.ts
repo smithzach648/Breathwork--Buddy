@@ -1,28 +1,33 @@
 import { PRESETS, deepFreeze, type Recipe } from '../audio/acoustic/model';
 import { stageFrom, validateJourney, type Journey } from '../audio/acoustic/journey';
 import type { PlannedStage, Phase } from '../session/config';
+import { LAYER_GAIN, MIX_VERSION, normalizeMix, presetMix, validMix, type ListenerMix, type MixPreset } from './mix';
+import { APPROVED_NARRATION } from './voice-assets';
 
-export const SUITE_VERSION = 'meditation-suite.1.0';
-export const JOURNEY_AUDIO_ASSETS = deepFreeze({ bowl: 'signals.bowl', bowlSha256: 'a51cd3515750342723df6db5322878534b11e9661be69d7f73241b0a8ffda1ee', voice: [] as string[] });
+export const SUITE_VERSION = 'meditation-suite.1.1';
+export const LEGACY_AUDIO_ASSETS = deepFreeze({ bowl: 'signals.bowl', bowlSha256: 'a51cd3515750342723df6db5322878534b11e9661be69d7f73241b0a8ffda1ee', voice: [] as string[] });
+export const JOURNEY_AUDIO_ASSETS = deepFreeze({...LEGACY_AUDIO_ASSETS,voice:Object.values(APPROVED_NARRATION).map(a=>a.assetId),voiceSha256:Object.fromEntries(Object.values(APPROVED_NARRATION).map(a=>[a.assetId,a.sha256]))});
 export type JourneyId = 'foundation' | 'beyond' | 'preparation';
 export type GuidanceStyle = 'guided' | 'familiar';
 export type BreathingChoice = '5-5' | '4-7-8' | '4-4-6' | 'natural';
 export type Section = 'ecb' | 'breathwork' | 'relaxation' | 'tuning' | 'space' | 'affirmation' | 'entry' | 'threshold' | 'expansion' | 'timeless' | 'return';
 export interface JourneyConfig {
   kind: 'meditation-journey';
-  schemaVersion: 1;
-  suiteVersion: typeof SUITE_VERSION;
+  schemaVersion: 1 | 2;
+  suiteVersion: 'meditation-suite.1.0' | typeof SUITE_VERSION;
   presetId: JourneyId;
   guidance: GuidanceStyle;
   breathing: BreathingChoice;
   humming: boolean;
   surroundingSpace: boolean;
   affirmation: 'secular' | 'spiritual';
-  levels: { environment: number; breathingTones: number; voice: number; bowl: number };
-  toneVersion: 'major-steps.1';
-  narrationVersion: 'preparation-text.1';
-  audioAssets: typeof JOURNEY_AUDIO_ASSETS;
-  breathingIntroSeconds: 0;
+  levels: { environment: number; breathingTones: number; voice: number; bowl: number; warm?:number; binaural?:number };
+  mixVersion?: typeof MIX_VERSION;
+  mixPreset?: MixPreset;
+  toneVersion: 'major-steps.1' | 'soft-steps.2';
+  narrationVersion: 'preparation-text.1' | 'preparation-voice.2';
+  audioAssets: {bowl:string;bowlSha256:string;voice:string[];voiceSha256?:Record<string,string>};
+  breathingIntroSeconds: 0 | 20;
   interruptionPolicy: 'clock-continues-next-inhale';
   sound: Journey;
 }
@@ -50,17 +55,43 @@ function soundPlan(id: JourneyId): Journey {
   const main = id === 'preparation' ? [] : id === 'foundation' ? [scene('threshold', 720)] : [scene('threshold', 480), scene('expansion', 540), scene('timeless', 300)];
   return validateJourney({ kind: 'journey', schemaVersion: 1, engineVersion: 'journey.1.0', id: `suite-${id}`, name: journeyDefinition(id).name, sampleSeed: 104729, transitionSeconds: 20, transitionShape: 'smoothstep', layerEnvelope: 'steady', sourcePolicy: 'shared-warm', stages: [stageFrom(warm, 600, 'suite-preparation'), ...main, stageFrom(main.at(-1)?.recipe ?? warm, 180, 'suite-return')], timeline: { durationSeconds: journeyDefinition(id).seconds }, output: { level: 1, fadeSeconds: 1 } });
 }
-export function createJourneyConfig(id: JourneyId, options: Partial<Pick<JourneyConfig, 'guidance' | 'breathing' | 'humming' | 'surroundingSpace' | 'affirmation' | 'levels'>> = {}): JourneyConfig {
+type JourneyOptions = Partial<Pick<JourneyConfig, 'guidance' | 'breathing' | 'humming' | 'surroundingSpace' | 'affirmation' | 'levels'>>;
+/** The original factory remains an explicit read/replay regression path. Never upgrade an old snapshot in place. */
+export function createLegacyJourneyConfig(id: JourneyId, options: JourneyOptions = {}): JourneyConfig {
   if (!['foundation','beyond','preparation'].includes(id)) throw new Error('Choose a supported meditation journey.');
-  return validateJourneyConfig({ kind: 'meditation-journey', schemaVersion: 1, suiteVersion: SUITE_VERSION, presetId: id, guidance: 'guided', breathing: '5-5', humming: true, surroundingSpace: true, affirmation: 'secular', levels: { environment: .8, breathingTones: .45, voice: 1, bowl: .45 }, toneVersion: 'major-steps.1', narrationVersion: 'preparation-text.1', audioAssets: JOURNEY_AUDIO_ASSETS, breathingIntroSeconds: 0, interruptionPolicy: 'clock-continues-next-inhale', sound: soundPlan(id), ...options });
+  return validateJourneyConfig({ kind: 'meditation-journey', schemaVersion: 1, suiteVersion: 'meditation-suite.1.0', presetId: id, guidance: 'guided', breathing: '5-5', humming: true, surroundingSpace: true, affirmation: 'secular', levels: { environment: .8, breathingTones: .45, voice: 1, bowl: .45 }, toneVersion: 'major-steps.1', narrationVersion: 'preparation-text.1', audioAssets: LEGACY_AUDIO_ASSETS, breathingIntroSeconds: 0, interruptionPolicy: 'clock-continues-next-inhale', sound: soundPlan(id), ...options });
+}
+export function createJourneyConfig(id:JourneyId,options:Omit<JourneyOptions,'levels'> & {mix?:ListenerMix}={}):JourneyConfig {
+  if('levels' in options)throw new Error('Use a versioned sound mix for a new journey.');
+  const {mix:input,...rest}=options;
+  const mix=input??presetMix();
+  if(!validMix(mix))throw new Error('Unsupported journey sound mix.');
+  const old=createLegacyJourneyConfig(id,rest);
+  return validateJourneyConfig({...old,schemaVersion:2,suiteVersion:SUITE_VERSION,toneVersion:'soft-steps.2',narrationVersion:'preparation-voice.2',breathingIntroSeconds:20,mixVersion:MIX_VERSION,mixPreset:mix.preset,levels:{environment:1,...mix.levels},audioAssets:JOURNEY_AUDIO_ASSETS});
+}
+export function effectiveMix(config:JourneyConfig):ListenerMix {
+  return config.schemaVersion===1?normalizeMix(config.levels):{version:MIX_VERSION,preset:config.mixPreset!,levels:{warm:config.levels.warm!,binaural:config.levels.binaural!,breathingTones:config.levels.breathingTones,voice:config.levels.voice,bowl:config.levels.bowl}};
+}
+export function layerMix(config:JourneyConfig) {
+  if(config.schemaVersion===1)return undefined; // Original environment bus applies the old gain unchanged.
+  const mix=effectiveMix(config).levels;
+  return {warm:mix.warm*LAYER_GAIN.warm,binaural:mix.binaural*LAYER_GAIN.binaural};
 }
 export function validateJourneyConfig(input: unknown): JourneyConfig {
   const c = input as JourneyConfig;
-  const keys = ['kind', 'schemaVersion', 'suiteVersion', 'presetId', 'guidance', 'breathing', 'humming', 'surroundingSpace', 'affirmation', 'levels', 'toneVersion', 'narrationVersion', 'audioAssets', 'breathingIntroSeconds', 'interruptionPolicy', 'sound'];
-  if (!c || typeof c !== 'object' || Array.isArray(c) || Object.keys(c).some(k => !keys.includes(k)) || keys.some(k => !Object.hasOwn(c, k)) || c.kind !== 'meditation-journey' || c.schemaVersion !== 1 || c.suiteVersion !== SUITE_VERSION || !['foundation','beyond','preparation'].includes(c.presetId) || !['guided', 'familiar'].includes(c.guidance) || !Object.hasOwn(BREATHING, c.breathing) || typeof c.humming !== 'boolean' || typeof c.surroundingSpace !== 'boolean' || !['secular', 'spiritual'].includes(c.affirmation) || c.toneVersion !== 'major-steps.1' || c.narrationVersion !== 'preparation-text.1' || c.breathingIntroSeconds !== 0 || c.interruptionPolicy !== 'clock-continues-next-inhale') throw new Error('Unsupported meditation journey settings.');
-  const levelKeys = ['environment', 'breathingTones', 'voice', 'bowl'];
-  if (JSON.stringify(c.audioAssets) !== JSON.stringify(JOURNEY_AUDIO_ASSETS)) throw new Error('Unsupported journey audio assets.');
-  if (!c.levels || Object.keys(c.levels).length !== 4 || levelKeys.some(k => !Object.hasOwn(c.levels, k) || !Number.isFinite(c.levels[k as keyof typeof c.levels]) || c.levels[k as keyof typeof c.levels] < 0 || c.levels[k as keyof typeof c.levels] > 1)) throw new Error('Journey audio levels must be between 0 and 1.');
+  const legacy=c?.schemaVersion===1;
+  const keys = ['kind', 'schemaVersion', 'suiteVersion', 'presetId', 'guidance', 'breathing', 'humming', 'surroundingSpace', 'affirmation', 'levels', 'toneVersion', 'narrationVersion', 'audioAssets', 'breathingIntroSeconds', 'interruptionPolicy', 'sound',...legacy?[]:['mixVersion','mixPreset']];
+  if (!c || typeof c !== 'object' || Array.isArray(c) || Object.keys(c).some(k => !keys.includes(k)) || keys.some(k => !Object.hasOwn(c, k)) || c.kind !== 'meditation-journey' || ![1,2].includes(c.schemaVersion) || c.suiteVersion !== (legacy?'meditation-suite.1.0':SUITE_VERSION) || !['foundation','beyond','preparation'].includes(c.presetId) || !['guided', 'familiar'].includes(c.guidance) || !Object.hasOwn(BREATHING, c.breathing) || typeof c.humming !== 'boolean' || typeof c.surroundingSpace !== 'boolean' || !['secular', 'spiritual'].includes(c.affirmation) || c.toneVersion !== (legacy?'major-steps.1':'soft-steps.2') || c.narrationVersion !== (legacy?'preparation-text.1':'preparation-voice.2') || c.breathingIntroSeconds !== (legacy?0:20) || c.interruptionPolicy !== 'clock-continues-next-inhale') throw new Error('Unsupported meditation journey settings.');
+  const levelKeys = ['environment', 'breathingTones', 'voice', 'bowl',...legacy?[]:['warm','binaural']];
+  if(legacy){if(JSON.stringify(c.audioAssets)!==JSON.stringify(LEGACY_AUDIO_ASSETS))throw new Error('Unsupported journey audio assets.');}
+  else {
+    // Historical pins remain readable if an approved recording is added/removed later.
+    // Playback independently requires an approved local recording with the same ID, script and hash.
+    const a=c.audioAssets;
+    if(!a||Object.keys(a).sort().join()!=='bowl,bowlSha256,voice,voiceSha256'||a.bowl!==LEGACY_AUDIO_ASSETS.bowl||a.bowlSha256!==LEGACY_AUDIO_ASSETS.bowlSha256||!Array.isArray(a.voice)||a.voice.length>64||new Set(a.voice).size!==a.voice.length||!a.voiceSha256||Object.keys(a.voiceSha256).length!==a.voice.length||a.voice.some(id=>typeof id!=='string'||!/^[a-zA-Z0-9_.-]{1,120}$/.test(id)||!Object.hasOwn(a.voiceSha256!,id)||!/^[a-f0-9]{64}$/.test(a.voiceSha256![id])))throw new Error('Unsupported journey audio assets.');
+  }
+  if (!c.levels || Object.keys(c.levels).length !== levelKeys.length || levelKeys.some(k => {const v=c.levels[k as keyof typeof c.levels];return !Object.hasOwn(c.levels,k)||!Number.isFinite(v)||v!<0||v!>1;})) throw new Error('Journey audio levels must be between 0 and 1.');
+  if(!legacy&&(c.mixVersion!==MIX_VERSION||c.levels.environment!==1||!validMix(effectiveMix(c))))throw new Error('Unsupported journey sound mix.');
   validateJourney(c.sound);
   // A snapshot carries the exact immutable acoustic recipes, not a lookup to mutable defaults.
   if (JSON.stringify(c.sound) !== JSON.stringify(soundPlan(c.presetId))) throw new Error('The version 1 journey sound snapshot does not match its recipe.');

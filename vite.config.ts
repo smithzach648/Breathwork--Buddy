@@ -35,6 +35,8 @@ export default defineConfig({
     }),
   ],
   test: {
+    // Bound CPU/memory contention from concurrent jsdom workers; retain all original deadlines/assertions.
+    maxWorkers: 2,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     restoreMocks: true,

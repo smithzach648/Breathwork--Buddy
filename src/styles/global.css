@@ -98,7 +98,13 @@ nav { grid-template-columns:repeat(7,minmax(0,1fr)); }
 .suite-setup input[type=checkbox] { width:24px; height:24px; flex-shrink:0; }
 .suite-setup select { min-height:48px; }
 .suite-setup input[type=range] { min-height:48px; }
+.suite-mixer { display:block; min-width:0; }
+.suite-mix-presets { display:flex; gap:.5rem; }
+.suite-mix-presets button { flex:1 1 6rem; min-width:0; }
+.suite-mix-presets button[aria-pressed=true] { background:var(--hero); border-color:var(--accent); }
 .suite-active { text-align:center; }
+.suite-stop { position:sticky; top:0; z-index:3; padding:.5rem 0; background:var(--bg); }
+.suite-stop button { width:100%; }
 .suite-phase { font-size:clamp(1.75rem,6vw,3rem); }
 .suite-prompt { font-size:1.15rem; line-height:1.8; max-width:42rem; margin:1.5rem auto; }
 .suite-clock { display:flex; justify-content:center; flex-wrap:wrap; gap:2rem; margin:2rem 0; }
