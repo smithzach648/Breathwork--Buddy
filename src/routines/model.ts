@@ -1,3 +1,4 @@
+import {hormesisOption} from '../session/hormesis';
 import { cyclePattern,patterns, validateConfig, type ExerciseConfig } from '../session/config';
 import type { Routine, RoutineStage } from '../types/domain';
 import {validateRecipe} from '../meditation/environment';
@@ -29,6 +30,7 @@ export function validateRoutine(value: unknown): asserts value is Routine {
     });
 }
 export function blockName(block: ExerciseConfig) {
+    const modern=hormesisOption(block);if(modern)return modern.name;
     if (block.kind === 'custom-pattern') {
         const seconds = [block.inhaleSeconds, ...(block.holdInSeconds ? [block.holdInSeconds] : []), block.exhaleSeconds, ...(block.holdOutSeconds ? [block.holdOutSeconds] : [])];
         return `Custom ${seconds.join('–')} × ${block.cycles}`;

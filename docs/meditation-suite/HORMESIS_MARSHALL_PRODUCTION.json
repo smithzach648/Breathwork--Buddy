@@ -1,0 +1,350 @@
+{
+  "newCredits": 1445,
+  "previousCredits": 8165,
+  "totalCredits": 9610,
+  "voice": "Marshall",
+  "model": "eleven_v4",
+  "retakes": 0,
+  "clips": [
+    {
+      "id": "practice.intro.hormesis-foundation.2",
+      "maxSeconds": 89.75,
+      "script": "Welcome to Hormesis Foundation. Practice only while sitting or lying down in a safe place. Never practice standing, walking, driving, or in water. If you feel dizzy or uncomfortable, stop and breathe naturally. We'll do three rounds of twenty breaths, four seconds in and four seconds out. A short chime marks the final breath: breathe in for four and out for six. After exhaling, pause only while comfortable. Each round has a sixty-second target, and you can release early at any time. You'll hear a countdown from five before the target ends. For recovery, inhale gently for four, hold comfortably for fifteen, then exhale for six and settle. Keep every breath easy and unforced. We'll begin with round one.",
+      "assetId": "practice.intro.hormesis-foundation.2",
+      "durationSeconds": 76.75603174603175,
+      "sha256": "1a09adac710d06d74eaddb692b4c2f3eb063b5360e32c3e5156d0c25ec9f8721",
+      "approved": true,
+      "generationId": "KtfZzankiQrNOsJmOwqT",
+      "credits": 710,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 49.52,
+      "addedSilenceSeconds": 27.236031746031745,
+      "splices": [
+        {
+          "sourceFrame": 91984,
+          "seam": 0.0000014092582887315075,
+          "quietSeconds": 0.56,
+          "extraFrames": 80941,
+          "outputSeconds": 2.0858049886621317
+        },
+        {
+          "sourceFrame": 265807,
+          "seam": 0.000001573185272718547,
+          "quietSeconds": 0.45,
+          "extraFrames": 65042,
+          "outputSeconds": 7.862766439909297
+        },
+        {
+          "sourceFrame": 461997,
+          "seam": 0.000005123718437971547,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 82386,
+          "outputSeconds": 13.78639455782313
+        },
+        {
+          "sourceFrame": 556647,
+          "seam": 0.0000036869757877866505,
+          "quietSeconds": 0.19,
+          "extraFrames": 27462,
+          "outputSeconds": 17.80081632653061
+        },
+        {
+          "sourceFrame": 652936,
+          "seam": 0.00000307347022499016,
+          "quietSeconds": 0.59,
+          "extraFrames": 85277,
+          "outputSeconds": 20.606961451247166
+        },
+        {
+          "sourceFrame": 762559,
+          "seam": 0.0000032334776278730715,
+          "quietSeconds": 0.24,
+          "extraFrames": 34689,
+          "outputSeconds": 25.026462585034015
+        },
+        {
+          "sourceFrame": 878728,
+          "seam": 5.082017082713719e-7,
+          "quietSeconds": 0.54,
+          "extraFrames": 78050,
+          "outputSeconds": 28.447278911564627
+        },
+        {
+          "sourceFrame": 991624,
+          "seam": 0.0000016773182096585515,
+          "quietSeconds": 0.48,
+          "extraFrames": 69378,
+          "outputSeconds": 32.7771201814059
+        },
+        {
+          "sourceFrame": 1055437,
+          "seam": 0.00000398799556933227,
+          "quietSeconds": 0.2,
+          "extraFrames": 28908,
+          "outputSeconds": 35.79732426303855
+        },
+        {
+          "sourceFrame": 1121887,
+          "seam": 6.727618711011019e-7,
+          "quietSeconds": 0.5,
+          "extraFrames": 72269,
+          "outputSeconds": 37.95963718820862
+        },
+        {
+          "sourceFrame": 1181719,
+          "seam": 0.000009578146091371309,
+          "quietSeconds": 0.28,
+          "extraFrames": 40471,
+          "outputSeconds": 40.955124716553286
+        },
+        {
+          "sourceFrame": 1268572,
+          "seam": 0.000004067084319103742,
+          "quietSeconds": 0.52,
+          "extraFrames": 75160,
+          "outputSeconds": 43.842290249433105
+        },
+        {
+          "sourceFrame": 1376570,
+          "seam": 0.000005045082616561558,
+          "quietSeconds": 0.2,
+          "extraFrames": 28908,
+          "outputSeconds": 47.9955328798186
+        },
+        {
+          "sourceFrame": 1471433,
+          "seam": 0.00001414147573086666,
+          "quietSeconds": 0.44,
+          "extraFrames": 63597,
+          "outputSeconds": 50.802131519274376
+        },
+        {
+          "sourceFrame": 1614846,
+          "seam": 0.000005576405783358496,
+          "quietSeconds": 0.42,
+          "extraFrames": 60706,
+          "outputSeconds": 55.4962358276644
+        },
+        {
+          "sourceFrame": 1671596,
+          "seam": 0.000006171739187266212,
+          "quietSeconds": 0.36,
+          "extraFrames": 52034,
+          "outputSeconds": 58.15963718820862
+        },
+        {
+          "sourceFrame": 1755182,
+          "seam": 0.0000019504980173223885,
+          "quietSeconds": 0.41000000000000003,
+          "extraFrames": 59260,
+          "outputSeconds": 61.234920634920634
+        },
+        {
+          "sourceFrame": 1850628,
+          "seam": 0.000007962772542668972,
+          "quietSeconds": 0.37,
+          "extraFrames": 53479,
+          "outputSeconds": 64.7429931972789
+        },
+        {
+          "sourceFrame": 1965351,
+          "seam": 9.454465725866612e-7,
+          "quietSeconds": 0.46,
+          "extraFrames": 66487,
+          "outputSeconds": 68.55709750566893
+        },
+        {
+          "sourceFrame": 2095887,
+          "seam": 0.0000035702212244359544,
+          "quietSeconds": 0.53,
+          "extraFrames": 76605,
+          "outputSeconds": 73.02473922902495
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 76.75603174603175,
+          "peak": 0.8423639535903931
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 76.75602083333334,
+          "peak": 0.8422855138778687
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.hormesis-advanced.2",
+      "maxSeconds": 89.75,
+      "script": "Welcome to Hormesis Advanced. Practice only while sitting or lying down in a safe place. Never practice standing, walking, driving, or in water. If you feel dizzy or uncomfortable, stop and breathe naturally. We'll do three rounds of thirty breaths, two seconds in and two seconds out. A short chime marks the final breath: slow down to four seconds in and six seconds out. After exhaling, pause only while comfortable. Round one has a sixty-second target. Rounds two and three have ninety-second targets. You can release early at any time. You'll hear a countdown from five before the target ends. For recovery, inhale gently for four, hold comfortably for fifteen, then exhale for six and settle. Keep every breath easy and unforced.",
+      "assetId": "practice.intro.hormesis-advanced.2",
+      "durationSeconds": 81.22004535147393,
+      "sha256": "b47989e3895261bd205f750b26963966eb1f035e2f5aed974903943cf64f41e9",
+      "approved": true,
+      "generationId": "S1sYhrNUbHUV21ji29mH",
+      "credits": 735,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 52.4,
+      "addedSilenceSeconds": 28.820045351473922,
+      "splices": [
+        {
+          "sourceFrame": 92887,
+          "seam": 0.000002426692617518711,
+          "quietSeconds": 0.49,
+          "extraFrames": 68286,
+          "outputSeconds": 2.106281179138322
+        },
+        {
+          "sourceFrame": 262823,
+          "seam": 0.00001072481336450437,
+          "quietSeconds": 0.45,
+          "extraFrames": 62712,
+          "outputSeconds": 7.508140589569161
+        },
+        {
+          "sourceFrame": 375186,
+          "seam": 0.000006254307209019316,
+          "quietSeconds": 0.17,
+          "extraFrames": 23691,
+          "outputSeconds": 11.478095238095237
+        },
+        {
+          "sourceFrame": 461152,
+          "seam": 5.564086791309819e-7,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 79435,
+          "outputSeconds": 13.964648526077097
+        },
+        {
+          "sourceFrame": 562285,
+          "seam": 0.000001111421056521067,
+          "quietSeconds": 0.21,
+          "extraFrames": 29266,
+          "outputSeconds": 18.059160997732427
+        },
+        {
+          "sourceFrame": 657138,
+          "seam": 9.522119626126369e-7,
+          "quietSeconds": 0.55,
+          "extraFrames": 76648,
+          "outputSeconds": 20.873650793650793
+        },
+        {
+          "sourceFrame": 771930,
+          "seam": 0.0000017998992234424804,
+          "quietSeconds": 0.38,
+          "extraFrames": 52957,
+          "outputSeconds": 25.21469387755102
+        },
+        {
+          "sourceFrame": 886363,
+          "seam": 0.000001544093379379774,
+          "quietSeconds": 0.55,
+          "extraFrames": 76648,
+          "outputSeconds": 29.010385487528346
+        },
+        {
+          "sourceFrame": 990906,
+          "seam": 0.000007808184818713926,
+          "quietSeconds": 0.48,
+          "extraFrames": 66893,
+          "outputSeconds": 33.119024943310656
+        },
+        {
+          "sourceFrame": 1087884,
+          "seam": 3.82951498067996e-7,
+          "quietSeconds": 0.19,
+          "extraFrames": 26478,
+          "outputSeconds": 36.834920634920636
+        },
+        {
+          "sourceFrame": 1157530,
+          "seam": 9.543897476760321e-7,
+          "quietSeconds": 0.56,
+          "extraFrames": 78042,
+          "outputSeconds": 39.014603174603174
+        },
+        {
+          "sourceFrame": 1305842,
+          "seam": 3.0955513352637354e-7,
+          "quietSeconds": 0.58,
+          "extraFrames": 80829,
+          "outputSeconds": 44.14734693877551
+        },
+        {
+          "sourceFrame": 1429571,
+          "seam": 7.837487032702484e-7,
+          "quietSeconds": 0.49,
+          "extraFrames": 68286,
+          "outputSeconds": 48.78585034013606
+        },
+        {
+          "sourceFrame": 1563585,
+          "seam": 0.0000015370704886663589,
+          "quietSeconds": 0.53,
+          "extraFrames": 73861,
+          "outputSeconds": 53.37315192743764
+        },
+        {
+          "sourceFrame": 1670169,
+          "seam": 0.000003821590780717088,
+          "quietSeconds": 0.55,
+          "extraFrames": 76648,
+          "outputSeconds": 57.46487528344671
+        },
+        {
+          "sourceFrame": 1822893,
+          "seam": 0.0000012598241028172197,
+          "quietSeconds": 0.53,
+          "extraFrames": 73861,
+          "outputSeconds": 62.666054421768706
+        },
+        {
+          "sourceFrame": 1874850,
+          "seam": 0.000003857492629322223,
+          "quietSeconds": 0.34,
+          "extraFrames": 47382,
+          "outputSeconds": 65.51907029478458
+        },
+        {
+          "sourceFrame": 1962410,
+          "seam": 0.0000011184220056748018,
+          "quietSeconds": 0.46,
+          "extraFrames": 64106,
+          "outputSeconds": 68.57897959183674
+        },
+        {
+          "sourceFrame": 2057081,
+          "seam": 0.0000012718019206658937,
+          "quietSeconds": 0.46,
+          "extraFrames": 64106,
+          "outputSeconds": 72.17936507936508
+        },
+        {
+          "sourceFrame": 2175632,
+          "seam": 0.0000013148336392987403,
+          "quietSeconds": 0.58,
+          "extraFrames": 80829,
+          "outputSeconds": 76.32124716553288
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 81.22004535147393,
+          "peak": 0.8435073494911194
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 81.22004166666666,
+          "peak": 0.8430098295211792
+        }
+      ]
+    }
+  ]
+}

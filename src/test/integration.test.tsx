@@ -52,12 +52,11 @@ describe('runtime and UI', () => {
         const f = fixture(save);
         render(<App runtime={f.runtime}/>);
         fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
-        fireEvent.change(screen.getByLabelText('Practice'), { target: { value: 'hormesis-progressive' } });
-        fireEvent.change(screen.getByLabelText('Breaths per round'), { target: { value: '20' } });
-        expect(screen.getByText(/Never while driving/)).toBeInTheDocument();
+        fireEvent.change(screen.getByLabelText('Practice'), { target: { value: 'hormesis-advanced' } });
+        expect(screen.getByText(/Never practice standing, walking, driving/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
         await screen.findByRole('timer');expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
-        act(() => f.timing.advance(127000));
+        act(() => f.timing.advance(231000));
         fireEvent.click(screen.getByRole('button', { name: 'Release retention' }));
         expect(screen.getAllByText('Recovery inhale').length).toBeGreaterThan(0);
         act(() => f.timing.advance(4000));

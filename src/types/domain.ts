@@ -20,7 +20,9 @@ export interface SessionSnapshot {
     readonly plannedDurationSeconds?: number;
 }
 export interface PatternedBreathingResult {presetId:import('../session/config').PatternId;requestedCycles:number;completedCycles:number}
+export type HormesisPracticeResult=NonNullable<ReturnType<typeof import('../session/hormesis').hormesisDetails>>;
 export interface SessionResult {
+    hormesisPractice?:HormesisPracticeResult;
     patternedBreathing?:PatternedBreathingResult;
     guidanceProfile?:'soft-felt-marshall.1';
     soundMixChanges?:{atSeconds:number;mix:import('../meditation-suite/mix').ListenerMix;blockId?:string}[];
@@ -52,6 +54,7 @@ export interface SessionResult {
         soundRecipe?: SoundRecipe;
         patternedBreathing?:PatternedBreathingResult;
         customPattern?: { inhaleSeconds: number; holdInSeconds: number; exhaleSeconds: number; holdOutSeconds: number; requestedCycles: number; completedCycles: number };
+        hormesisPractice?:HormesisPracticeResult;
         hormesisRound?: { preparationBreaths: number; intervalSeconds: number; retentionTargetSeconds: number; recoveryCompleted: boolean };
     }[];
     retentions?: {

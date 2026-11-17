@@ -229,6 +229,12 @@ export class BrowserAudio implements SessionAudio {
         if(scope.resuming)this.practiceResumeNatural=phase!=='inhale'||this.clock.now()-scope.start>100;
         else if(phase==='inhale')this.practiceResumeNatural=false;
         if(this.practiceResumeNatural)return;
+        if(scope.stage.finalBreathSignal&&!scope.resuming&&this.clock.now()-scope.start<250){
+            for(const [i,hz] of [660,880].entries()){
+                const when=Math.max(context.currentTime,this.offset+scope.start/1000)+i*.12,source=context.createOscillator(),gain=context.createGain();source.type='sine';source.frequency.setValueAtTime(hz,when);source.connect(gain);gain.connect(this.buses.breath!);gain.gain.setValueAtTime(0,when);gain.gain.linearRampToValueAtTime(.13,when+.012);gain.gain.linearRampToValueAtTime(0,when+.1);
+                const track:Track={source,gain,scope,cueId:'breath.final-cycle-signal',when,end:when+.1};this.tracks.add(track);source.onended=()=>{this.tracks.delete(track);source.disconnect();gain.disconnect();this.notify();};source.start(when);source.stop(when+.1);this.scheduled++;
+            }
+        }
         const seconds=scope.stage.durationMs/1000;if(!Number.isInteger(seconds)||seconds<1||seconds>20)return;
         for(let i=0;i<seconds;i++){
             const at=scope.start+i*1000;if(at<this.clock.now()-20||scope.resuming&&at<=this.clock.now()+10)continue;

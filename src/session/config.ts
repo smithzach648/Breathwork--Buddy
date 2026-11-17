@@ -1,3 +1,4 @@
+import {HORMESIS_VERSION,hormesisOption} from './hormesis';
 import {acousticProgram} from '../meditation/acoustic-scenes';
 import { roundAnnouncementMs } from '../audio/voice-metadata';
 import {compileMusicalPractice,PRACTICE_GUIDANCE_VERSION} from '../audio/practice-guidance';
@@ -14,8 +15,9 @@ export type ExerciseConfig = {
     cycles?: number;
 } | {
     kind: 'hormesis';
-    presetId: 'hormesis-60' | 'hormesis-progressive';
-    intervalSeconds: 2 | 3;
+    presetId: 'hormesis-60' | 'hormesis-progressive' | 'hormesis-foundation' | 'hormesis-advanced';
+    protocolVersion?:typeof HORMESIS_VERSION;
+    intervalSeconds: 2 | 3 | 4;
     cycles: 20 | 30 | 40;
     retentions: readonly (60 | 90)[];
     recoveryHoldSeconds: 15;
@@ -50,6 +52,8 @@ export type Phase = 'practice-introduction' | 'journey-preparation' | 'journey-r
 export interface PlannedStage {
     readonly guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;
     readonly introClipId?:string;
+    readonly finalBreath?:boolean;
+    readonly finalBreathSignal?:'hormesis-last.1';
     readonly phase: Phase;
     readonly label: string;
     readonly durationMs: number;
@@ -113,6 +117,9 @@ export function validateConfig(config: PracticeConfig) {
             throw new Error('Choose 1–100 whole cycles, up to 30 minutes of breathing.');
     }
     else if (config.kind === 'hormesis') {
+        if(config.protocolVersion!==undefined||config.presetId==='hormesis-foundation'||config.presetId==='hormesis-advanced'){
+            const p=hormesisOption(config);if(!p||config.intervalSeconds!==p.intervalSeconds||config.cycles!==p.cycles||config.recoveryHoldSeconds!==15||JSON.stringify(config.retentions)!==JSON.stringify(p.retentions))throw new Error('Choose the complete Foundation or Advanced Hormesis prescription.');return;
+        }
         const expected = config.presetId === 'hormesis-60' ? [60, 60, 60] : config.presetId === 'hormesis-progressive' ? [60, 90, 90] : [];
         if (![2, 3].includes(config.intervalSeconds) || ![20, 30, 40].includes(config.cycles) || config.recoveryHoldSeconds !== 15 || !Array.isArray(config.retentions) || config.retentions.length !== 3 || !expected.every((n, i) => config.retentions[i] === n) || expected.length !== 3)
             throw new Error('Choose a valid Hormesis preset.');
@@ -159,7 +166,7 @@ export function compileStages(config: PracticeConfig): PlannedStage[] {
     if (config.kind === 'meditation') return [...stages, { phase: 'meditation', label: 'Meditation', durationMs: config.durationSeconds * 1000, round: 0, totalRounds: 0, cycle: 0, totalCycles: 0, meditationPolicy: config.audioPolicy }];
     if (config.kind === 'hormesis-round') return [...stages, ...compileHormesisRound(config.intervalSeconds, config.cycles, config.retentionSeconds, 1, 1, false)];
     config.retentions.forEach((retention, index) => {
-        stages.push(...compileHormesisRound(config.intervalSeconds, config.cycles, retention, index + 1, config.retentions.length, true));
+        stages.push(...compileHormesisRound(config.intervalSeconds, config.cycles, retention, index + 1, config.retentions.length, true,config.protocolVersion===HORMESIS_VERSION));
     });
     return stages;
 }
@@ -170,13 +177,16 @@ export function customDuration(config: Extract<ExerciseConfig, { kind: 'custom-p
     return customSeconds(config).reduce((sum, n) => sum + n, 0) * config.cycles;
 }
 /** Shared timing for legacy three-round prescriptions and independent rounds. */
-function compileHormesisRound(interval: 2 | 3, cycles: number, retention: number, round: number, totalRounds: number, announce: boolean): PlannedStage[] {
+function compileHormesisRound(interval: 2 | 3 | 4, cycles: number, retention: number, round: number, totalRounds: number, announce: boolean,modern=false): PlannedStage[] {
     const stages: PlannedStage[] = [];
     const add = (phase: Phase, seconds: number, cycle: number) => stages.push({ phase, label: labels[phase], durationMs: seconds * 1000, round, totalRounds, cycle, totalCycles: cycles });
     if (announce) stages.push({ phase: 'round-announcement', label: round === 3 ? 'Final round' : `Round ${round}`, durationMs: roundAnnouncementMs[round - 1], round, totalRounds, cycle: 0, totalCycles: cycles });
     for (let cycle = 1; cycle <= cycles; cycle++) {
-        add('inhale', interval, cycle);
-        add(cycle === cycles ? 'pre-retention-exhale' : 'exhale', cycle === cycles ? 4 : interval, cycle);
+        const last=modern&&cycle===cycles;
+        add('inhale',last?4:interval,cycle);
+        if(last)stages[stages.length-1]={...stages.at(-1)!,label:'Final breath · Inhale',finalBreath:true,finalBreathSignal:'hormesis-last.1'};
+        add(cycle===cycles?'pre-retention-exhale':'exhale',cycle===cycles?(modern?6:4):interval,cycle);
+        if(last)stages[stages.length-1]={...stages.at(-1)!,label:'Final breath · Exhale',finalBreath:true};
     }
     add('retention', retention, cycles);
     add('recovery-inhale', 4, cycles);

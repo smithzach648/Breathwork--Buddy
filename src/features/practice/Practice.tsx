@@ -1,10 +1,16 @@
+import {HormesisDetails} from './HormesisDetails';
+import {hormesisConfig} from '../../session/hormesis';
+import {withMeditation} from '../../session/practice-followup';
+import {developedScene} from '../../meditation/environment';
+import {AcousticScenePicker} from '../../meditation/AcousticControls';
+import type {AcousticSceneId} from '../../meditation/acoustic-scenes';
 import {PRACTICE_NARRATION} from '../../audio/practice-narration';
 import { BlockDetails } from '../history/BlockDetails';
 import { MeditationAudio } from '../meditation/Meditation';
 import { defaultPreferences, type Preferences } from '../../settings/preferences';
 import { useState } from 'react';
 import type { PracticeRuntime, RuntimeState } from '../../session/runtime';
-import { cyclePattern,patterns, type PatternId, type PracticeConfig } from '../../session/config';
+import { createSnapshot,cyclePattern,patterns, type ExerciseConfig,type PatternId, type PracticeConfig } from '../../session/config';
 import { formatDuration } from '../../shared/format';
 import { BackgroundControls } from '../../media/MediaSettings';
 import {signalProfile} from '../../meditation/profile';
@@ -17,19 +23,21 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     preferences?: Preferences;
     onPreferencesChange?: (p:Preferences)=>void;
 }) {
-    const [preset, setPreset] = useState<PatternId | 'hormesis-60' | 'hormesis-progressive'>('box');
+    const [preset, setPreset] = useState<PatternId | 'hormesis-foundation' | 'hormesis-advanced'>('box');
     const [breathingCycles,setBreathingCycles]=useState(10);
-    const [interval, setInterval] = useState<2 | 3>(2);
-    const [cycles, setCycles] = useState<20 | 30 | 40>(30);
+    const [addMeditation,setAddMeditation]=useState(false),[meditationMinutes,setMeditationMinutes]=useState(5),[meditationScene,setMeditationScene]=useState<AcousticSceneId|'off'>(()=>developedScene(preferences));
     const [error, setError] = useState('');
     const session = state.session;
     const meditating = session.stage?.phase === 'meditation';
     const envelope=meditating&&!session.stage?.soundRecipe?.acoustic&&session.stage!.durationMs>=600000&&(session.stage?.soundRecipe?.mode??session.snapshot?.meditationSound?.mode)!=='off'&&session.snapshot?.meditationSound?signalProfile(session.stage!.durationMs/1000):undefined;
     const elapsed=meditating?(session.stage!.durationMs-session.remainingMs)/1000:0;
     const hormesis = preset.startsWith('hormesis');
+    function selectedPractice():ExerciseConfig{return hormesis?hormesisConfig(preset==='hormesis-foundation'?'foundation':'advanced'):cyclePattern(preset as PatternId,breathingCycles);}
+    function selection():PracticeConfig{const practice=selectedPractice();return addMeditation?withMeditation(practice,meditationMinutes,meditationScene,preferences):{...practice,guidanceProfile:'soft-felt-marshall.1'};}
+    let plannedSeconds:number|undefined;try{plannedSeconds=createSnapshot(selection()).plannedDurationSeconds;}catch{/* Start shows invalid selections. */}
     async function start(config?: PracticeConfig) {
         try {
-            await runtime.start(config || (hormesis ? { guidanceProfile:'soft-felt-marshall.1',kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { guidanceProfile:'soft-felt-marshall.1',...cyclePattern(preset as PatternId,breathingCycles) }), config ? session.snapshot?.meditationSound : undefined);
+            await runtime.start(config??selection(),config?session.snapshot?.meditationSound:undefined);
             setError('');
         }
         catch (e) {
@@ -43,11 +51,12 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     <section className="panel active-practice">
       {(!meditating || session.snapshot!.config.kind === 'routine') && <p>{session.snapshot!.name}</p>}
       {session.stage?.blockId && <p className="muted">Block {session.stage.blockIndex! + 1} · {session.stage.blockName}</p>}
+      {session.stage?.finalBreath&&<p className='eyebrow'>FINAL BREATH · ROUND {session.stage.round}</p>}
       {session.stage?.introClipId&&<p className='suite-prompt'>{PRACTICE_NARRATION[session.stage.introClipId]?.script}</p>}
       <p className={meditating ? 'stage-title sr-only' : 'stage-title'}>{session.stage!.label}</p>
       {(!meditating || preferences.meditation.showTimer) && <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>}
       <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
-      {(['inhale','hold-in','exhale','hold-out'].includes(session.stage!.phase)) && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
+      {(['inhale','hold-in','exhale','hold-out','pre-retention-exhale'].includes(session.stage!.phase)) && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
       {meditating && onPreferencesChange && <button onClick={() => onPreferencesChange({...preferences,meditation:{...preferences.meditation,showTimer:!preferences.meditation.showTimer}})}>{preferences.meditation.showTimer ? 'Hide timer' : 'Show timer'}</button>}
       {envelope&&session.stage?.meditationPolicy!=='silent'&&<p className="muted">{elapsed<envelope.entry?'Entry':elapsed<envelope.entry+envelope.steady?'Steady':'Return'}</p>}
       {meditating && !session.stage?.soundRecipe?.acoustic && session.stage!.durationMs<600000 && (session.stage?.soundRecipe?.mode??session.snapshot?.meditationSound?.mode)!=='off' && session.snapshot?.meditationSound && session.stage!.meditationPolicy!=='silent' && <p className="notice">This short block uses masking and selected audio only. Binaural sessions need at least 10 minutes; your selected mode stays saved.</p>}
@@ -88,17 +97,14 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
       <label htmlFor="preset">Practice</label>
       <select id="preset" value={preset} onChange={e => setPreset(e.target.value as typeof preset)}>
         {Object.entries(patterns).map(([id, p]) => <option key={id} value={id}>{p.name}</option>)}
-        <option value="hormesis-60">Hormesis 60 / 60 / 60</option><option value="hormesis-progressive">Hormesis 60 / 90 / 90</option>
+        <option value="hormesis-foundation">Hormesis · Foundation</option><option value="hormesis-advanced">Hormesis · Advanced</option>
       </select>
-      {!hormesis ? <><label htmlFor="breathing-cycles">Breathing cycles</label><input id="breathing-cycles" type="number" min="1" max={Math.min(100,Math.floor(1800/patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)))} step="1" value={Number.isFinite(breathingCycles)?breathingCycles:''} onChange={e=>setBreathingCycles(e.target.value===''?NaN:Number(e.target.value))}/><p className="muted">One cycle includes the full inhale, any holds, and exhale. {Number.isFinite(breathingCycles)&&`${formatDuration(patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)*breathingCycles)} breathing + 25-second introduction.`}</p></> : <>
-        <label htmlFor="interval">Inhale / exhale interval</label><select id="interval" value={interval} onChange={e => setInterval(Number(e.target.value) as 2 | 3)}><option value="2">2 seconds each</option><option value="3">3 seconds each</option></select>
-        <label htmlFor="cycles">Breaths per round</label><select id="cycles" value={cycles} onChange={e => setCycles(Number(e.target.value) as 20 | 30 | 40)}>{[20, 30, 40].map(n => <option key={n} value={n}>{n}</option>)}</select>
-        <p className="muted">Recovery: inhale 4 seconds, hold 15, exhale 6, then settle for 3.</p>
-        <p className="muted">The final exhale before each retention lasts 4 seconds: exhale fully.</p>
-        <p className="muted">Practice seated or lying down somewhere safe. Never while driving or in or near water. Release or stop whenever uncomfortable.</p>
-      </>}
+      {!hormesis ? <><label htmlFor="breathing-cycles">Breathing cycles</label><input id="breathing-cycles" type="number" min="1" max={Math.min(100,Math.floor(1800/patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)))} step="1" value={Number.isFinite(breathingCycles)?breathingCycles:''} onChange={e=>setBreathingCycles(e.target.value===''?NaN:Number(e.target.value))}/><p className="muted">One cycle includes the full inhale, any holds, and exhale. {Number.isFinite(breathingCycles)&&`${formatDuration(patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)*breathingCycles)} breathing + 25-second introduction.`}</p></> : <HormesisDetails config={selectedPractice() as Extract<ExerciseConfig,{kind:'hormesis'}>}/>}
+      <label className="theme"><input type="checkbox" checked={addMeditation} onChange={e=>setAddMeditation(e.target.checked)}/>Add meditation afterward</label>
+      {addMeditation&&<><label htmlFor="followup-minutes">Meditation afterward · minutes</label><select id="followup-minutes" value={meditationMinutes} onChange={e=>setMeditationMinutes(Number(e.target.value))}>{[5,10,15,20,30].map(n=><option value={n} key={n}>{n} minutes</option>)}</select><AcousticScenePicker id="followup-scene" value={meditationScene} seconds={meditationMinutes*60} onChange={s=>{if(s!=='legacy')setMeditationScene(s);}}/><p className="muted">After the final recovery and a short transition, meditation begins automatically. No preparation is repeated.</p></>}
+      {plannedSeconds!==undefined&&<p className="muted" role="status">Total planned time: {formatDuration(plannedSeconds)}, including the introduction{addMeditation?', transition and meditation':''}. Retention can be released early.</p>}
       <button className="primary" onClick={() => start()}>Start practice</button>
-      <p className="muted">Marshall introduces your exercise before the Soft Felt notes begin.{hormesis?' The introduction lasts 30 seconds.':' All selected cycles begin after the 25-second introduction and finish in full.'}</p>
+      <p className="muted">Marshall introduces your exercise before the Soft Felt notes begin.{hormesis?' Your selected introduction lasts 90 seconds, including space between phrases.':' All selected cycles begin after the 25-second introduction and finish in full.'}</p>
       <p className="muted">Voice and breath levels can be adjusted in Settings.</p>
     </section>
   </>;

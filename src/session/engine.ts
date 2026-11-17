@@ -1,3 +1,4 @@
+import {hormesisDetails} from './hormesis';
 import type { Clock, Scheduler } from './clock';
 import { createSnapshot, deepFreeze, type PracticeSnapshot, type PlannedStage } from './config';
 import type { SessionAudio } from './audio-port';
@@ -174,6 +175,7 @@ export class DeterministicSessionEngine {
         this.sound(() => { if (this.audio.finishSession) this.audio.finishSession(sessionId,outcome); else this.audio.cancelSession(sessionId); });
         const result: SessionResult = { id: sessionId, routineId: snapshot.config.kind === 'routine' ? snapshot.config.routine.id : snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
         if(snapshot.config.kind==='patterned'&&snapshot.config.cycles)result.patternedBreathing={presetId:snapshot.config.presetId,requestedCycles:snapshot.config.cycles,completedCycles:this.completedCycles.get('standalone')??0};
+        if(snapshot.config.kind==='hormesis'&&hormesisDetails(snapshot.config))result.hormesisPractice=hormesisDetails(snapshot.config);
         if (this.endReason) result.endReason = this.endReason;
         if (snapshot.config.kind === 'meditation-journey') result.journey = { snapshot: structuredClone(snapshot.config) };
         if('guidanceProfile' in snapshot.config&&snapshot.config.guidanceProfile)result.guidanceProfile=snapshot.config.guidanceProfile;
@@ -192,6 +194,7 @@ export class DeterministicSessionEngine {
                 ...(block.kind==='meditation'&&snapshot.meditationSound?.environment?.blocks[block.id]?{soundRecipe:structuredClone(snapshot.meditationSound.environment.blocks[block.id])}:{}),
                 ...(block.kind==='patterned'&&block.cycles?{patternedBreathing:{presetId:block.presetId,requestedCycles:block.cycles,completedCycles:this.completedCycles.get(block.id)??0}}:{}),
                 ...(block.kind === 'custom-pattern' ? { customPattern: { inhaleSeconds: block.inhaleSeconds, holdInSeconds: block.holdInSeconds, exhaleSeconds: block.exhaleSeconds, holdOutSeconds: block.holdOutSeconds, requestedCycles: block.cycles, completedCycles: this.completedCycles.get(block.id) || 0 } } : {}),
+                ...(block.kind==='hormesis'&&hormesisDetails(block)?{hormesisPractice:hormesisDetails(block)}:{}),
                 ...(block.kind === 'hormesis-round' ? { hormesisRound: { preparationBreaths: block.cycles, intervalSeconds: block.intervalSeconds, retentionTargetSeconds: block.retentionSeconds, recoveryCompleted: this.completedBlocks.has(block.id) } } : {}),
             }));
         }

@@ -1,9 +1,11 @@
 import type {ExerciseConfig,PlannedStage,PracticeConfig} from '../session/config';
 import type {StageAudio} from '../session/audio-port';
 import type {AudioCue} from './cues';
+import {hormesisOption} from '../session/hormesis';
 import {PRACTICE_NARRATION} from './practice-narration';
 export const PRACTICE_GUIDANCE_VERSION='soft-felt-marshall.1';
 export function introFor(config:ExerciseConfig){
+ const modern=hormesisOption(config);if(modern)return PRACTICE_NARRATION[modern.introId];
  const key=config.kind==='patterned'?config.presetId:config.kind==='custom-pattern'?'custom':config.kind==='hormesis'||config.kind==='hormesis-round'?'hormesis':undefined;
  return key?PRACTICE_NARRATION[`practice.intro.${key}.1`]:undefined;
 }
@@ -16,7 +18,7 @@ export function compileMusicalPractice(config:PracticeConfig,legacy:PlannedStage
   if(!seen.has(key)){
    seen.add(key);const block=config.kind==='routine'?config.routine.stages.find(b=>b.id===key):config.kind==='meditation-journey'?undefined:config;
    const intro=block?introFor(block):undefined;
-   if(intro)result.push({...original,phase:'practice-introduction',label:`Introduction · ${block!.kind==='patterned'?block!.presetId==='coherent'?'Six-six breathing':block!.presetId==='calm'?'Calm breathing':block!.presetId==='478'?'Four-seven-eight breathing':'Box breathing':block!.kind==='custom-pattern'?'Your pattern':'Hormesis'}`,durationMs:(intro.id.includes('hormesis')?30:25)*1000,round:0,totalRounds:0,cycle:0,totalCycles:0,introClipId:intro.id,guidanceProfile:PRACTICE_GUIDANCE_VERSION});
+   if(intro)result.push({...original,phase:'practice-introduction',label:`Introduction · ${block!.kind==='patterned'?block!.presetId==='coherent'?'Six-six breathing':block!.presetId==='calm'?'Calm breathing':block!.presetId==='478'?'Four-seven-eight breathing':'Box breathing':block!.kind==='custom-pattern'?'Your pattern':'Hormesis'}`,durationMs:(hormesisOption(block!)?.introSeconds??(intro.id.includes('hormesis')?30:25))*1000,round:0,totalRounds:0,cycle:0,totalCycles:0,introClipId:intro.id,guidanceProfile:PRACTICE_GUIDANCE_VERSION});
   }
   result.push({...original,...original.phase==='round-announcement'?{durationMs:3000}:{},guidanceProfile:PRACTICE_GUIDANCE_VERSION});
  }
