@@ -1,0 +1,3031 @@
+{
+  "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+  "model": "eleven_v4",
+  "clips": [
+    {
+      "id": "suite.ecb.guided.v2",
+      "script": "Before we begin, notice what has followed you into this moment. A worry. A conversation. Something unfinished.\n\nImagine a box in front of you. It can look however you like. Open it, and place those concerns inside, one at a time.\n\nYou don't need to solve them now. You aren't losing them. You're simply choosing not to carry them for a little while.\n\nClose the box. Leave it where you can find it when you return.",
+      "maxSeconds": 50,
+      "purpose": "ecb guided",
+      "language": "en",
+      "version": 2,
+      "characters": 413,
+      "status": "reuse-approved-audition",
+      "sourceSeconds": 27.2,
+      "decodedSeconds": 50,
+      "extraSilenceSeconds": 22.8,
+      "splices": [
+        {
+          "sourceFrame": 59970,
+          "sourceSeconds": 1.3598639455782313,
+          "extraFrames": 22050,
+          "extraSeconds": 0.5,
+          "seam": 5.395937023422448e-06,
+          "outputPauseStartSeconds": 1.3598639455782313
+        },
+        {
+          "sourceFrame": 187240,
+          "sourceSeconds": 4.245804988662131,
+          "extraFrames": 66150,
+          "extraSeconds": 1.5,
+          "seam": 1.4294130323833087e-06,
+          "outputPauseStartSeconds": 4.745804988662131
+        },
+        {
+          "sourceFrame": 238841,
+          "sourceSeconds": 5.415895691609977,
+          "extraFrames": 30870,
+          "extraSeconds": 0.7,
+          "seam": 5.612859240500256e-06,
+          "outputPauseStartSeconds": 7.415895691609977
+        },
+        {
+          "sourceFrame": 295935,
+          "sourceSeconds": 6.710544217687075,
+          "extraFrames": 30870,
+          "extraSeconds": 0.7,
+          "seam": 1.5431937754328828e-06,
+          "outputPauseStartSeconds": 9.410544217687075
+        },
+        {
+          "sourceFrame": 378116,
+          "sourceSeconds": 8.5740589569161,
+          "extraFrames": 79380,
+          "extraSeconds": 1.8,
+          "seam": 1.0407744639451266e-06,
+          "outputPauseStartSeconds": 11.9740589569161
+        },
+        {
+          "sourceFrame": 475419,
+          "sourceSeconds": 10.78047619047619,
+          "extraFrames": 132300,
+          "extraSeconds": 3,
+          "seam": 1.196942412207136e-05,
+          "outputPauseStartSeconds": 15.98047619047619
+        },
+        {
+          "sourceFrame": 558690,
+          "sourceSeconds": 12.668707482993197,
+          "extraFrames": 70560,
+          "extraSeconds": 1.6,
+          "seam": 1.7899747035698965e-05,
+          "outputPauseStartSeconds": 20.868707482993198
+        },
+        {
+          "sourceFrame": 596057,
+          "sourceSeconds": 13.516031746031747,
+          "extraFrames": 44100,
+          "extraSeconds": 1,
+          "seam": 1.4784839549975004e-05,
+          "outputPauseStartSeconds": 23.316031746031747
+        },
+        {
+          "sourceFrame": 742196,
+          "sourceSeconds": 16.82984126984127,
+          "extraFrames": 264600,
+          "extraSeconds": 6,
+          "seam": 1.8034390905086184e-06,
+          "outputPauseStartSeconds": 27.62984126984127
+        },
+        {
+          "sourceFrame": 824823,
+          "sourceSeconds": 18.703469387755103,
+          "extraFrames": 35280,
+          "extraSeconds": 0.8,
+          "seam": 2.8026486234011827e-06,
+          "outputPauseStartSeconds": 35.5034693877551
+        },
+        {
+          "sourceFrame": 887267,
+          "sourceSeconds": 20.119433106575965,
+          "extraFrames": 35280,
+          "extraSeconds": 0.8,
+          "seam": 3.6764056858373806e-05,
+          "outputPauseStartSeconds": 37.71943310657596
+        },
+        {
+          "sourceFrame": 1032194,
+          "sourceSeconds": 23.405759637188208,
+          "extraFrames": 70560,
+          "extraSeconds": 1.6,
+          "seam": 8.771994544076733e-06,
+          "outputPauseStartSeconds": 41.80575963718821
+        },
+        {
+          "sourceFrame": 1093660,
+          "sourceSeconds": 24.79954648526077,
+          "extraFrames": 123480,
+          "extraSeconds": 2.8,
+          "seam": 8.167656233126763e-06,
+          "outputPauseStartSeconds": 44.79954648526077
+        }
+      ],
+      "sourceGenerationId": "BeSYtkB6b01Wjrjpn6VI",
+      "credits": 413,
+      "assetId": "suite.ecb.guided.v2",
+      "decodedDurationSeconds": 50,
+      "sha256": "9ff6ce6f12a8465235ac4eaabd8ec4c278814e6bcaa48cc3505b913ef574f598",
+      "approved": true,
+      "localPath": "audio/voice/suite.ecb.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 0,
+      "editedPcmSeconds": 50,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 50,
+          "peak": 0.7561618685722351,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 50,
+          "peak": 0.7576175928115845,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 41.65,
+      "expectedCredits": 413,
+      "usage": "Both journeys/rehearsal: 00:00; voice must finish before 00:55."
+    },
+    {
+      "id": "suite.ecb.familiar.v2",
+      "script": "Bring your box to mind. Place what's been occupying you inside. Close it, and leave it for later.",
+      "maxSeconds": 59.75,
+      "purpose": "ecb familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 97,
+      "status": "approved-for-production",
+      "sourceSeconds": 7.04,
+      "decodedSeconds": 11.616009070294785,
+      "extraSilenceSeconds": 4.576009070294784,
+      "splices": [
+        {
+          "sourceFrame": 76304,
+          "seam": 1.1563272892090026e-05,
+          "quietSeconds": 0.4,
+          "extraFrames": 72721,
+          "outputSeconds": 1.7302494331065759
+        },
+        {
+          "sourceFrame": 188413,
+          "seam": 4.665946562454337e-06,
+          "quietSeconds": 0.51,
+          "extraFrames": 92720,
+          "outputSeconds": 5.92140589569161
+        },
+        {
+          "sourceFrame": 238172,
+          "seam": 1.0934110832749866e-05,
+          "quietSeconds": 0.2,
+          "extraFrames": 36361,
+          "outputSeconds": 9.152222222222223
+        }
+      ],
+      "sourceGenerationId": "QGYQQntwvfWzfDaNGMWt",
+      "credits": 97,
+      "sourceSha256": "d4e843cfa0812241fbdf3b71e4e9fc70c79710162ed6c3b0f15f95df3c3cb87c",
+      "peak": 0.7059016227722168,
+      "assetId": "suite.ecb.familiar.v2",
+      "decodedDurationSeconds": 11.616009070294785,
+      "sha256": "19381f7e985cb76ce083a07e02a06d3aa306a3c5a9e6cb2bc58d36be740103e7",
+      "approved": true,
+      "localPath": "audio/voice/suite.ecb.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 97,
+      "editedPcmSeconds": 11.616009070294785,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 11.616009070294785,
+          "peak": 0.6702790260314941,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 11.616,
+          "peak": 0.670982837677002,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 11.39,
+      "expectedCredits": 97,
+      "usage": "Both journeys/rehearsal: 00:00; voice must finish before 00:55."
+    },
+    {
+      "id": "suite.breath.intro.5-5.v2",
+      "script": "We'll begin with five-five breathing. Five seconds in, five seconds out. Follow the rising and falling notes. With each exhale, we'll give a part of the body room to soften.",
+      "maxSeconds": 18.75,
+      "purpose": "breath intro 5-5",
+      "language": "en",
+      "version": 2,
+      "characters": 173,
+      "status": "approved-for-production",
+      "sourceSeconds": 12.08,
+      "decodedSeconds": 17.5,
+      "extraSilenceSeconds": 5.42,
+      "splices": [
+        {
+          "sourceFrame": 101132,
+          "seam": 2.1172581909922883e-06,
+          "quietSeconds": 0.33,
+          "extraFrames": 52938,
+          "outputSeconds": 2.2932426303854876
+        },
+        {
+          "sourceFrame": 166037,
+          "seam": 5.594055892288452e-06,
+          "quietSeconds": 0.23,
+          "extraFrames": 36896,
+          "outputSeconds": 4.965419501133787
+        },
+        {
+          "sourceFrame": 225768,
+          "seam": 8.103864956865436e-08,
+          "quietSeconds": 0.45,
+          "extraFrames": 72188,
+          "outputSeconds": 7.1565079365079365
+        },
+        {
+          "sourceFrame": 354968,
+          "seam": 8.094695544968999e-07,
+          "quietSeconds": 0.48,
+          "extraFrames": 77000,
+          "outputSeconds": 11.72312925170068
+        }
+      ],
+      "sourceGenerationId": "6uUwy26OQM2qQKGPSIoe",
+      "credits": 173,
+      "sourceSha256": "bd4bdaf9657382f6a3bcc8f9fba8e0df5b5992c0162e16ce8c88b5827c7bad52",
+      "peak": 0.8130767345428467,
+      "assetId": "suite.breath.intro.5-5.v2",
+      "decodedDurationSeconds": 17.5,
+      "sha256": "bb32c7f3b667c23c02bc6a552227e11d344a7b048b118467570a2acc679ae522",
+      "approved": true,
+      "localPath": "audio/voice/suite.breath.intro.5-5.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 173,
+      "editedPcmSeconds": 17.5,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 17.5,
+          "peak": 0.7729962468147278,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 17.5,
+          "peak": 0.7728586196899414,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 17.65,
+      "expectedCredits": 173,
+      "usage": "Selected technique: 02:06–02:25, after the short chime."
+    },
+    {
+      "id": "suite.breath.intro.4-4-6.v2",
+      "script": "Four seconds in, a gentle hold for four, then six seconds out. Follow the notes without straining. As you exhale, let the body settle a little more.",
+      "maxSeconds": 18.75,
+      "purpose": "breath intro 4-4-6",
+      "language": "en",
+      "version": 2,
+      "characters": 148,
+      "status": "approved-for-production",
+      "sourceSeconds": 10.96,
+      "decodedSeconds": 17.5,
+      "extraSilenceSeconds": 6.54,
+      "splices": [
+        {
+          "sourceFrame": 60116,
+          "seam": 4.7477942644036375e-06,
+          "quietSeconds": 0.34,
+          "extraFrames": 51341,
+          "outputSeconds": 1.3631746031746033
+        },
+        {
+          "sourceFrame": 147196,
+          "seam": 5.056184363638749e-06,
+          "quietSeconds": 0.39,
+          "extraFrames": 58891,
+          "outputSeconds": 4.501972789115646
+        },
+        {
+          "sourceFrame": 222951,
+          "seam": 8.893902645468188e-07,
+          "quietSeconds": 0.52,
+          "extraFrames": 78521,
+          "outputSeconds": 7.555170068027211
+        },
+        {
+          "sourceFrame": 321017,
+          "seam": 2.796822116124531e-07,
+          "quietSeconds": 0.46,
+          "extraFrames": 69461,
+          "outputSeconds": 11.559410430839002
+        },
+        {
+          "sourceFrame": 387126,
+          "seam": 1.6986674381769262e-05,
+          "quietSeconds": 0.2,
+          "extraFrames": 30200,
+          "outputSeconds": 14.633560090702948
+        }
+      ],
+      "sourceGenerationId": "Eq5bCyfDOCeLGSMFqMew",
+      "credits": 148,
+      "sourceSha256": "83a2c2207638a7ed874ffb050364593f182cbb74e19bbb0d18b9f8d96b4dc553",
+      "peak": 0.8364794254302979,
+      "assetId": "suite.breath.intro.4-4-6.v2",
+      "decodedDurationSeconds": 17.5,
+      "sha256": "2e59984381f3f2089ac91c411dd16636147b2bccc484286768a34259697fa96e",
+      "approved": true,
+      "localPath": "audio/voice/suite.breath.intro.4-4-6.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 148,
+      "editedPcmSeconds": 17.5,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 17.5,
+          "peak": 0.795975923538208,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 17.5,
+          "peak": 0.7937078475952148,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 16.09,
+      "expectedCredits": 148,
+      "usage": "Selected technique: 02:06–02:25, after the short chime."
+    },
+    {
+      "id": "suite.breath.intro.4-7-8.v2",
+      "script": "We'll try four-seven-eight breathing for a few complete rounds. Breathe in for four, hold comfortably for seven, and breathe out for eight. Then we'll return to easy, natural breathing as the body relaxes.",
+      "maxSeconds": 18.75,
+      "purpose": "breath intro 4-7-8",
+      "language": "en",
+      "version": 2,
+      "characters": 205,
+      "status": "approved-for-production",
+      "sourceSeconds": 13.28,
+      "decodedSeconds": 17.5,
+      "extraSilenceSeconds": 4.22,
+      "splices": [
+        {
+          "sourceFrame": 149214,
+          "seam": 6.403307907021372e-06,
+          "quietSeconds": 0.53,
+          "extraFrames": 59778,
+          "outputSeconds": 3.3835374149659865
+        },
+        {
+          "sourceFrame": 226136,
+          "seam": 2.7813200631499058e-06,
+          "quietSeconds": 0.37,
+          "extraFrames": 41732,
+          "outputSeconds": 6.4833106575963715
+        },
+        {
+          "sourceFrame": 312473,
+          "seam": 8.751059795031324e-06,
+          "quietSeconds": 0.21,
+          "extraFrames": 23686,
+          "outputSeconds": 9.387369614512473
+        },
+        {
+          "sourceFrame": 388336,
+          "seam": 2.8677643513219664e-06,
+          "quietSeconds": 0.54,
+          "extraFrames": 60906,
+          "outputSeconds": 11.644716553287981
+        }
+      ],
+      "sourceGenerationId": "t3p4ByVGj3FDraL7bg2f",
+      "credits": 205,
+      "sourceSha256": "30fd59e4f79d7b7d71bc546f2002cf15c692a60b44e65eb834c1bf8d738eed44",
+      "peak": 0.7975359559059143,
+      "assetId": "suite.breath.intro.4-7-8.v2",
+      "decodedDurationSeconds": 17.5,
+      "sha256": "b36cad4770a37b6f6173e2d134ab92ab807001160458bd3dd96b56f494fc74c0",
+      "approved": true,
+      "localPath": "audio/voice/suite.breath.intro.4-7-8.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 205,
+      "editedPcmSeconds": 17.5,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 17.5,
+          "peak": 0.7571103572845459,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 17.5,
+          "peak": 0.7556705474853516,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 19.22,
+      "expectedCredits": 205,
+      "usage": "Selected technique: 02:06–02:25, after the short chime."
+    },
+    {
+      "id": "suite.breath.intro.natural.v2",
+      "script": "There's no count to follow this time. Breathe at your own pace. With each exhale, let another place in the body become a little less busy.",
+      "maxSeconds": 18.75,
+      "purpose": "breath intro natural",
+      "language": "en",
+      "version": 2,
+      "characters": 138,
+      "status": "approved-for-production",
+      "sourceSeconds": 9.04,
+      "decodedSeconds": 17.49997732426304,
+      "extraSilenceSeconds": 8.459977324263038,
+      "splices": [
+        {
+          "sourceFrame": 89907,
+          "seam": 1.6492640497745015e-06,
+          "quietSeconds": 0.44,
+          "extraFrames": 145272,
+          "outputSeconds": 2.0387074829931975
+        },
+        {
+          "sourceFrame": 166578,
+          "seam": 7.70186943555018e-06,
+          "quietSeconds": 0.47000000000000003,
+          "extraFrames": 155177,
+          "outputSeconds": 7.071428571428571
+        },
+        {
+          "sourceFrame": 237448,
+          "seam": 1.4715397810505237e-05,
+          "quietSeconds": 0.22,
+          "extraFrames": 72636,
+          "outputSeconds": 12.197210884353742
+        }
+      ],
+      "sourceGenerationId": "CWlnE5o9JPBzDce2CILx",
+      "credits": 138,
+      "sourceSha256": "991e9dc24a66103945be6ec13f5708efe9dfe57235cd33d420e9ee8035d182eb",
+      "peak": 0.7955861687660217,
+      "assetId": "suite.breath.intro.natural.v2",
+      "decodedDurationSeconds": 17.49997732426304,
+      "sha256": "035c9f84fc71dc750610ae7d26b8f5197196f8ee387a22bf374e4e21018f36a8",
+      "approved": true,
+      "localPath": "audio/voice/suite.breath.intro.natural.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 138,
+      "editedPcmSeconds": 17.49997732426304,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 17.49997732426304,
+          "peak": 0.754128634929657,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 17.499958333333332,
+          "peak": 0.7549600601196289,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 15.57,
+      "expectedCredits": 138,
+      "usage": "Selected technique: 02:06–02:25, after the short chime."
+    },
+    {
+      "id": "suite.tuning.guided.v2",
+      "script": "Now we'll use your own voice. Take an easy breath in. As you breathe out, let it become a comfortable hum or open vowel. Find a pitch that feels natural. Notice the vibration in your chest, throat or face, then let the sound fade. Repeat at your own pace.",
+      "maxSeconds": 38.75,
+      "purpose": "tuning guided",
+      "language": "en",
+      "version": 2,
+      "characters": 255,
+      "status": "approved-for-production",
+      "sourceSeconds": 19.2,
+      "decodedSeconds": 31.99997732426304,
+      "extraSilenceSeconds": 12.799977324263038,
+      "splices": [
+        {
+          "sourceFrame": 77871,
+          "seam": 1.764886860655679e-06,
+          "quietSeconds": 0.48,
+          "extraFrames": 73230,
+          "outputSeconds": 1.76578231292517
+        },
+        {
+          "sourceFrame": 171364,
+          "seam": 1.723837954159535e-06,
+          "quietSeconds": 0.84,
+          "extraFrames": 128152,
+          "outputSeconds": 5.546349206349206
+        },
+        {
+          "sourceFrame": 400684,
+          "seam": 3.0418846108659636e-07,
+          "quietSeconds": 0.63,
+          "extraFrames": 96114,
+          "outputSeconds": 13.652290249433106
+        },
+        {
+          "sourceFrame": 496470,
+          "seam": 1.0285373264196096e-06,
+          "quietSeconds": 0.63,
+          "extraFrames": 96114,
+          "outputSeconds": 18.0037641723356
+        },
+        {
+          "sourceFrame": 672591,
+          "seam": 3.2230043416348053e-06,
+          "quietSeconds": 0.49,
+          "extraFrames": 74755,
+          "outputSeconds": 24.17689342403628
+        },
+        {
+          "sourceFrame": 757011,
+          "seam": 2.9261539111757884e-06,
+          "quietSeconds": 0.63,
+          "extraFrames": 96114,
+          "outputSeconds": 27.786303854875282
+        }
+      ],
+      "sourceGenerationId": "CLAJnfDHhbtomJA2jwD7",
+      "credits": 255,
+      "sourceSha256": "e9e0f04d787898ab9ae19ce32bd377d8a679316eecfbc1ce8b9454c9e3d29fe8",
+      "peak": 0.8137407898902893,
+      "assetId": "suite.tuning.guided.v2",
+      "decodedDurationSeconds": 31.99997732426304,
+      "sha256": "8bf2910d7f7313072d9f1ee90898a83b2c58602c985ebd134b460c840649d7a4",
+      "approved": true,
+      "localPath": "audio/voice/suite.tuning.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 255,
+      "editedPcmSeconds": 31.99997732426304,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 31.99997732426304,
+          "peak": 0.7779160141944885,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 31.999958333333332,
+          "peak": 0.7790980339050293,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 27.57,
+      "expectedCredits": 255,
+      "usage": "07:06–07:45; never speak inside 07:45–09:15 practice."
+    },
+    {
+      "id": "suite.tuning.familiar.v2",
+      "script": "On the next few exhales, let a gentle hum form. Notice the vibration and the quiet afterward.",
+      "maxSeconds": 38.75,
+      "purpose": "tuning familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 93,
+      "status": "approved-for-production",
+      "sourceSeconds": 7.36,
+      "decodedSeconds": 12.144013605442177,
+      "extraSilenceSeconds": 4.784013605442177,
+      "splices": [
+        {
+          "sourceFrame": 170901,
+          "seam": 9.432774845663516e-07,
+          "quietSeconds": 0.66,
+          "extraFrames": 158231,
+          "outputSeconds": 3.8753061224489795
+        },
+        {
+          "sourceFrame": 250309,
+          "seam": 3.086020342379925e-06,
+          "quietSeconds": 0.22,
+          "extraFrames": 52744,
+          "outputSeconds": 9.263945578231292
+        }
+      ],
+      "sourceGenerationId": "3jWSRWsSOnZtOqOUuxtz",
+      "credits": 93,
+      "sourceSha256": "c18752105c2e6fcc5d2934decb2fcef81ae1cf01236478ae40071363e469a25f",
+      "peak": 0.4864915609359741,
+      "assetId": "suite.tuning.familiar.v2",
+      "decodedDurationSeconds": 12.144013605442177,
+      "sha256": "a47909c15e5db05dbf646e7cdabca8ec55d3875ba02579ea519b3a9d0e0cb265",
+      "approved": true,
+      "localPath": "audio/voice/suite.tuning.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 93,
+      "editedPcmSeconds": 12.144013605442177,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 12.144013605442177,
+          "peak": 0.46275997161865234,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 12.144,
+          "peak": 0.462907612323761,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 10.87,
+      "expectedCredits": 93,
+      "usage": "07:06–07:45; never speak inside 07:45–09:15 practice."
+    },
+    {
+      "id": "suite.tuning.silent.v2",
+      "script": "For this part, you can remain silent. Let the breath move naturally, and listen to the quiet that follows each exhale.",
+      "maxSeconds": 38.75,
+      "purpose": "tuning silent",
+      "language": "en",
+      "version": 2,
+      "characters": 118,
+      "status": "approved-for-production",
+      "sourceSeconds": 7.84,
+      "decodedSeconds": 12.936009070294785,
+      "extraSilenceSeconds": 5.096009070294785,
+      "splices": [
+        {
+          "sourceFrame": 36376,
+          "seam": 2.2585038550460013e-06,
+          "quietSeconds": 0.26,
+          "extraFrames": 64210,
+          "outputSeconds": 0.8248526077097506
+        },
+        {
+          "sourceFrame": 110627,
+          "seam": 1.2593651490533375e-06,
+          "quietSeconds": 0.34,
+          "extraFrames": 83966,
+          "outputSeconds": 3.9645578231292515
+        },
+        {
+          "sourceFrame": 210208,
+          "seam": 3.5825501072395127e-06,
+          "quietSeconds": 0.31,
+          "extraFrames": 76558,
+          "outputSeconds": 8.126621315192743
+        }
+      ],
+      "sourceGenerationId": "tzXuxoFuS5hkZVXPH1YN",
+      "credits": 118,
+      "sourceSha256": "6de3b6f3cbe81dc64fb886bd1826452a317f3b1d27b18e2b2749a1946fccda9c",
+      "peak": 0.5998704433441162,
+      "assetId": "suite.tuning.silent.v2",
+      "decodedDurationSeconds": 12.936009070294785,
+      "sha256": "eb304e73c8428cddd56fe4ca3423caab6f4097891c884d1431515c870f8812d5",
+      "approved": true,
+      "localPath": "audio/voice/suite.tuning.silent.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 118,
+      "editedPcmSeconds": 12.936009070294785,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 12.936009070294785,
+          "peak": 0.5666428804397583,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 12.936,
+          "peak": 0.5666135549545288,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 12.96,
+      "expectedCredits": 118,
+      "usage": "07:06–07:45; never speak inside 07:45–09:15 practice."
+    },
+    {
+      "id": "suite.rebal.guided.v2",
+      "script": "Bring your attention to the space around your body.\n\nImagine a current gathering beneath your feet. Let it rise through you, continue beyond the top of your head, and flow outward in a wide, gentle arc.\n\nAllow it to move down around you and return beneath your feet, forming a continuous field.\n\nYou may feel it as a sphere, a flowing current, or simply the space surrounding you.\n\nFor now, let it continue on its own. Rest within it.",
+      "maxSeconds": 54.75,
+      "purpose": "rebal guided",
+      "language": "en",
+      "version": 2,
+      "characters": 434,
+      "status": "approved-for-production",
+      "sourceSeconds": 29.76,
+      "decodedSeconds": 49.999977324263035,
+      "extraSilenceSeconds": 20.239977324263037,
+      "splices": [
+        {
+          "sourceFrame": 140274,
+          "seam": 5.374200100050075e-06,
+          "quietSeconds": 0.61,
+          "extraFrames": 125745,
+          "outputSeconds": 3.1808163265306124
+        },
+        {
+          "sourceFrame": 272012,
+          "seam": 3.8945813685131725e-06,
+          "quietSeconds": 0.46,
+          "extraFrames": 94824,
+          "outputSeconds": 9.019433106575963
+        },
+        {
+          "sourceFrame": 355166,
+          "seam": 5.851451078342507e-06,
+          "quietSeconds": 0.39,
+          "extraFrames": 80394,
+          "outputSeconds": 13.055215419501133
+        },
+        {
+          "sourceFrame": 612363,
+          "seam": 5.966189746686723e-07,
+          "quietSeconds": 0.59,
+          "extraFrames": 121622,
+          "outputSeconds": 20.710340136054423
+        },
+        {
+          "sourceFrame": 785177,
+          "seam": 5.439994311018381e-06,
+          "quietSeconds": 0.21,
+          "extraFrames": 43289,
+          "outputSeconds": 27.38689342403628
+        },
+        {
+          "sourceFrame": 875200,
+          "seam": 1.342055611530668e-06,
+          "quietSeconds": 0.53,
+          "extraFrames": 109254,
+          "outputSeconds": 30.40984126984127
+        },
+        {
+          "sourceFrame": 966905,
+          "seam": 1.142526980402181e-05,
+          "quietSeconds": 0.17,
+          "extraFrames": 35044,
+          "outputSeconds": 34.96673469387755
+        },
+        {
+          "sourceFrame": 1123689,
+          "seam": 4.1147213778458536e-06,
+          "quietSeconds": 0.54,
+          "extraFrames": 111315,
+          "outputSeconds": 39.31657596371882
+        },
+        {
+          "sourceFrame": 1168363,
+          "seam": 4.593090579874115e-06,
+          "quietSeconds": 0.31,
+          "extraFrames": 63903,
+          "outputSeconds": 42.85374149659864
+        },
+        {
+          "sourceFrame": 1254352,
+          "seam": 6.529156507895095e-06,
+          "quietSeconds": 0.52,
+          "extraFrames": 107193,
+          "outputSeconds": 46.25265306122449
+        }
+      ],
+      "sourceGenerationId": "K938mpPHmB2GhhdJ143s",
+      "credits": 434,
+      "sourceSha256": "d78e1731da4f0383819c88e9c912089b704423719197e2202cd18e43d2221a0a",
+      "peak": 0.7077195644378662,
+      "assetId": "suite.rebal.guided.v2",
+      "decodedDurationSeconds": 49.999977324263035,
+      "sha256": "33d815eb8f1d9ae02bc356b02dae5af5a298f0f73b7bba816db7c439246615c5",
+      "approved": true,
+      "localPath": "audio/voice/suite.rebal.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 434,
+      "editedPcmSeconds": 49.999977324263035,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 49.999977324263035,
+          "peak": 0.6727519035339355,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 49.99995833333333,
+          "peak": 0.673483669757843,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 43.22,
+      "expectedCredits": 434,
+      "usage": "09:30–10:25; quiet practice remains until 12:00."
+    },
+    {
+      "id": "suite.rebal.familiar.v2",
+      "script": "Let the field form. Rising through you, flowing outward and around, returning beneath your feet. Rest inside that movement.",
+      "maxSeconds": 54.75,
+      "purpose": "rebal familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 123,
+      "status": "approved-for-production",
+      "sourceSeconds": 9.6,
+      "decodedSeconds": 15.84,
+      "extraSilenceSeconds": 6.24,
+      "splices": [
+        {
+          "sourceFrame": 83855,
+          "seam": 7.905521783868608e-07,
+          "quietSeconds": 0.51,
+          "extraFrames": 117936,
+          "outputSeconds": 1.9014739229024944
+        },
+        {
+          "sourceFrame": 244892,
+          "seam": 6.5762460508267395e-06,
+          "quietSeconds": 0.2,
+          "extraFrames": 46249,
+          "outputSeconds": 8.227392290249433
+        },
+        {
+          "sourceFrame": 324830,
+          "seam": 4.78212496091146e-06,
+          "quietSeconds": 0.48,
+          "extraFrames": 110999,
+          "outputSeconds": 11.088775510204082
+        }
+      ],
+      "sourceGenerationId": "FZrOuILanBnVmq5ollY7",
+      "credits": 123,
+      "sourceSha256": "5189982f33e438fd93d6decfd36426a09b23988dada7304fb8fcc94e2c4eec66",
+      "peak": 0.6351165771484375,
+      "assetId": "suite.rebal.familiar.v2",
+      "decodedDurationSeconds": 15.84,
+      "sha256": "cf583e00cceec502d44350f4f5ffb32240ae926fa993392a8f14c23daf1862de",
+      "approved": true,
+      "localPath": "audio/voice/suite.rebal.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 123,
+      "editedPcmSeconds": 15.84,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 15.84,
+          "peak": 0.600328803062439,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 15.84,
+          "peak": 0.5997135639190674,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 11.91,
+      "expectedCredits": 123,
+      "usage": "09:30–10:25; quiet practice remains until 12:00."
+    },
+    {
+      "id": "suite.rebal.nonvisual.v2",
+      "script": "Notice the space immediately around your body. The air, the room, the distance between you and everything nearby. Allow yourself to rest within that space, without needing a picture.",
+      "maxSeconds": 54.75,
+      "purpose": "rebal nonvisual",
+      "language": "en",
+      "version": 2,
+      "characters": 182,
+      "status": "approved-for-production",
+      "sourceSeconds": 12.64,
+      "decodedSeconds": 20.855986394557824,
+      "extraSilenceSeconds": 8.215986394557824,
+      "splices": [
+        {
+          "sourceFrame": 137480,
+          "seam": 6.926385594852036e-06,
+          "quietSeconds": 0.5,
+          "extraFrames": 107197,
+          "outputSeconds": 3.1174603174603175
+        },
+        {
+          "sourceFrame": 223441,
+          "seam": 1.3228521311248187e-05,
+          "quietSeconds": 0.37,
+          "extraFrames": 79326,
+          "outputSeconds": 7.497460317460318
+        },
+        {
+          "sourceFrame": 363640,
+          "seam": 1.6918529581744224e-06,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 122204,
+          "outputSeconds": 12.475351473922903
+        },
+        {
+          "sourceFrame": 496089,
+          "seam": 3.367496674400172e-06,
+          "quietSeconds": 0.25,
+          "extraFrames": 53598,
+          "outputSeconds": 18.249795918367347
+        }
+      ],
+      "sourceGenerationId": "4ycKwq3LpeOtFvy7sG0z",
+      "credits": 182,
+      "sourceSha256": "93e1acaaaba9a3e466fc291f5dc5ecfb30f6b28b571bd67d54ecb3f468305252",
+      "peak": 0.5945545434951782,
+      "assetId": "suite.rebal.nonvisual.v2",
+      "decodedDurationSeconds": 20.855986394557824,
+      "sha256": "eef7dd4833d9d4e3881ca033ff47489810a6757228e3d43e5f0d7153cf96ef6c",
+      "approved": true,
+      "localPath": "audio/voice/suite.rebal.nonvisual.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 182,
+      "editedPcmSeconds": 20.855986394557824,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 20.855986394557824,
+          "peak": 0.5653783082962036,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 20.855979166666668,
+          "peak": 0.5662397146224976,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 17.13,
+      "expectedCredits": 182,
+      "usage": "09:30–10:25; quiet practice remains until 12:00."
+    },
+    {
+      "id": "suite.affirmation.leadin.v2",
+      "script": "Now bring your intention forward. Let the words settle in your own way.",
+      "maxSeconds": 9.75,
+      "purpose": "affirmation leadin",
+      "language": "en",
+      "version": 2,
+      "characters": 71,
+      "status": "approved-for-production",
+      "sourceSeconds": 4.72,
+      "decodedSeconds": 6.7,
+      "extraSilenceSeconds": 1.98,
+      "splices": [
+        {
+          "sourceFrame": 105324,
+          "seam": 5.117430191603489e-06,
+          "quietSeconds": 0.53,
+          "extraFrames": 87318,
+          "outputSeconds": 2.3882993197278912
+        }
+      ],
+      "sourceGenerationId": "yGfQcqfnAoK0gHJYKOQB",
+      "credits": 71,
+      "sourceSha256": "1f82a4a8c816d8a31107110dbf23e32459a240a40319c45b579b22cb31e8b6e9",
+      "peak": 0.5006715059280396,
+      "assetId": "suite.affirmation.leadin.v2",
+      "decodedDurationSeconds": 6.7,
+      "sha256": "bed021b34148cbdf1362ae5b1723582e3d6901cb6e105ae45c6d2a6c4dd90de8",
+      "approved": true,
+      "localPath": "audio/voice/suite.affirmation.leadin.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 71,
+      "editedPcmSeconds": 6.7,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 6.7,
+          "peak": 0.47604992985725403,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 6.7,
+          "peak": 0.47688573598861694,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 8.78,
+      "expectedCredits": 71,
+      "usage": "Guided 12:00–12:10; optional shared lead-in."
+    },
+    {
+      "id": "suite.affirmation.foundation.neutral.v2",
+      "script": "I can rest without losing awareness. I can notice my body becoming quiet while my attention remains open. For this time, I give myself permission simply to be here.",
+      "maxSeconds": 59.75,
+      "purpose": "affirmation foundation neutral",
+      "language": "en",
+      "version": 2,
+      "characters": 164,
+      "status": "approved-for-production",
+      "sourceSeconds": 11.6,
+      "decodedSeconds": 19.13997732426304,
+      "extraSilenceSeconds": 7.539977324263038,
+      "splices": [
+        {
+          "sourceFrame": 114653,
+          "seam": 4.05056766794587e-07,
+          "quietSeconds": 0.45,
+          "extraFrames": 123662,
+          "outputSeconds": 2.59984126984127
+        },
+        {
+          "sourceFrame": 321305,
+          "seam": 1.1674428606056608e-05,
+          "quietSeconds": 0.5,
+          "extraFrames": 137402,
+          "outputSeconds": 10.089954648526078
+        },
+        {
+          "sourceFrame": 377565,
+          "seam": 9.790872354642488e-06,
+          "quietSeconds": 0.26,
+          "extraFrames": 71449,
+          "outputSeconds": 14.48138321995465
+        }
+      ],
+      "sourceGenerationId": "AdFTukQm8JMB7QfWkQgb",
+      "credits": 164,
+      "sourceSha256": "9c96c07db6cf010c57af453ab674ce311596c6fce1b260cc77898d63dfaad41a",
+      "peak": 0.8252312541007996,
+      "assetId": "suite.affirmation.foundation.neutral.v2",
+      "decodedDurationSeconds": 19.13997732426304,
+      "sha256": "3c6dc84113d76de0a8ad5f1d278689f6c84d0dd11e2ff6a31313f9fe35c800cd",
+      "approved": true,
+      "localPath": "audio/voice/suite.affirmation.foundation.neutral.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 164,
+      "editedPcmSeconds": 19.13997732426304,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 19.13997732426304,
+          "peak": 0.7845383882522583,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 19.139958333333333,
+          "peak": 0.784226655960083,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 17.13,
+      "expectedCredits": 164,
+      "usage": "Selected intention at 12:12; section ends 14:00. Personal text is not synthesized."
+    },
+    {
+      "id": "suite.affirmation.foundation.spiritual.v2",
+      "script": "I am more than the concerns that occupy my ordinary day. I welcome a deeper knowing of myself, and I enter this quiet with gratitude. May whatever I discover be guided by wisdom, love and understanding.",
+      "maxSeconds": 59.75,
+      "purpose": "affirmation foundation spiritual",
+      "language": "en",
+      "version": 2,
+      "characters": 202,
+      "status": "approved-for-production",
+      "sourceSeconds": 14.4,
+      "decodedSeconds": 23.76,
+      "extraSilenceSeconds": 9.36,
+      "splices": [
+        {
+          "sourceFrame": 172849,
+          "seam": 4.874206069871434e-07,
+          "quietSeconds": 0.47000000000000003,
+          "extraFrames": 119021,
+          "outputSeconds": 3.9194784580498867
+        },
+        {
+          "sourceFrame": 297807,
+          "seam": 2.959291805382236e-06,
+          "quietSeconds": 0.34,
+          "extraFrames": 86101,
+          "outputSeconds": 9.451882086167801
+        },
+        {
+          "sourceFrame": 413601,
+          "seam": 2.4944372398749692e-06,
+          "quietSeconds": 0.49,
+          "extraFrames": 124086,
+          "outputSeconds": 14.03
+        },
+        {
+          "sourceFrame": 550366,
+          "seam": 4.15965223510284e-06,
+          "quietSeconds": 0.16,
+          "extraFrames": 40518,
+          "outputSeconds": 19.944988662131518
+        },
+        {
+          "sourceFrame": 582192,
+          "seam": 2.9986770186951617e-06,
+          "quietSeconds": 0.17,
+          "extraFrames": 43050,
+          "outputSeconds": 21.58544217687075
+        }
+      ],
+      "sourceGenerationId": "FhM5uEZ3weNOSxUMsbaV",
+      "credits": 202,
+      "sourceSha256": "0698f1468e503f541315ca1fe3fdcbb17762f786a6f7a814e421e6423752f9da",
+      "peak": 0.6184363961219788,
+      "assetId": "suite.affirmation.foundation.spiritual.v2",
+      "decodedDurationSeconds": 23.76,
+      "sha256": "7761c0c5e401383dc55135623a2a07dfe3f3e54adb55204c3b1651c8dc9b27e0",
+      "approved": true,
+      "localPath": "audio/voice/suite.affirmation.foundation.spiritual.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 202,
+      "editedPcmSeconds": 23.76,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 23.76,
+          "peak": 0.5877165794372559,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 23.76,
+          "peak": 0.5892962217330933,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 20.78,
+      "expectedCredits": 202,
+      "usage": "Selected intention at 12:12; section ends 14:00. Personal text is not synthesized."
+    },
+    {
+      "id": "suite.affirmation.beyond.neutral.v2",
+      "script": "I enter this experience with curiosity and steadiness. My attention can open beyond its familiar habits. I welcome what I notice, without needing to name it or force it to become something else.",
+      "maxSeconds": 59.75,
+      "purpose": "affirmation beyond neutral",
+      "language": "en",
+      "version": 2,
+      "characters": 194,
+      "status": "approved-for-production",
+      "sourceSeconds": 13.04,
+      "decodedSeconds": 21.516009070294785,
+      "extraSilenceSeconds": 8.476009070294785,
+      "splices": [
+        {
+          "sourceFrame": 184939,
+          "seam": 6.246386874408927e-06,
+          "quietSeconds": 0.61,
+          "extraFrames": 164038,
+          "outputSeconds": 4.193628117913832
+        },
+        {
+          "sourceFrame": 336897,
+          "seam": 2.8638005460379645e-06,
+          "quietSeconds": 0.58,
+          "extraFrames": 155971,
+          "outputSeconds": 11.35907029478458
+        },
+        {
+          "sourceFrame": 417258,
+          "seam": 4.128147793380776e-06,
+          "quietSeconds": 0.2,
+          "extraFrames": 53783,
+          "outputSeconds": 16.718072562358277
+        }
+      ],
+      "sourceGenerationId": "IVtT2rzXoYAsre9FaUJI",
+      "credits": 194,
+      "sourceSha256": "a92a75fe3110c2ac4fefa17fae4cbe22e5dddb79eff45af83557d1e57f8aa1cd",
+      "peak": 0.7876954674720764,
+      "assetId": "suite.affirmation.beyond.neutral.v2",
+      "decodedDurationSeconds": 21.516009070294785,
+      "sha256": "ca6c00f6c5d7a2dfabff0a5a307198488998101c9cb2f06f0db539184114b5de",
+      "approved": true,
+      "localPath": "audio/voice/suite.affirmation.beyond.neutral.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 194,
+      "editedPcmSeconds": 21.516009070294785,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 21.516009070294785,
+          "peak": 0.7475941181182861,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 21.516,
+          "peak": 0.7463747262954712,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 19.22,
+      "expectedCredits": 194,
+      "usage": "Selected intention at 12:12; section ends 14:00. Personal text is not synthesized."
+    },
+    {
+      "id": "suite.affirmation.beyond.spiritual.v2",
+      "script": "I enter this experience with an open heart and a clear intention. I welcome understanding beyond my usual perspective, and I am receptive to guidance that serves compassion, wisdom and growth.",
+      "maxSeconds": 59.75,
+      "purpose": "affirmation beyond spiritual",
+      "language": "en",
+      "version": 2,
+      "characters": 192,
+      "status": "approved-for-production",
+      "sourceSeconds": 13.2,
+      "decodedSeconds": 20.944013605442176,
+      "extraSilenceSeconds": 7.744013605442177,
+      "splices": [
+        {
+          "sourceFrame": 201350,
+          "seam": 2.1882797227590345e-06,
+          "quietSeconds": 0.62,
+          "extraFrames": 176400,
+          "outputSeconds": 4.565759637188209
+        },
+        {
+          "sourceFrame": 367882,
+          "seam": 1.8307662685401738e-05,
+          "quietSeconds": 0.27,
+          "extraFrames": 92875,
+          "outputSeconds": 12.341995464852607
+        },
+        {
+          "sourceFrame": 507784,
+          "seam": 7.753048521408346e-06,
+          "quietSeconds": 0.21,
+          "extraFrames": 72236,
+          "outputSeconds": 17.620385487528345
+        }
+      ],
+      "sourceGenerationId": "URmyEfmvD58LWPuQ8kDp",
+      "credits": 192,
+      "sourceSha256": "e7334a59f2823f462ea8bb5e941c85e4b22ef520c2587a44c1c287c48db76dda",
+      "peak": 0.7505752444267273,
+      "assetId": "suite.affirmation.beyond.spiritual.v2",
+      "decodedDurationSeconds": 20.944013605442176,
+      "sha256": "654848026be78e34f045029c1c638e2215c4196b2f355843d18facf66f1f3924",
+      "approved": true,
+      "localPath": "audio/voice/suite.affirmation.beyond.spiritual.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 192,
+      "editedPcmSeconds": 20.944013605442176,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 20.944013605442176,
+          "peak": 0.7113556265830994,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 20.944,
+          "peak": 0.7106096744537354,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 18.17,
+      "expectedCredits": 192,
+      "usage": "Selected intention at 12:12; section ends 14:00. Personal text is not synthesized."
+    },
+    {
+      "id": "suite.affirmation.personal.prompt.v2",
+      "script": "Now, take a little time for your own affirmation. Speak it quietly, or let the words form in your mind.",
+      "maxSeconds": 59.75,
+      "purpose": "affirmation personal prompt",
+      "language": "en",
+      "version": 2,
+      "characters": 103,
+      "status": "approved-for-production",
+      "sourceSeconds": 7.28,
+      "decodedSeconds": 12.011995464852607,
+      "extraSilenceSeconds": 4.7319954648526075,
+      "splices": [
+        {
+          "sourceFrame": 141377,
+          "seam": 8.761747267271858e-06,
+          "quietSeconds": 0.56,
+          "extraFrames": 129846,
+          "outputSeconds": 3.205827664399093
+        },
+        {
+          "sourceFrame": 214434,
+          "seam": 4.645944954972947e-06,
+          "quietSeconds": 0.34,
+          "extraFrames": 78835,
+          "outputSeconds": 7.806802721088435
+        }
+      ],
+      "sourceGenerationId": "aoKvv57fM8ErejDxbdJM",
+      "credits": 103,
+      "sourceSha256": "8718131a916d7de90b87f921bb013a3d1a847ce179933fff6f298396085df2eb",
+      "peak": 0.5992729067802429,
+      "assetId": "suite.affirmation.personal.prompt.v2",
+      "decodedDurationSeconds": 12.011995464852607,
+      "sha256": "3333d7ec24b761b30372d211b0902d96e2d444c406087bf16c0382a017447566",
+      "approved": true,
+      "localPath": "audio/voice/suite.affirmation.personal.prompt.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 103,
+      "editedPcmSeconds": 12.011995464852607,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 12.011995464852607,
+          "peak": 0.5705693364143372,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 12.011979166666666,
+          "peak": 0.5748895406723022,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 12.43,
+      "expectedCredits": 103,
+      "usage": "Selected intention at 12:12; section ends 14:00. Personal text is not synthesized."
+    },
+    {
+      "id": "suite.entry.guided.v2",
+      "script": "The preparation is complete. Let your intention remain quietly with you. There's nothing more to arrange. Let the sounds unfold, and see where your attention goes.",
+      "maxSeconds": 39.75,
+      "purpose": "entry guided",
+      "language": "en",
+      "version": 2,
+      "characters": 163,
+      "status": "approved-for-production",
+      "sourceSeconds": 10.56,
+      "decodedSeconds": 17.424739229024944,
+      "extraSilenceSeconds": 6.864013605442177,
+      "splices": [
+        {
+          "sourceFrame": 95406,
+          "seam": 2.440194975861232e-06,
+          "quietSeconds": 0.51,
+          "extraFrames": 86245,
+          "outputSeconds": 2.1634013605442175
+        },
+        {
+          "sourceFrame": 217726,
+          "seam": 7.769663170620333e-06,
+          "quietSeconds": 0.56,
+          "extraFrames": 94700,
+          "outputSeconds": 6.892766439909297
+        },
+        {
+          "sourceFrame": 302969,
+          "seam": 9.742283509694971e-06,
+          "quietSeconds": 0.49,
+          "extraFrames": 82863,
+          "outputSeconds": 10.973106575963719
+        },
+        {
+          "sourceFrame": 382253,
+          "seam": 4.539400833891705e-06,
+          "quietSeconds": 0.23,
+          "extraFrames": 38895,
+          "outputSeconds": 14.649909297052154
+        }
+      ],
+      "sourceGenerationId": "ohvHLrxdwNhtOQZO4DGS",
+      "credits": 163,
+      "sourceSha256": "3a3ca1819562cfc4c6deb8de02e29a9dcfb55fce9a303cfc5ce4bbfaa1734004",
+      "peak": 0.809114396572113,
+      "assetId": "suite.entry.guided.v2",
+      "decodedDurationSeconds": 17.424739229024944,
+      "sha256": "cab3efa1529dfca34d731202be35799b44fe114594e3bece8397525c67eaa798",
+      "approved": true,
+      "localPath": "audio/voice/suite.entry.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 163,
+      "editedPcmSeconds": 17.424013605442177,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 17.424739229024944,
+          "peak": 0.7701445817947388,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 17.424729166666665,
+          "peak": 0.7686588764190674,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 15.57,
+      "expectedCredits": 163,
+      "usage": "14:00–14:40; quiet blend into Threshold 14:40–15:00."
+    },
+    {
+      "id": "suite.entry.familiar.v2",
+      "script": "Leave the preparation behind now. Rest, and listen.",
+      "maxSeconds": 39.75,
+      "purpose": "entry familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 51,
+      "status": "approved-for-production",
+      "sourceSeconds": 4.32,
+      "decodedSeconds": 7.127981859410431,
+      "extraSilenceSeconds": 2.8079818594104307,
+      "splices": [
+        {
+          "sourceFrame": 101601,
+          "seam": 5.75325611862354e-06,
+          "quietSeconds": 0.42,
+          "extraFrames": 60476,
+          "outputSeconds": 2.3038775510204084
+        },
+        {
+          "sourceFrame": 148677,
+          "seam": 3.630923174569034e-06,
+          "quietSeconds": 0.44,
+          "extraFrames": 63356,
+          "outputSeconds": 4.742698412698413
+        }
+      ],
+      "sourceGenerationId": "Igzj0HHlLiM1c2Qoyr3D",
+      "credits": 51,
+      "sourceSha256": "ff35327fe9fde2f695f9f41c786d17b5512077fae70a696d52f0d07c4fdd4d0d",
+      "peak": 0.7424018979072571,
+      "assetId": "suite.entry.familiar.v2",
+      "decodedDurationSeconds": 7.127981859410431,
+      "sha256": "5af512559635bd92fbe4d54622809234802f30a3fdbe9d494e01043e0f648889",
+      "approved": true,
+      "localPath": "audio/voice/suite.entry.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 51,
+      "editedPcmSeconds": 7.127981859410431,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 7.127981859410431,
+          "peak": 0.6954455971717834,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 7.127979166666667,
+          "peak": 0.6964656114578247,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 6.17,
+      "expectedCredits": 51,
+      "usage": "14:00–14:40; quiet blend into Threshold 14:40–15:00."
+    },
+    {
+      "id": "suite.threshold.guided.v2",
+      "script": "Allow your body to rest while your awareness stays gently awake. There's nothing you need to make happen. Simply notice the stillness, and whatever appears within it.",
+      "maxSeconds": 29.75,
+      "purpose": "threshold guided",
+      "language": "en",
+      "version": 2,
+      "characters": 166,
+      "status": "approved-for-production",
+      "sourceSeconds": 10.8,
+      "decodedSeconds": 17.81997732426304,
+      "extraSilenceSeconds": 7.0199773242630386,
+      "splices": [
+        {
+          "sourceFrame": 202317,
+          "seam": 5.295561891216494e-07,
+          "quietSeconds": 0.54,
+          "extraFrames": 133739,
+          "outputSeconds": 4.587687074829932
+        },
+        {
+          "sourceFrame": 305850,
+          "seam": 1.1382581760699395e-05,
+          "quietSeconds": 0.49,
+          "extraFrames": 121356,
+          "outputSeconds": 9.968004535147392
+        },
+        {
+          "sourceFrame": 396395,
+          "seam": 3.1188576485874364e-06,
+          "quietSeconds": 0.22,
+          "extraFrames": 54486,
+          "outputSeconds": 14.773015873015874
+        }
+      ],
+      "sourceGenerationId": "PDyBSS4T8JQ6MQtybsqP",
+      "credits": 166,
+      "sourceSha256": "104697cef4d2a12c4d36cf365b0b7a7285b5ea0f948ee301db86d31da3a3a84f",
+      "peak": 0.660167932510376,
+      "assetId": "suite.threshold.guided.v2",
+      "decodedDurationSeconds": 17.81997732426304,
+      "sha256": "d66599c27305e3ab7217e20d4de0d58061f8680ab8ec6db381234c8a6f56512d",
+      "approved": true,
+      "localPath": "audio/voice/suite.threshold.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 166,
+      "editedPcmSeconds": 17.81997732426304,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 17.81997732426304,
+          "peak": 0.6244681477546692,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 17.819958333333332,
+          "peak": 0.6243591904640198,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 16.09,
+      "expectedCredits": 166,
+      "usage": "15:00–15:30, both full journeys."
+    },
+    {
+      "id": "suite.threshold.familiar.v2",
+      "script": "Rest here. Quietly aware.",
+      "maxSeconds": 29.75,
+      "purpose": "threshold familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 25,
+      "status": "approved-for-production",
+      "sourceSeconds": 2.96,
+      "decodedSeconds": 4.883990929705216,
+      "extraSilenceSeconds": 1.9239909297052153,
+      "splices": [
+        {
+          "sourceFrame": 56965,
+          "seam": 3.6148555864201626e-06,
+          "quietSeconds": 0.54,
+          "extraFrames": 84848,
+          "outputSeconds": 1.2917233560090704
+        }
+      ],
+      "sourceGenerationId": "2yMKwahBlzBU9PPI2Ufs",
+      "credits": 25,
+      "sourceSha256": "edacdd6ae2962c73c81067f6cc5930934f827a77b32be53ba636ef64ee0f272c",
+      "peak": 0.5947948694229126,
+      "assetId": "suite.threshold.familiar.v2",
+      "decodedDurationSeconds": 4.883990929705216,
+      "sha256": "05ef2ae89ff1362a0212a6b5f27acc0571d14f634784af37ad546eb6774ed7a4",
+      "approved": true,
+      "localPath": "audio/voice/suite.threshold.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 25,
+      "editedPcmSeconds": 4.883990929705216,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 4.883990929705216,
+          "peak": 0.563819944858551,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 4.883979166666666,
+          "peak": 0.5649049878120422,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 4.09,
+      "expectedCredits": 25,
+      "usage": "15:00–15:30, both full journeys."
+    },
+    {
+      "id": "suite.expansion.guided.v2",
+      "script": "Now let your attention become a little more spacious. There's no particular place to reach. Let your awareness open, and notice what comes.",
+      "maxSeconds": 29.75,
+      "purpose": "expansion guided",
+      "language": "en",
+      "version": 2,
+      "characters": 139,
+      "status": "approved-for-production",
+      "sourceSeconds": 9.04,
+      "decodedSeconds": 14.916984126984127,
+      "extraSilenceSeconds": 5.875986394557823,
+      "splices": [
+        {
+          "sourceFrame": 152835,
+          "seam": 7.151214958867058e-06,
+          "quietSeconds": 0.51,
+          "extraFrames": 148491,
+          "outputSeconds": 3.4656462585034014
+        },
+        {
+          "sourceFrame": 261705,
+          "seam": 4.437407824298134e-06,
+          "quietSeconds": 0.19,
+          "extraFrames": 55320,
+          "outputSeconds": 9.301496598639456
+        },
+        {
+          "sourceFrame": 336032,
+          "seam": 6.973564723011805e-06,
+          "quietSeconds": 0.19,
+          "extraFrames": 55320,
+          "outputSeconds": 12.241337868480725
+        }
+      ],
+      "sourceGenerationId": "IBfroqjfU2ZxSsW0oOIr",
+      "credits": 139,
+      "sourceSha256": "c3e2a8f80068c624dc3969c06d005fa3f5b60549434d3dcb40b25b0544c7c965",
+      "peak": 0.6515810489654541,
+      "assetId": "suite.expansion.guided.v2",
+      "decodedDurationSeconds": 14.916984126984127,
+      "sha256": "d71d75faefef32ee65395c43b00fe02c7d34cca0f5c15d15641cd8cffa525d39",
+      "approved": true,
+      "localPath": "audio/voice/suite.expansion.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 139,
+      "editedPcmSeconds": 14.915986394557823,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 14.916984126984127,
+          "peak": 0.6195144057273865,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 14.916979166666666,
+          "peak": 0.6160184144973755,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 14.0,
+      "expectedCredits": 139,
+      "usage": "Beyond 25:16–25:46, after the full bowl."
+    },
+    {
+      "id": "suite.expansion.familiar.v2",
+      "script": "Let the space open.",
+      "maxSeconds": 29.75,
+      "purpose": "expansion familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 19,
+      "status": "approved-for-production",
+      "sourceSeconds": 1.92,
+      "decodedSeconds": 1.92,
+      "extraSilenceSeconds": 0,
+      "splices": [],
+      "sourceGenerationId": "FlkjAmovsW9Sr43wVqxX",
+      "credits": 19,
+      "sourceSha256": "08d397468ba27696f9baa55dc5d767378b0cabb9ca376c9202e21ae4fece9ace",
+      "peak": 0.4993475377559662,
+      "assetId": "suite.expansion.familiar.v2",
+      "decodedDurationSeconds": 1.92,
+      "sha256": "ccacf83d9a2f64cefdb8b5d4e14d8db053ae2ca866fc49675bd098324ad70222",
+      "approved": true,
+      "localPath": "audio/voice/suite.expansion.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 19,
+      "editedPcmSeconds": 1.92,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 1.92,
+          "peak": 0.4733918309211731,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 1.92,
+          "peak": 0.47440940141677856,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 4.09,
+      "expectedCredits": 19,
+      "usage": "Beyond 25:16–25:46, after the full bowl."
+    },
+    {
+      "id": "suite.timeless.guided.v2",
+      "script": "For a while, release the need to measure time. There's nothing to anticipate. Be with whatever this moment becomes.",
+      "maxSeconds": 29.75,
+      "purpose": "timeless guided",
+      "language": "en",
+      "version": 2,
+      "characters": 115,
+      "status": "approved-for-production",
+      "sourceSeconds": 8.16,
+      "decodedSeconds": 13.463990929705215,
+      "extraSilenceSeconds": 5.303990929705216,
+      "splices": [
+        {
+          "sourceFrame": 45718,
+          "seam": 2.118871407219558e-06,
+          "quietSeconds": 0.23,
+          "extraFrames": 66418,
+          "outputSeconds": 1.036689342403628
+        },
+        {
+          "sourceFrame": 155514,
+          "seam": 6.953274350962602e-06,
+          "quietSeconds": 0.41000000000000003,
+          "extraFrames": 118397,
+          "outputSeconds": 5.0324716553287985
+        },
+        {
+          "sourceFrame": 244585,
+          "seam": 5.183275334275095e-06,
+          "quietSeconds": 0.17,
+          "extraFrames": 49091,
+          "outputSeconds": 9.736961451247165
+        }
+      ],
+      "sourceGenerationId": "zE41FmgOPK2c3be1GzCK",
+      "credits": 115,
+      "sourceSha256": "4f760781cbad674d9c29c2024f217914f9e02d4864049065e80dd81102d1d3af",
+      "peak": 0.6499812006950378,
+      "assetId": "suite.timeless.guided.v2",
+      "decodedDurationSeconds": 13.463990929705215,
+      "sha256": "e6443d2c76216e0f356789593470b7590ebc5f1fd14d7ace5f7396f6563277a8",
+      "approved": true,
+      "localPath": "audio/voice/suite.timeless.guided.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 115,
+      "editedPcmSeconds": 13.463990929705215,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 13.463990929705215,
+          "peak": 0.6174157857894897,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 13.463979166666666,
+          "peak": 0.6193231344223022,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 11.91,
+      "expectedCredits": 115,
+      "usage": "Beyond 37:16–37:46, after the full bowl."
+    },
+    {
+      "id": "suite.timeless.familiar.v2",
+      "script": "Let go of the clock for a while.",
+      "maxSeconds": 29.75,
+      "purpose": "timeless familiar",
+      "language": "en",
+      "version": 2,
+      "characters": 32,
+      "status": "approved-for-production",
+      "sourceSeconds": 2.16,
+      "decodedSeconds": 2.16,
+      "extraSilenceSeconds": 0,
+      "splices": [],
+      "sourceGenerationId": "ho7vEwodXPncFFrBFOKs",
+      "credits": 32,
+      "sourceSha256": "e0daa50d9abe8268172784f6cc00efff01ec47c145c6feff8f924a3ad0b6c1e4",
+      "peak": 0.6182813048362732,
+      "assetId": "suite.timeless.familiar.v2",
+      "decodedDurationSeconds": 2.16,
+      "sha256": "317d8f97631b91a0daecf182d4115932b2319e79f8642cf272e6d77ea9ff80cd",
+      "approved": true,
+      "localPath": "audio/voice/suite.timeless.familiar.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 32,
+      "editedPcmSeconds": 2.16,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 2.16,
+          "peak": 0.5860844254493713,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 2.16,
+          "peak": 0.587235689163208,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 6.17,
+      "expectedCredits": 32,
+      "usage": "Beyond 37:16–37:46, after the full bowl."
+    },
+    {
+      "id": "suite.return.arrive.v2",
+      "script": "Begin noticing the room around you again. There's no need to hurry. Let your attention settle back into the body resting here.",
+      "maxSeconds": 59.75,
+      "purpose": "return arrive",
+      "language": "en",
+      "version": 2,
+      "characters": 126,
+      "status": "approved-for-production",
+      "sourceSeconds": 7.84,
+      "decodedSeconds": 12.935986394557823,
+      "extraSilenceSeconds": 5.095986394557823,
+      "splices": [
+        {
+          "sourceFrame": 114211,
+          "seam": 5.935482477070764e-06,
+          "quietSeconds": 0.48,
+          "extraFrames": 102735,
+          "outputSeconds": 2.5898185941043086
+        },
+        {
+          "sourceFrame": 181971,
+          "seam": 1.6204503481276333e-06,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 121998,
+          "outputSeconds": 6.455918367346939
+        }
+      ],
+      "sourceGenerationId": "NnEQpKZCLqnWcHHE1JxM",
+      "credits": 126,
+      "sourceSha256": "aa34322f5224e8eb6eee10cc3a01053dfd28c4c0b061b758644c9e66f79e9827",
+      "peak": 0.5673859119415283,
+      "assetId": "suite.return.arrive.v2",
+      "decodedDurationSeconds": 12.935986394557823,
+      "sha256": "3d3671cc7fe0c9e0d0bad7a7b146b634a1db6b4d8d930cddd188fcda9871ae63",
+      "approved": true,
+      "localPath": "audio/voice/suite.return.arrive.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 126,
+      "editedPcmSeconds": 12.935986394557823,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 12.935986394557823,
+          "peak": 0.5406672358512878,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 12.935979166666666,
+          "peak": 0.5410821437835693,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 13.48,
+      "expectedCredits": 126,
+      "usage": "30:00 / 45:00 for Foundation / Beyond; 60-second slot. Rehearsal uses return +0/+60/+120."
+    },
+    {
+      "id": "suite.return.body.v2",
+      "script": "Feel the support beneath you. Notice your hands and feet. When you're ready, begin to move them gently.",
+      "maxSeconds": 59.75,
+      "purpose": "return body",
+      "language": "en",
+      "version": 2,
+      "characters": 103,
+      "status": "approved-for-production",
+      "sourceSeconds": 7.28,
+      "decodedSeconds": 12.011995464852607,
+      "extraSilenceSeconds": 4.7319954648526075,
+      "splices": [
+        {
+          "sourceFrame": 87250,
+          "seam": 1.7389193089911714e-06,
+          "quietSeconds": 0.6,
+          "extraFrames": 80262,
+          "outputSeconds": 1.9784580498866213
+        },
+        {
+          "sourceFrame": 189004,
+          "seam": 4.0069275542009564e-07,
+          "quietSeconds": 0.63,
+          "extraFrames": 84275,
+          "outputSeconds": 6.105804988662132
+        },
+        {
+          "sourceFrame": 246131,
+          "seam": 5.683465133188292e-06,
+          "quietSeconds": 0.33,
+          "extraFrames": 44144,
+          "outputSeconds": 9.31219954648526
+        }
+      ],
+      "sourceGenerationId": "BFiABQFbu4yaY29KBCe3",
+      "credits": 103,
+      "sourceSha256": "c6108b8621f1a0a7caf804f1691926dce852732beb6d3347dcd57da037918a0b",
+      "peak": 0.7069628238677979,
+      "assetId": "suite.return.body.v2",
+      "decodedDurationSeconds": 12.011995464852607,
+      "sha256": "c4b9230d8d2db51de234f607197a98e0ef8adc3ece81170af66a2ac42da75d4a",
+      "approved": true,
+      "localPath": "audio/voice/suite.return.body.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 103,
+      "editedPcmSeconds": 12.011995464852607,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 12.011995464852607,
+          "peak": 0.669848620891571,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 12.011979166666666,
+          "peak": 0.6690202355384827,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 11.39,
+      "expectedCredits": 103,
+      "usage": "31:00 / 46:00 for Foundation / Beyond; 60-second slot. Rehearsal uses return +0/+60/+120."
+    },
+    {
+      "id": "suite.return.open.v2",
+      "script": "Take a comfortable breath. Open your eyes when you're ready, and notice the room. Bring whatever feels useful with you into the rest of your day.",
+      "maxSeconds": 59.75,
+      "purpose": "return open",
+      "language": "en",
+      "version": 2,
+      "characters": 145,
+      "status": "approved-for-production",
+      "sourceSeconds": 8.96,
+      "decodedSeconds": 14.783990929705215,
+      "extraSilenceSeconds": 5.823990929705215,
+      "splices": [
+        {
+          "sourceFrame": 82083,
+          "seam": 2.298043000337202e-06,
+          "quietSeconds": 0.46,
+          "extraFrames": 87515,
+          "outputSeconds": 1.8612925170068026
+        },
+        {
+          "sourceFrame": 159562,
+          "seam": 8.219109986384865e-06,
+          "quietSeconds": 0.2,
+          "extraFrames": 38050,
+          "outputSeconds": 5.60265306122449
+        },
+        {
+          "sourceFrame": 222520,
+          "seam": 2.8638589810725534e-07,
+          "quietSeconds": 0.6900000000000001,
+          "extraFrames": 131273,
+          "outputSeconds": 7.893083900226757
+        }
+      ],
+      "sourceGenerationId": "AEjOYzuX6tItf48aABmP",
+      "credits": 145,
+      "sourceSha256": "93ef0a6a727b946a12716d2e4fe33288d0e8083ff9519189848326fe607adbbf",
+      "peak": 0.6104516983032227,
+      "assetId": "suite.return.open.v2",
+      "decodedDurationSeconds": 14.783990929705215,
+      "sha256": "697f8e38c9232a73137516156f9de01841c6d95650f1ca44af2cdbb28131bc63",
+      "approved": true,
+      "localPath": "audio/voice/suite.return.open.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 145,
+      "editedPcmSeconds": 14.783990929705215,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 14.783990929705215,
+          "peak": 0.5788976550102234,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 14.783979166666667,
+          "peak": 0.5804364085197449,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 15.57,
+      "expectedCredits": 145,
+      "usage": "32:00 / 47:00 for Foundation / Beyond; 60-second slot. Rehearsal uses return +0/+60/+120."
+    },
+    {
+      "id": "suite.body.face.v2",
+      "script": "With the next few exhales, let your forehead, eyes and jaw soften.",
+      "maxSeconds": 7.75,
+      "purpose": "body face",
+      "language": "en",
+      "version": 2,
+      "characters": 66,
+      "status": "approved-for-production",
+      "sourceSeconds": 5.44,
+      "decodedSeconds": 5.44,
+      "extraSilenceSeconds": 0,
+      "splices": [],
+      "sourceGenerationId": "NzKVZmubzVxOxpsIFMiK",
+      "credits": 66,
+      "sourceSha256": "8393cf70f959390761457d49aa9a6685a73c234372e690ea961f0b2af5d301b5",
+      "peak": 0.6289454698562622,
+      "assetId": "suite.body.face.v2",
+      "decodedDurationSeconds": 5.44,
+      "sha256": "6e357c760af2cc9d3efe4380988e8a95a794907a485f928cf0f8e9f4816fa247",
+      "approved": true,
+      "localPath": "audio/voice/suite.body.face.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 66,
+      "editedPcmSeconds": 5.44,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 5.44,
+          "peak": 0.5982417464256287,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 5.44,
+          "peak": 0.5971083045005798,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 8.26,
+      "expectedCredits": 66,
+      "usage": "Regional cue at 02:25; 8-second 4/4/6 or 10-second other-pattern slot."
+    },
+    {
+      "id": "suite.body.shoulders.v2",
+      "script": "Let your shoulders settle. Give your arms and hands permission to rest.",
+      "maxSeconds": 7.75,
+      "purpose": "body shoulders",
+      "language": "en",
+      "version": 2,
+      "characters": 71,
+      "status": "approved-for-production",
+      "sourceSeconds": 5.12,
+      "decodedSeconds": 6.92,
+      "extraSilenceSeconds": 1.8,
+      "splices": [
+        {
+          "sourceFrame": 80691,
+          "seam": 5.913051154493587e-06,
+          "quietSeconds": 0.46,
+          "extraFrames": 79380,
+          "outputSeconds": 1.8297278911564625
+        }
+      ],
+      "sourceGenerationId": "qWLuUcRUO2CRXGsgAhT8",
+      "credits": 71,
+      "sourceSha256": "76b4856112fdd554e6945a5cd68ec8ae7958dbcfe536769f8f0440d5337c4b99",
+      "peak": 0.5481353998184204,
+      "assetId": "suite.body.shoulders.v2",
+      "decodedDurationSeconds": 6.92,
+      "sha256": "ff0d184fb9d874a7de0f26dd06b3e9a2e2774f45aa29bb867d03e42a29b6df15",
+      "approved": true,
+      "localPath": "audio/voice/suite.body.shoulders.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 71,
+      "editedPcmSeconds": 6.92,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 6.92,
+          "peak": 0.5200302004814148,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 6.92,
+          "peak": 0.5182608962059021,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 8.26,
+      "expectedCredits": 71,
+      "usage": "Regional cue at 03:15; 8-second 4/4/6 or 10-second other-pattern slot."
+    },
+    {
+      "id": "suite.body.breath.v2",
+      "script": "Notice the movement of your ribs and abdomen. Let the exhale happen without effort.",
+      "maxSeconds": 7.75,
+      "purpose": "body breath",
+      "language": "en",
+      "version": 2,
+      "characters": 83,
+      "status": "approved-for-production",
+      "sourceSeconds": 5.92,
+      "decodedSeconds": 7.72,
+      "extraSilenceSeconds": 1.8,
+      "splices": [
+        {
+          "sourceFrame": 138191,
+          "seam": 5.533030616788892e-06,
+          "quietSeconds": 0.5,
+          "extraFrames": 79380,
+          "outputSeconds": 3.1335827664399094
+        }
+      ],
+      "sourceGenerationId": "WqcY1sF1AlzJhYX19UM1",
+      "credits": 83,
+      "sourceSha256": "6d30bedbb033b9e6f5f529ae354a0dcdf9be6e71f9fc5cca70f002f245237a14",
+      "peak": 0.6676117181777954,
+      "assetId": "suite.body.breath.v2",
+      "decodedDurationSeconds": 7.72,
+      "sha256": "edf0eda6d343436f3f5198d51d4c944e3129a876668ff9a0d172734d287e0b71",
+      "approved": true,
+      "localPath": "audio/voice/suite.body.breath.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 83,
+      "editedPcmSeconds": 7.72,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 7.72,
+          "peak": 0.6331652402877808,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 7.72,
+          "peak": 0.6328384280204773,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 9.3,
+      "expectedCredits": 83,
+      "usage": "Regional cue at 04:05; 8-second 4/4/6 or 10-second other-pattern slot."
+    },
+    {
+      "id": "suite.body.back.v2",
+      "script": "Feel the support beneath your back and hips. Let yourself be held by it.",
+      "maxSeconds": 7.75,
+      "purpose": "body back",
+      "language": "en",
+      "version": 2,
+      "characters": 72,
+      "status": "approved-for-production",
+      "sourceSeconds": 5.2,
+      "decodedSeconds": 7,
+      "extraSilenceSeconds": 1.8,
+      "splices": [
+        {
+          "sourceFrame": 137747,
+          "seam": 5.557271833822597e-06,
+          "quietSeconds": 0.46,
+          "extraFrames": 79380,
+          "outputSeconds": 3.123514739229025
+        }
+      ],
+      "sourceGenerationId": "ZXjNEBlfyjDCwvChM1ym",
+      "credits": 72,
+      "sourceSha256": "007bc649bf521b0e59def51313182041b96cd474ee74931cdf009483d1e7b7a0",
+      "peak": 0.4267445206642151,
+      "assetId": "suite.body.back.v2",
+      "decodedDurationSeconds": 7,
+      "sha256": "30813ffb1be44bf7d2fa0c37e099a925c5250042f4be5b36c1d96512388342d2",
+      "approved": true,
+      "localPath": "audio/voice/suite.body.back.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 72,
+      "editedPcmSeconds": 7,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 7,
+          "peak": 0.4044533967971802,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 7,
+          "peak": 0.40357279777526855,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 9.3,
+      "expectedCredits": 72,
+      "usage": "Regional cue at 04:55; 8-second 4/4/6 or 10-second other-pattern slot."
+    },
+    {
+      "id": "suite.body.legs.v2",
+      "script": "Let that softness travel through your legs, all the way to your feet.",
+      "maxSeconds": 7.75,
+      "purpose": "body legs",
+      "language": "en",
+      "version": 2,
+      "characters": 69,
+      "status": "approved-for-production",
+      "sourceSeconds": 4.64,
+      "decodedSeconds": 4.64,
+      "extraSilenceSeconds": 0,
+      "splices": [],
+      "sourceGenerationId": "NyFoINpHRllHwexOB0KB",
+      "credits": 69,
+      "sourceSha256": "52aa7729d0dbd8bcb388ab322d6dd8f91fb857151e07f64dad31ac9cb34dbb79",
+      "peak": 0.5123611092567444,
+      "assetId": "suite.body.legs.v2",
+      "decodedDurationSeconds": 4.64,
+      "sha256": "1e7670de3eae6668d56cfd6829b7bc3925c1d8cc0ce2510865c78eab274bf084",
+      "approved": true,
+      "localPath": "audio/voice/suite.body.legs.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 69,
+      "editedPcmSeconds": 4.64,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 4.64,
+          "peak": 0.48399731516838074,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 4.64,
+          "peak": 0.48379582166671753,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 8.78,
+      "expectedCredits": 69,
+      "usage": "Regional cue at 05:45; 8-second 4/4/6 or 10-second other-pattern slot."
+    },
+    {
+      "id": "suite.learn.intro.v2",
+      "script": "We'll learn a simple way to prepare. Set concerns aside, settle the body with breathing, create resonance with your own voice, form a surrounding field, choose an intention, then become quiet. We'll practice each part separately.",
+      "maxSeconds": 45,
+      "purpose": "learn intro",
+      "language": "en",
+      "version": 2,
+      "characters": 229,
+      "status": "approved-for-production",
+      "sourceSeconds": 16.24,
+      "decodedSeconds": 26.795986394557822,
+      "extraSilenceSeconds": 10.555986394557824,
+      "splices": [
+        {
+          "sourceFrame": 101650,
+          "seam": 2.7519872674020007e-06,
+          "quietSeconds": 0.46,
+          "extraFrames": 71859,
+          "outputSeconds": 2.304988662131519
+        },
+        {
+          "sourceFrame": 173793,
+          "seam": 9.589220098860096e-06,
+          "quietSeconds": 0.31,
+          "extraFrames": 48427,
+          "outputSeconds": 5.570340136054422
+        },
+        {
+          "sourceFrame": 255768,
+          "seam": 7.568716682726517e-06,
+          "quietSeconds": 0.22,
+          "extraFrames": 34367,
+          "outputSeconds": 8.527301587301586
+        },
+        {
+          "sourceFrame": 381538,
+          "seam": 6.021921308274614e-06,
+          "quietSeconds": 0.46,
+          "extraFrames": 71859,
+          "outputSeconds": 12.158526077097505
+        },
+        {
+          "sourceFrame": 467802,
+          "seam": 9.293777111452073e-06,
+          "quietSeconds": 0.5,
+          "extraFrames": 78107,
+          "outputSeconds": 15.744081632653062
+        },
+        {
+          "sourceFrame": 541313,
+          "seam": 3.4858082926803036e-06,
+          "quietSeconds": 0.37,
+          "extraFrames": 57799,
+          "outputSeconds": 19.182131519274375
+        },
+        {
+          "sourceFrame": 566169,
+          "seam": 1.0359795851400122e-05,
+          "quietSeconds": 0.17,
+          "extraFrames": 26556,
+          "outputSeconds": 21.05639455782313
+        },
+        {
+          "sourceFrame": 614312,
+          "seam": 1.7242645071746665e-06,
+          "quietSeconds": 0.49,
+          "extraFrames": 76545,
+          "outputSeconds": 22.750249433106575
+        }
+      ],
+      "sourceGenerationId": "0Wcp6nBoBOyZI02O8Vqc",
+      "credits": 229,
+      "sourceSha256": "388094cccbf00a18b2e7ef436d546bc7e1db51d1089a83f264a405ee16e07f65",
+      "peak": 0.8911657929420471,
+      "assetId": "suite.learn.intro.v2",
+      "decodedDurationSeconds": 26.795986394557822,
+      "sha256": "4d78af888e6eea59c8af9f868414df9f37e6bf4a029756865a6c2cd62ed24e7d",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.intro.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 229,
+      "editedPcmSeconds": 26.795986394557822,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 26.795986394557822,
+          "peak": 0.8491248488426208,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 26.795979166666665,
+          "peak": 0.848893940448761,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 20.78,
+      "expectedCredits": 229,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.learn.ecb.v2",
+      "script": "Your box can take any form. Give it a lid or a door, make it yours, then place something distracting inside. You can open it again later.",
+      "maxSeconds": 45,
+      "purpose": "learn ecb",
+      "language": "en",
+      "version": 2,
+      "characters": 137,
+      "status": "approved-for-production",
+      "sourceSeconds": 9.04,
+      "decodedSeconds": 14.916984126984127,
+      "extraSilenceSeconds": 5.875986394557823,
+      "splices": [
+        {
+          "sourceFrame": 83892,
+          "seam": 4.139308202866232e-06,
+          "quietSeconds": 0.27,
+          "extraFrames": 82312,
+          "outputSeconds": 1.9023129251700681
+        },
+        {
+          "sourceFrame": 167988,
+          "seam": 7.10654467184213e-06,
+          "quietSeconds": 0.23,
+          "extraFrames": 70118,
+          "outputSeconds": 5.675736961451247
+        },
+        {
+          "sourceFrame": 327120,
+          "seam": 2.547271606090362e-06,
+          "quietSeconds": 0.35000000000000003,
+          "extraFrames": 106701,
+          "outputSeconds": 10.874149659863946
+        }
+      ],
+      "sourceGenerationId": "jlphjeID4xJwdZYTiA4q",
+      "credits": 137,
+      "sourceSha256": "3ee5bd2c83de12a5024d7c7e9d9ad8b7af0cc4cd529747274f8c2d2e54eaf5f6",
+      "peak": 0.7964950799942017,
+      "assetId": "suite.learn.ecb.v2",
+      "decodedDurationSeconds": 14.916984126984127,
+      "sha256": "6a84e8e80e478b8ee45c8d4e050d4b19c995f8bf86fafde94294ac8c8281b67e",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.ecb.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 137,
+      "editedPcmSeconds": 14.915986394557823,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 14.916984126984127,
+          "peak": 0.7577771544456482,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 14.916979166666666,
+          "peak": 0.7569360136985779,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 16.09,
+      "expectedCredits": 137,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.learn.breath.v2",
+      "script": "Rising notes mean inhale. Repeated notes at one pitch mean hold. Falling notes mean exhale. Between groups of breaths, a short invitation helps you release another region of the body. The counting remains in the music.",
+      "maxSeconds": 45,
+      "purpose": "learn breath",
+      "language": "en",
+      "version": 2,
+      "characters": 218,
+      "status": "approved-for-production",
+      "sourceSeconds": 15.04,
+      "decodedSeconds": 24.81598639455782,
+      "extraSilenceSeconds": 9.775986394557822,
+      "splices": [
+        {
+          "sourceFrame": 91698,
+          "seam": 6.901175765960943e-06,
+          "quietSeconds": 0.56,
+          "extraFrames": 115516,
+          "outputSeconds": 2.0793197278911566
+        },
+        {
+          "sourceFrame": 229575,
+          "seam": 2.7795744017566903e-07,
+          "quietSeconds": 0.49,
+          "extraFrames": 101076,
+          "outputSeconds": 7.825192743764172
+        },
+        {
+          "sourceFrame": 329529,
+          "seam": 1.273602379114891e-06,
+          "quietSeconds": 0.54,
+          "extraFrames": 111390,
+          "outputSeconds": 12.383696145124716
+        },
+        {
+          "sourceFrame": 561360,
+          "seam": 8.359126695722807e-06,
+          "quietSeconds": 0.5,
+          "extraFrames": 103139,
+          "outputSeconds": 20.166485260770976
+        }
+      ],
+      "sourceGenerationId": "CAuPNz5vX9ZaFCLVSvXa",
+      "credits": 218,
+      "sourceSha256": "495eb6d2c6abbaf4619c53804c7a730b47b15358fd2b9865c757df7786c9521f",
+      "peak": 0.8288521766662598,
+      "assetId": "suite.learn.breath.v2",
+      "decodedDurationSeconds": 24.81598639455782,
+      "sha256": "deb2440e67935b9b507ddc80e5d41ccd5f4af8311ba82790570d9e2178f703e7",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.breath.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 218,
+      "editedPcmSeconds": 24.81598639455782,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 24.81598639455782,
+          "peak": 0.7892424464225769,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 24.815979166666665,
+          "peak": 0.7881882190704346,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 20.78,
+      "expectedCredits": 218,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.learn.tuning.v2",
+      "script": "Resonant tuning uses your own comfortable hum, not an audio track you imitate. Choose a pitch that feels easy. Notice the vibration, and listen when it fades. The guide will stop talking while you do it.",
+      "maxSeconds": 45,
+      "purpose": "learn tuning",
+      "language": "en",
+      "version": 2,
+      "characters": 203,
+      "status": "approved-for-production",
+      "sourceSeconds": 13.6,
+      "decodedSeconds": 22.440249433106576,
+      "extraSilenceSeconds": 8.84,
+      "splices": [
+        {
+          "sourceFrame": 137973,
+          "seam": 9.475857041252311e-06,
+          "quietSeconds": 0.3,
+          "extraFrames": 54908,
+          "outputSeconds": 3.128639455782313
+        },
+        {
+          "sourceFrame": 234188,
+          "seam": 3.361338713148143e-06,
+          "quietSeconds": 0.33,
+          "extraFrames": 60398,
+          "outputSeconds": 6.5554648526077095
+        },
+        {
+          "sourceFrame": 341050,
+          "seam": 1.907999603645294e-06,
+          "quietSeconds": 0.61,
+          "extraFrames": 111645,
+          "outputSeconds": 10.348208616780045
+        },
+        {
+          "sourceFrame": 410599,
+          "seam": 6.900282187416451e-06,
+          "quietSeconds": 0.27,
+          "extraFrames": 49417,
+          "outputSeconds": 14.456916099773242
+        },
+        {
+          "sourceFrame": 498565,
+          "seam": 3.049006636501872e-06,
+          "quietSeconds": 0.62,
+          "extraFrames": 113476,
+          "outputSeconds": 17.5721768707483
+        }
+      ],
+      "sourceGenerationId": "1Qol9QTUrXfpFoSisvyI",
+      "credits": 203,
+      "sourceSha256": "3a246bf20e7608a49ac593ed9a7940da27c7f6be6c9b0e01f371db9ccb912c8d",
+      "peak": 0.7434433698654175,
+      "assetId": "suite.learn.tuning.v2",
+      "decodedDurationSeconds": 22.440249433106576,
+      "sha256": "8b18fd305e311e66937c3be8f9bc91f220f6bab2694ddcdb4bed6fd8047bab36",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.tuning.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 203,
+      "editedPcmSeconds": 22.44,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 22.440249433106576,
+          "peak": 0.7070823311805725,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 22.440229166666665,
+          "peak": 0.7056035995483398,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 20.78,
+      "expectedCredits": 203,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.learn.rebal.v2",
+      "script": "Imagine a current rising from beneath you, passing upward and arching around your body until it returns. Give the image time to take shape. If imagery doesn't come easily, you can simply notice the surrounding space.",
+      "maxSeconds": 45,
+      "purpose": "learn rebal",
+      "language": "en",
+      "version": 2,
+      "characters": 216,
+      "status": "approved-for-production",
+      "sourceSeconds": 14.08,
+      "decodedSeconds": 22.08,
+      "extraSilenceSeconds": 8,
+      "splices": [
+        {
+          "sourceFrame": 307190,
+          "seam": 1.2286599258004571e-06,
+          "quietSeconds": 0.58,
+          "extraFrames": 176400,
+          "outputSeconds": 6.965759637188208
+        },
+        {
+          "sourceFrame": 413032,
+          "seam": 1.8730920601228718e-06,
+          "quietSeconds": 0.53,
+          "extraFrames": 176400,
+          "outputSeconds": 13.365804988662132
+        }
+      ],
+      "sourceGenerationId": "EnUmJtXcgT06siRXqWUD",
+      "credits": 216,
+      "sourceSha256": "eb12ee066ddb76188d2304bc92c1b82fa04c4da4a85cc4c27bccf2db8ca9f6ff",
+      "peak": 0.8679712414741516,
+      "assetId": "suite.learn.rebal.v2",
+      "decodedDurationSeconds": 22.08,
+      "sha256": "9b2c933f80b11736ba0398cdf0a1d6634be23e205f88776b78f0886168c80ea5",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.rebal.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 216,
+      "editedPcmSeconds": 22.08,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 22.08,
+          "peak": 0.8237992525100708,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 22.08,
+          "peak": 0.8238808512687683,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 20.78,
+      "expectedCredits": 216,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.learn.affirmation.v2",
+      "script": "Your affirmation is a choice about how to meet the experience. Each journey offers neutral, spiritual, classic Gateway and personal options. You can listen, repeat it inwardly or use your own words.",
+      "maxSeconds": 45,
+      "purpose": "learn affirmation",
+      "language": "en",
+      "version": 2,
+      "characters": 198,
+      "status": "approved-for-production",
+      "sourceSeconds": 13.2,
+      "decodedSeconds": 21.78,
+      "extraSilenceSeconds": 8.58,
+      "splices": [
+        {
+          "sourceFrame": 176657,
+          "seam": 9.666221558291e-06,
+          "quietSeconds": 0.48,
+          "extraFrames": 174636,
+          "outputSeconds": 4.005827664399093
+        },
+        {
+          "sourceFrame": 303239,
+          "seam": 2.618867029013927e-06,
+          "quietSeconds": 0.17,
+          "extraFrames": 61850,
+          "outputSeconds": 10.836167800453515
+        },
+        {
+          "sourceFrame": 413886,
+          "seam": 7.773587640258484e-06,
+          "quietSeconds": 0.39,
+          "extraFrames": 141892,
+          "outputSeconds": 14.74766439909297
+        }
+      ],
+      "sourceGenerationId": "S3xIiJySF5GHpQcl3vMQ",
+      "credits": 198,
+      "sourceSha256": "08aa04ceee4e2032aef5bf5bddb5d5732be1e81cb48faf58835f942fc194c45a",
+      "peak": 0.8640316128730774,
+      "assetId": "suite.learn.affirmation.v2",
+      "decodedDurationSeconds": 21.78,
+      "sha256": "8ef57e8f16a330990561f701defa5e55c8c3f51e6329bd1cc704f385df53f98d",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.affirmation.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 198,
+      "editedPcmSeconds": 21.78,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 21.78,
+          "peak": 0.8206747770309448,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 21.78,
+          "peak": 0.8209975957870483,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 18.7,
+      "expectedCredits": 198,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.learn.return.v2",
+      "script": "When the main journey ends, we'll spend three minutes returning: noticing the room, feeling your body, and moving again at a comfortable pace. You can also end early whenever you wish.",
+      "maxSeconds": 45,
+      "purpose": "learn return",
+      "language": "en",
+      "version": 2,
+      "characters": 184,
+      "status": "approved-for-production",
+      "sourceSeconds": 11.28,
+      "decodedSeconds": 18.529410430839004,
+      "extraSilenceSeconds": 7.249410430839002,
+      "splices": [
+        {
+          "sourceFrame": 158301,
+          "seam": 8.095713610600797e-07,
+          "quietSeconds": 0.39,
+          "extraFrames": 143299,
+          "outputSeconds": 3.589591836734694
+        },
+        {
+          "sourceFrame": 380504,
+          "seam": 4.929365786665585e-06,
+          "quietSeconds": 0.49,
+          "extraFrames": 176400,
+          "outputSeconds": 11.877619047619048
+        }
+      ],
+      "sourceGenerationId": "B2eu18qbw0ZewvoAYtTw",
+      "credits": 184,
+      "sourceSha256": "ffa2ecf31bd979ca86b9eb3c9be030a9c9f95e4dafa9c67e978c7c930b438ef7",
+      "peak": 0.8301781415939331,
+      "assetId": "suite.learn.return.v2",
+      "decodedDurationSeconds": 18.529410430839004,
+      "sha256": "fdbf62c5f5dd0a54ccfc7e272aaf219e705850fd5a3d59882c8cb2685059a2b2",
+      "approved": true,
+      "localPath": "audio/voice/suite.learn.return.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 184,
+      "editedPcmSeconds": 18.529410430839004,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 18.529410430839004,
+          "peak": 0.7897266745567322,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 18.529395833333332,
+          "peak": 0.7920953631401062,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 18.17,
+      "expectedCredits": 184,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    },
+    {
+      "id": "suite.refresh.v2",
+      "script": "Set aside your concerns, settle the body through breathing, hum if you choose, establish your surrounding field, and bring your intention to mind. Then let the guidance grow quiet.",
+      "maxSeconds": 45,
+      "purpose": "refresh",
+      "language": "en",
+      "version": 2,
+      "characters": 180,
+      "status": "approved-for-production",
+      "sourceSeconds": 12.4,
+      "decodedSeconds": 20.46,
+      "extraSilenceSeconds": 8.06,
+      "splices": [
+        {
+          "sourceFrame": 86583,
+          "seam": 5.251882612355985e-06,
+          "quietSeconds": 0.33,
+          "extraFrames": 72855,
+          "outputSeconds": 1.9633333333333334
+        },
+        {
+          "sourceFrame": 173282,
+          "seam": 6.79480081089423e-06,
+          "quietSeconds": 0.32,
+          "extraFrames": 70648,
+          "outputSeconds": 5.581337868480726
+        },
+        {
+          "sourceFrame": 338892,
+          "seam": 8.508057362632826e-06,
+          "quietSeconds": 0.27,
+          "extraFrames": 59609,
+          "outputSeconds": 10.938662131519274
+        },
+        {
+          "sourceFrame": 430673,
+          "seam": 1.1204911970708054e-05,
+          "quietSeconds": 0.49,
+          "extraFrames": 108179,
+          "outputSeconds": 14.371541950113379
+        },
+        {
+          "sourceFrame": 463039,
+          "seam": 8.442645594186615e-06,
+          "quietSeconds": 0.2,
+          "extraFrames": 44155,
+          "outputSeconds": 17.558503401360543
+        }
+      ],
+      "sourceGenerationId": "cHbNti7Uyxm8HfHLCtPQ",
+      "credits": 180,
+      "sourceSha256": "3d06694434868aa7b7e184560d96a03bb066a203089b7c90fda312c91a65269f",
+      "peak": 0.8756018877029419,
+      "assetId": "suite.refresh.v2",
+      "decodedDurationSeconds": 20.46,
+      "sha256": "7a525ee07802e2037f7285d85dc1e1e0e82104eb6b1dcf3deeb64ff470bf6c67",
+      "approved": true,
+      "localPath": "audio/voice/suite.refresh.v2.mp3",
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "pauseEditVersion": "action-pauses.1",
+      "approval": "User-approved script library, narrator, delivery and production batch; automatic duration/hash checks passed",
+      "actualAdditionalCredits": 180,
+      "editedPcmSeconds": 20.46,
+      "encoding": "MP3 128 kbps mono; no speed or pitch change",
+      "nativeDecodeChecks": [
+        {
+          "rate": 44100,
+          "seconds": 20.46,
+          "peak": 0.8328925371170044,
+          "invalid": 0
+        },
+        {
+          "rate": 48000,
+          "seconds": 20.46,
+          "peak": 0.8326953053474426,
+          "invalid": 0
+        }
+      ],
+      "sourceSamplesPreservedBeforeMp3Encoding": true,
+      "estimatedSpokenSeconds": 17.13,
+      "expectedCredits": 180,
+      "usage": "User-initiated Learn/Refresh playback outside the journey clock, through the existing audio owner."
+    }
+  ],
+  "newCredits": 5902,
+  "totalCreditsIncludingAudition": 6315,
+  "regenerations": 0,
+  "preEncodingSourceSamplesPreserved": true,
+  "speakingRateChanged": false,
+  "generationEstimateCredits": 5942,
+  "estimateJoinCharactersNotSent": 40,
+  "timeEstimateAssumption": "Planning arithmetic only: 115 words/minute plus 2 seconds. Actual decoded durations govern playback."
+}

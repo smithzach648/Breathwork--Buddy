@@ -2,10 +2,13 @@ import { timeline, type JourneyConfig, type Section } from './model';
 import { SCRIPT_CLIPS, type ClipScript } from './narration-content';
 import { guidanceText as legacyText, narrationFits } from './narration';
 import { APPROVED_NARRATION, type ApprovedNarrationAsset } from './voice-assets';
+import { fullNarrationPlan, fullSectionClip, fullGuidanceText } from './full-narration';
+import { FULL_CLIPS } from './full-narration-content';
 export { APPROVED_NARRATION, type ApprovedNarrationAsset };
-export const NARRATION_MANIFEST={version:'preparation-voice.2',assets:SCRIPT_CLIPS,approved:APPROVED_NARRATION} as const;
-export const hasApprovedNarration=()=>Object.keys(APPROVED_NARRATION).length>0;
+export const NARRATION_MANIFEST={version:'full-preparation-voice.1',assets:FULL_CLIPS,approved:APPROVED_NARRATION} as const;
+export const hasApprovedNarration=(schemaVersion=3)=>Object.keys(APPROVED_NARRATION).some(id=>schemaVersion===3?id.endsWith('.v2'):!id.endsWith('.v2'));
 export function sectionClip(config:JourneyConfig,section:Section):ClipScript {
+  if(config.schemaVersion===3)return fullSectionClip(config,section);
   switch(section){
     case 'ecb':return config.guidance==='familiar'?SCRIPT_CLIPS.ecbBrief:SCRIPT_CLIPS.ecb;
     case 'breathwork':return {'5-5':SCRIPT_CLIPS.breath55,'4-4-6':SCRIPT_CLIPS.breath446,'4-7-8':SCRIPT_CLIPS.breath478,natural:SCRIPT_CLIPS.breathNatural}[config.breathing];
@@ -20,6 +23,7 @@ export interface NarrationCue {clip:ClipScript;section:Section;at:number;end:num
 /** Unique section slots, including the protected breath introduction and all three return cues. */
 export function narrationPlan(config:JourneyConfig):NarrationCue[] {
   if(config.schemaVersion===1)return [];
+  if(config.schemaVersion===3)return fullNarrationPlan(config);
   const rows=timeline(config),seen=new Set<Section>(),result:NarrationCue[]=[];
   for(const row of rows){const section=row.stage.journeySection!;if(seen.has(section))continue;seen.add(section);
     if(config.guidance==='familiar'&&['relaxation','threshold','expansion','timeless'].includes(section))continue;
@@ -37,6 +41,7 @@ export function validRecording(cue:NarrationCue,asset:ApprovedNarrationAsset|und
 }
 export function guidanceText(config:JourneyConfig,section:Section,elapsedInSection=0) {
   if(config.schemaVersion===1)return legacyText(config,section,elapsedInSection);
+  if(config.schemaVersion===3)return fullGuidanceText(config,section,elapsedInSection);
   if(section==='return')return (elapsedInSection>=120?SCRIPT_CLIPS.return120:elapsedInSection>=60?SCRIPT_CLIPS.return60:SCRIPT_CLIPS.return0).script;
   if(section==='breathwork'&&elapsedInSection>=config.breathingIntroSeconds)return config.breathing==='natural'?'Let your breath find its own comfortable rhythm.':'Let the notes keep time. Stay comfortable, and return to natural breathing whenever you prefer.';
   if(config.guidance==='familiar'&&['threshold','expansion','timeless'].includes(section))return 'A little space to rest and notice.';

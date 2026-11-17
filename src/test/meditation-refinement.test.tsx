@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {render,screen,fireEvent} from '@testing-library/react';
-import {createJourneyConfig,createLegacyJourneyConfig,compileJourney,validateJourneyConfig,layerMix,effectiveMix,nextInhale} from '../meditation-suite/model';
+import {createRefinedJourneyConfig as createJourneyConfig,createLegacyJourneyConfig,compileJourney,validateJourneyConfig,layerMix,effectiveMix,nextInhale} from '../meditation-suite/model';
 import {journeyNotes,softNoteHz} from '../meditation-suite/tones';
 import {instrumentEnvelope,INSTRUMENTS,SOFT_NOTE_SECONDS} from '../meditation-suite/instrument';
 import {changeMix,presetMix,normalizeMix,validMix} from '../meditation-suite/mix';
@@ -49,7 +49,7 @@ describe('versioned refinement and exact preparation budgets',()=>{
   });
   it('reads historical recording pins without treating missing recordings as newly approved',()=>{
     const config=createJourneyConfig('foundation');config.audioAssets.voice=['suite.archived.ecb'];config.audioAssets.voiceSha256={'suite.archived.ecb':'c'.repeat(64)};
-    expect(validateJourneyConfig(config).audioAssets).toEqual(config.audioAssets);expect(hasApprovedNarration()).toBe(false);
+    expect(validateJourneyConfig(config).audioAssets).toEqual(config.audioAssets);expect(hasApprovedNarration(2)).toBe(false);
     config.audioAssets.voiceSha256['suite.archived.ecb']='bad';expect(()=>validateJourneyConfig(config)).toThrow();
   });
 });
@@ -107,7 +107,7 @@ describe('persistent, independently scaled listener mix',()=>{
 });
 describe('reviewable narration slots and option selection',()=>{
   it('has no approved recordings, and keeps scripts original and versioned',()=>{
-    expect(hasApprovedNarration()).toBe(false);expect(Object.values(SCRIPT_CLIPS).every(c=>c.version===2&&c.id.endsWith('.2')&&c.script.length&&c.maxSeconds>0)).toBe(true);expect(LEARN_CLIPS).toHaveLength(7);
+    expect(hasApprovedNarration(2)).toBe(false);expect(Object.values(SCRIPT_CLIPS).every(c=>c.version===2&&c.id.endsWith('.2')&&c.script.length&&c.maxSeconds>0)).toBe(true);expect(LEARN_CLIPS).toHaveLength(7);
   });
   it('selects all disabled-option alternatives and correct breathing instructions',()=>{
     const config=createJourneyConfig('foundation',{humming:false,surroundingSpace:false,affirmation:'spiritual',breathing:'natural'}),plan=narrationPlan(config);
@@ -141,7 +141,7 @@ describe('approachable mix controls and immutable active configuration',()=>{
     fireEvent.click(screen.getByRole('button',{name:'Immersive'}));expect(save.mock.calls.at(-1)![0].journeyMix.preset).toBe('immersive');
     fireEvent.change(screen.getByLabelText('Journey warm level'),{target:{value:'.2'}});
     expect(save.mock.calls.at(-1)![0].journeyMix).toMatchObject({preset:'custom',levels:{warm:.2,binaural:.8}});
-    expect(screen.getByLabelText('Journey voice level')).toBeDisabled();
+    expect(screen.getByLabelText('Journey voice level')).not.toBeDisabled();
     fireEvent.click(screen.getByRole('button',{name:'Reset mix'}));expect(save.mock.calls.at(-1)![0].journeyMix).toEqual(presetMix());
   });
 });

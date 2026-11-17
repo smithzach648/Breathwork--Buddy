@@ -12,8 +12,9 @@ import { NoiseController } from '../audio/noise';
 import { freezeSound, type FrozenSound } from '../meditation/profile';
 import { BinauralController } from '../audio/binaural';
 import {resolveEnvironment,preferencesFromRecipe,recipeFromPreferences,type SoundRecipe} from '../meditation/environment';
+import type { JourneyConfig } from '../meditation-suite/model';
 export interface RuntimeAudio extends SessionAudio {
-    unlock(): Promise<void>;
+    unlock(preload?:boolean): Promise<void>;
     setPreferences(p: Preferences): void;
     resynchronize(): void;
     diagnostics(): AudioDiagnostics;
@@ -21,7 +22,9 @@ export interface RuntimeAudio extends SessionAudio {
     voiceActive?(): boolean;
     startReady?(): boolean;
     readyForStart?(): Promise<void>;
-    prepareJourney?(): Promise<void>;
+    prepareJourney?(config?:JourneyConfig): Promise<void>;
+    previewNarration?(id:string):Promise<boolean>;
+    stopNarrationPreview?():void;
     journeyNaturalBreathing?(): void;
     previewSignal?(recipe:SoundRecipe):Promise<void>;
     stopSignalPreview?():void;
@@ -73,24 +76,25 @@ export class PracticeRuntime {
         const snapshot = createSnapshot(config, undefined, undefined, containsMeditation || config.kind==='routine' ? frozen : undefined);
         const generation = ++this.startGeneration;
         const ready = config.kind!=='meditation-journey' && (!this.audio.startReady || this.audio.startReady());
-        const unlocking = this.audio.unlock();
+        const unlocking = this.audio.unlock(config.kind!=='meditation-journey');
         if (ready) { this.engine.start(snapshot); return; }
         this.state = { ...this.state, starting: true }; this.publish();
         return (async () => {
             try {
                 await unlocking;
-                await this.audio.readyForStart?.();
-                if(config.kind==='meditation-journey')await this.audio.prepareJourney?.();
+                if(snapshot.config.kind!=='meditation-journey')await this.audio.readyForStart?.();
+                if(snapshot.config.kind==='meditation-journey')await this.audio.prepareJourney?.(snapshot.config);
                 if (generation !== this.startGeneration) return;
                 this.engine.start(createSnapshot(snapshot.config, undefined, undefined, snapshot.meditationSound));
             } finally { if (generation === this.startGeneration) { this.state = { ...this.state, starting: false }; this.publish(); } }
         })();
     }
     cancelStart() { ++this.startGeneration; this.state = { ...this.state, starting: false }; this.publish(); }
+    async previewNarration(id:string){if(this.state.starting||this.engine.getState().status==='running')return false;this.stopNoisePreview();return await this.audio.previewNarration?.(id)??false;}
     breatheNaturally() { const session=this.engine.getState(); if(session.status!=='running'||session.snapshot?.config.kind!=='meditation-journey'||session.stage?.journeySection!=='breathwork')return;if(!this.naturalAdaptations.has(session.sessionId!))this.naturalAdaptations.set(session.sessionId!,session.elapsedMs/1000);this.audio.journeyNaturalBreathing?.();this.publish(); }
     preferencesChanged(p: Preferences) { if(JSON.stringify(recipeFromPreferences(p))!==JSON.stringify(recipeFromPreferences(this.preferences))||p.background.source!==this.preferences.background.source)this.stopNoisePreview();this.preferences=structuredClone(p); this.audio.setPreferences(p); this.media(() => this.background?.setPreferences(p)); this.media(()=>this.noise?.setPreferences(p));this.media(()=>this.binaural?.setPreferences(p)); }
     visibilityChanged(visible: boolean) { if (!visible) this.stopNoisePreview(); if (!visible && this.state.starting) this.cancelStart(); this.media(()=>this.noise?.visibilityChanged(visible));this.media(()=>this.binaural?.visibilityChanged(visible)); this.audio.resynchronize(); this.engine.setVisible(visible); this.media(() => this.background?.visibilityChanged(visible)); this.wake.visibilityChanged(); }
-    stopNoisePreview() { ++this.previewGeneration;this.audio.stopSignalPreview?.();if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();});this.media(()=>this.noise?.setPreferences(this.preferences));this.media(()=>this.binaural?.setPreferences(this.preferences));this.media(()=>this.background?.setPreferences(this.preferences)); }
+    stopNoisePreview() { ++this.previewGeneration;this.audio.stopNarrationPreview?.();this.audio.stopSignalPreview?.();if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();});this.media(()=>this.noise?.setPreferences(this.preferences));this.media(()=>this.binaural?.setPreferences(this.preferences));this.media(()=>this.background?.setPreferences(this.preferences)); }
     async previewSignal(recipe:SoundRecipe) {if(this.engine.getState().status==='running'||this.state.starting)return;this.stopNoisePreview();const generation=++this.previewGeneration;await this.audio.unlock();await this.audio.readyForStart?.();if(generation===this.previewGeneration&&this.engine.getState().status!=='running')await this.audio.previewSignal?.(recipe);}
     async previewNoise(recipe?:SoundRecipe) { if (this.engine.getState().status === 'running' || this.state.starting) return;this.stopNoisePreview(); const generation=++this.previewGeneration; await this.audio.unlock(); if (generation===this.previewGeneration && this.engine.getState().status !== 'running' && !this.state.starting) {const p=recipe?preferencesFromRecipe(this.preferences,recipe):this.preferences;this.noise?.setPreferences(p);this.binaural?.setPreferences(p);this.background?.setPreferences(p);this.noise?.preview();this.binaural?.preview();if(p.meditation.music)this.background?.preview(p.background.source);this.previewTimer=setTimeout(()=>this.stopNoisePreview(),20000);} }
     private async save(result: SessionResult) {

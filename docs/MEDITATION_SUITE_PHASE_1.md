@@ -1,6 +1,6 @@
 # Meditation Suite Phase 1
 
-Historical Phase 1 reference. Phase 1.1 introduces versioned soft notes, split listener mix and narration slots while retaining this original snapshot behavior. See [Phase 1.1 audio design](meditation-suite/PHASE_1_1_AUDIO_DESIGN.md) and its script review for current defaults.
+Historical Phase 1 reference. Current defaults and recorded guidance are documented in [Phase 1.2 full preparation](meditation-suite/PHASE_1_2_FULL_PREPARATION.md). [Phase 1.1 audio design](meditation-suite/PHASE_1_1_AUDIO_DESIGN.md) describes the retained schema-2 soft notes, split mix and narration slots.
 
 Implemented in the existing app on `breathwork-buddy-2`. This is an original, Focus-inspired practice; it does not reproduce proprietary Monroe/PCC audio or certify a mental state. Public release is separate from this development delivery.
 

@@ -2,12 +2,14 @@ import workletUrl from '../audio/acoustic/suite-worklet.ts?worker&url';
 import type { AudioEnvironmentPort } from '../audio/meditation-signals';
 import type { Clock } from '../session/clock';
 import type { JourneyConfig } from './model';
-import { JOURNEY_AUDIO_ASSETS, layerMix, nextInhale } from './model';
+import { JOURNEY_AUDIO_ASSETS, layerMix, nextInhale, sectionWindow } from './model';
+import { SHORT_CHIME } from './chime-asset';
 import { journeyNotes, bowlTimes } from './tones';
 import { APPROVED_NARRATION, narrationPlan, validRecording, type ApprovedNarrationAsset } from './voice-narration';
 import { scheduleSoftNote } from './instrument';
 
 type Track = { source: OscillatorNode | AudioBufferSourceNode; gain: GainNode; kind: 'note' | 'bowl' | 'voice'; at: number; end: number; when:number;clipId?:string };
+const isBreathIntro=(id:string)=>id.startsWith('suite.breath-')||id.startsWith('suite.breath.intro.');
 export class JourneyAudio {
   private config?: JourneyConfig;
   private start = 0;
@@ -24,6 +26,7 @@ export class JourneyAudio {
   private ready?: Promise<void>;
   private wave?: Float32Array;
   private bowl?: AudioBuffer;
+  private chime?: AudioBuffer;
   private voices = new Map<string, AudioBuffer>();
   private workletReady = false;
   private notesScheduled = 0;
@@ -35,15 +38,17 @@ export class JourneyAudio {
   private error = '';
   private capturePending?: { resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> };
   constructor(private clock: Clock, private port: () => AudioEnvironmentPort | undefined, private load: (id: string,sha256?:string) => Promise<AudioBuffer | undefined>, private changed: () => void, private makeNode = (context: AudioContext, options: AudioWorkletNodeOptions) => new AudioWorkletNode(context, 'meditation-suite-v1', options), private recordings:Readonly<Record<string,ApprovedNarrationAsset>>=APPROVED_NARRATION) {}
-  async prepare() {
+  async prepare(config?:JourneyConfig):Promise<void> {
     await this.retirement;
-    if (this.ready) return this.ready;
+    if (this.ready) { await this.ready;return this.prepare(config); }
     const context = this.port()?.context;
     if (!context || context.state !== 'running') return;
     this.error = '';
     this.ready = (async () => {
       try {
         if (!context.audioWorklet || ![44100, 48000].includes(context.sampleRate)) throw new Error('The continuous environment is unavailable on this device. Text and breathing tones still work.');
+        const selected=config?new Set(narrationPlan(config).map(c=>c.clip.id)):new Set(Object.keys(this.recordings));
+        const voiceEnabled=(!config||config.levels.voice>0)&&this.voiceScale>0;
         await Promise.all([
           this.workletReady ? undefined : context.audioWorklet.addModule(workletUrl).then(() => { this.workletReady = true; }),
           this.wave ? undefined : new Promise<void>((resolve, reject) => {
@@ -54,8 +59,9 @@ export class JourneyAudio {
             worker.onmessage = event => { finish(); if (event.data.wave instanceof Float32Array) { this.wave = event.data.wave; resolve(); } else reject(new Error('Sound preparation failed. Text and tones still work.')); };
             worker.postMessage({ sampleRate: context.sampleRate, seed: 104729 });
           }),
-          this.load(JOURNEY_AUDIO_ASSETS.bowl).then(buffer => { this.bowl = buffer; }),
-          ...Object.values(this.recordings).map(async asset => { if(asset.approved!==true)return;const buffer=await this.load(asset.assetId,asset.sha256);if(buffer&&Math.abs(buffer.duration-asset.decodedDurationSeconds)<=1/buffer.sampleRate)this.voices.set(asset.id,buffer); }),
+          this.load(JOURNEY_AUDIO_ASSETS.bowl,config?.schemaVersion===3?config.audioAssets.bowlSha256:undefined).then(buffer => { this.bowl = buffer; }),
+          config?.schemaVersion===3?this.load(SHORT_CHIME.assetId,SHORT_CHIME.sha256).then(buffer=>{if(buffer&&Math.abs(buffer.duration-SHORT_CHIME.durationSeconds)<=1/buffer.sampleRate)this.chime=buffer;}):undefined,
+          ...Object.values(this.recordings).filter(asset=>voiceEnabled&&selected.has(asset.id)).map(async asset => { if(asset.approved!==true)return;const buffer=await this.load(asset.assetId,asset.sha256);if(buffer&&Math.abs(buffer.duration-asset.decodedDurationSeconds)<=1/buffer.sampleRate)this.voices.set(asset.id,buffer); }),
         ]);
       } catch (error) { this.error = error instanceof Error ? error.message : 'The environment is unavailable. Text and tones still work.'; }
       finally { this.ready = undefined; this.changed(); }
@@ -86,7 +92,8 @@ export class JourneyAudio {
     if (elapsed >= config.sound.timeline.durationSeconds) return;
     const token = ++this.generation, origin = context.currentTime - elapsed;
     this.active = true;
-    if (resuming && elapsed >= 90 && elapsed < 270) this.resumeNaturalUntil = nextInhale(config, elapsed + .05);
+    const breathing=sectionWindow(config,'breathwork');
+    if (resuming && elapsed >= breathing.start && elapsed < breathing.end) this.resumeNaturalUntil = nextInhale(config, elapsed + .05);
     const environment = context.createGain(), duck = context.createGain(), notes = context.createGain(), bowl = context.createGain(), voice = context.createGain();
     environment.gain.value = config.levels.environment; notes.gain.value = config.levels.breathingTones; bowl.gain.value = config.levels.bowl; voice.gain.value = config.levels.voice*this.voiceScale;
     environment.connect(duck); duck.connect(input); notes.connect(input); bowl.connect(input); voice.connect(input);
@@ -119,14 +126,18 @@ export class JourneyAudio {
       if (!this.bowl || this.soundedBowls.has(at) || at < elapsed) continue;
       this.buffer(this.bowl, bowl, 'bowl', at, origin, 8); this.bowlsScheduled++;
     }
+    for(const at of config.preparation?.chimes??[]){
+      if(!this.chime||this.soundedBowls.has(at)||at<elapsed)continue;
+      this.buffer(this.chime,bowl,'bowl',at,origin,8);this.bowlsScheduled++;
+    }
     // Missing/unapproved/oversize recordings never move the timeline or introduce live TTS.
     for (const cue of narrationPlan(config)) {
       const initialEntry=cue.at===0&&!resuming&&elapsed<.25;
-      if(config.levels.voice===0||this.voiceScale===0||cue.at<elapsed&&!initialEntry||this.soundedVoices.has(cue.clip.id)||this.natural&&cue.section==='breathwork')continue;
+      if(config.levels.voice===0||this.voiceScale===0||cue.at<elapsed&&!initialEntry||this.soundedVoices.has(cue.clip.id)||this.natural&&isBreathIntro(cue.clip.id))continue;
       const asset=this.recordings[cue.clip.id],buffer=this.voices.get(cue.clip.id);
       if(!asset||!validRecording(cue,asset,config.audioAssets.voice)||config.audioAssets.voiceSha256?.[asset.assetId]!==asset.sha256||!buffer){this.skippedVoices.push(cue.clip.id);continue;}
       this.buffer(buffer,voice,'voice',cue.at,origin,1,cue.clip.id);
-      if(this.ducking){duck.gain.setTargetAtTime(.65,origin+cue.at,.08);duck.gain.setTargetAtTime(1,origin+cue.at+buffer.duration,.2);}
+      if(this.ducking){const when=Math.max(context.currentTime,origin+cue.at);duck.gain.setTargetAtTime(.65,when,.08);duck.gain.setTargetAtTime(1,when+buffer.duration,.2);}
     }
     this.changed();
   }
@@ -143,7 +154,7 @@ export class JourneyAudio {
     source.buffer = buffer; source.connect(gain); gain.connect(bus); this.envelope(gain, when, buffer.duration, level);
     this.track(source, gain, kind, at, at + buffer.duration, when,clipId); source.start(when); source.stop(when + buffer.duration);
   }
-  breatheNaturally() { this.natural = true; this.clearTracks(track => track.kind === 'note'||track.kind==='voice'&&!!track.clipId?.startsWith('suite.breath-'));this.refreshDucking();this.changed(); }
+  breatheNaturally() { this.natural = true; this.clearTracks(track => track.kind === 'note'||track.kind==='voice'&&!!track.clipId&&isBreathIntro(track.clipId));this.refreshDucking();this.changed(); }
   private clearTracks(predicate: (track: Track) => boolean = () => true) {
     for (const track of [...this.tracks]) if (predicate(track)) {
       const context = this.port()?.context;

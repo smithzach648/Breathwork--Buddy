@@ -2,6 +2,8 @@
 
 A personal, local-first breathwork PWA. Phase 4A adds exact-cycle custom patterns, independent hormesis rounds and timed natural settling to saved routines compiled through the existing deterministic engine. The preparation/recovery flow, local data and meditation sound environment remain intact. Earlier phase sections below document their original delivery.
 
+The current Meditate suite adds a full 15-minute preparation, **33-minute Foundation** and **48-minute Beyond the Familiar**, Soft Felt breathing notes, and recorded Marshall guidance with action pauses. Guided, Familiar and Voice off share the same timing. Learn/Refresh offers spoken explanations, and neutral, spiritual and local personal intentions are selectable. See [Phase 1.2 implementation and verification](docs/meditation-suite/PHASE_1_2_FULL_PREPARATION.md); earlier suite snapshots and existing local data remain compatible.
+
 The modernization branch is `breathwork-buddy-2`. Preserve legacy `main` at `ea409acd59ecb440530d9c4938139720b7aecada`; do not merge or change it during this phased build.
 
 ## Development and checks

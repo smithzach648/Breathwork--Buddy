@@ -189,12 +189,12 @@ describe('one session owner and existing History',()=>{
 });
 
 describe('real app journey setup and preparation tour',()=>{
-  it('shows two exact journey choices, default text guidance, and no unapproved narration promise',()=>{
+  it('shows the new exact journey choices and approved recorded guidance',()=>{
     const f=fixture();render(<Meditate runtime={f.runtime} state={f.runtime.getState()} onTimer={()=>{}}/>);
-    expect(screen.getByRole('heading',{name:'Meditate'})).toBeInTheDocument();expect(screen.getByText('25:00')).toBeInTheDocument();expect(screen.getByText('35:00')).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:'Meditate'})).toBeInTheDocument();expect(screen.getByText('33:00')).toBeInTheDocument();expect(screen.getByText('48:00')).toBeInTheDocument();
     expect(screen.getAllByRole('button',{name:/^(Choose|Selected:)/})).toHaveLength(JOURNEYS.length);
-    expect(screen.getByText(/New spoken guidance has not been added/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Journey voice level')).toBeDisabled();
+    expect(screen.queryByText(/New spoken guidance has not been added/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Journey voice level')).not.toBeDisabled();
   });
   it('starts the selected fixed journey and honors its guidance and customization',async()=>{
     const f=fixture();render(<Meditate runtime={f.runtime} state={f.runtime.getState()} onTimer={()=>{}}/>);
@@ -202,12 +202,12 @@ describe('real app journey setup and preparation tour',()=>{
     fireEvent.click(screen.getByRole('button',{name:'Start journey'}));await waitFor(()=>expect(f.runtime.engine.getState().status).toBe('running'));
     expect(f.runtime.engine.getState().snapshot!.config).toMatchObject({presetId:'beyond',guidance:'familiar',breathing:'4-4-6'});
   });
-  it('offers a replayable tour and an actual 13-minute preparation rehearsal',async()=>{
+  it('offers a replayable tour and an actual 18-minute preparation rehearsal',async()=>{
     const f=fixture();render(<Meditate runtime={f.runtime} state={f.runtime.getState()} onTimer={()=>{}}/>);
-    fireEvent.click(screen.getByRole('button',{name:'Refresh the Preparation'}));expect(screen.getByRole('heading',{name:'Energy Conversion Box'})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:'Learn the Preparation'}));expect(screen.getByRole('heading',{name:'Energy Conversion Box'})).toBeInTheDocument();
     for(let i=0;i<6;i++)fireEvent.click(screen.getByRole('button',{name:'Next step'}));
-    fireEvent.click(screen.getByRole('button',{name:'Start 13-minute rehearsal'}));await waitFor(()=>expect(f.runtime.engine.getState().status).toBe('running'));
-    expect(f.runtime.engine.getState().snapshot!.plannedDurationSeconds).toBe(780);
+    fireEvent.click(screen.getByRole('button',{name:'Start 18-minute rehearsal'}));await waitFor(()=>expect(f.runtime.engine.getState().status).toBe('running'));
+    expect(f.runtime.engine.getState().snapshot!.plannedDurationSeconds).toBe(1080);
   });
 });
 

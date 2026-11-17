@@ -13,7 +13,9 @@ import '../../src/styles/global.css';
 import {createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude} from '../../src/audio/binaural';
 import {generateMaskingBuffer,fftSteps} from '../../src/audio/noise-spectrum';
 import {createOutput} from '../../src/audio/output';
-import {createJourneyConfig as createRefinedJourneyConfig,createLegacyJourneyConfig as createJourneyConfig,layerMix} from '../../src/meditation-suite/model';
+import {createJourneyConfig as createFullJourneyConfig,createRefinedJourneyConfig,createLegacyJourneyConfig as createJourneyConfig,layerMix,timeline} from '../../src/meditation-suite/model';
+import {APPROVED_NARRATION} from '../../src/meditation-suite/voice-assets';
+import {FULL_CLIPS} from '../../src/meditation-suite/full-narration-content';
 import {scheduleSoftNote} from '../../src/meditation-suite/instrument';
 import {journeyNotes,softNoteHz,noteHz} from '../../src/meditation-suite/tones';
 import {presetMix,changeMix} from '../../src/meditation-suite/mix';
@@ -48,7 +50,7 @@ const background = new BackgroundController(undefined, undefined, () => audio.en
 const noise = new NoiseController(() => audio.environmentPort());
 const binaural = new BinauralController(() => audio.environmentPort(), timing);
 runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), undefined, background, noise, binaural);
-Object.assign(window, { suiteQA:{createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
+Object.assign(window, { suiteQA:{createFullJourneyConfig,APPROVED_NARRATION,FULL_CLIPS,timeline,createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
     jump(ms:number){timing.jump(ms);runtime.engine.reconcile();audio.resynchronize();},
     advance(ms: number) {
         timing.advance(ms); audio.resynchronize();

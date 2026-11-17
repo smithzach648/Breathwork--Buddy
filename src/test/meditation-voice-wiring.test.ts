@@ -1,11 +1,11 @@
 import {describe,it,expect,vi} from 'vitest';
-// Isolated synthetic approvals exercise wiring only. Production voice-assets.ts stays empty.
+// Isolated synthetic approvals retain the Phase 1.1 scheduling regression contract.
 vi.mock('../meditation-suite/voice-assets',async()=>{
   const {SCRIPT_CLIPS}=await import('../meditation-suite/narration-content');
   return {APPROVED_NARRATION:Object.fromEntries(Object.values(SCRIPT_CLIPS).map(clip=>[clip.id,{id:clip.id,script:clip.script,language:'en',approved:true,assetId:clip.id,sha256:'b'.repeat(64),decodedDurationSeconds:8}]))};
 });
 import {JourneyAudio} from '../meditation-suite/audio';
-import {createJourneyConfig} from '../meditation-suite/model';
+import {createRefinedJourneyConfig as createJourneyConfig} from '../meditation-suite/model';
 import {APPROVED_NARRATION,narrationPlan} from '../meditation-suite/voice-narration';
 import {FakeTiming} from './fake-time';
 

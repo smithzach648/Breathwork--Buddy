@@ -30,7 +30,7 @@ export function phaseNotes(phase: Phase, seconds: number, at = 0): NoteEvent[] {
 export function journeyNotes(config: JourneyConfig) {
   return timeline(config).flatMap(({ stage, start }) => ['inhale', 'hold-in', 'exhale', 'hold-out'].includes(stage.phase) ? phaseNotes(stage.phase, stage.durationMs / 1000, start).map(event=>config.toneVersion==='major-steps.1'?event:{...event,hz:softNoteHz(event.phase,event.index,event.seconds),duration:SOFT_NOTE_SECONDS}) : []);
 }
-export function bowlTimes(config: JourneyConfig) { return config.presetId === 'beyond' ? [1080, 1620] : []; }
+export function bowlTimes(config: JourneyConfig) { return config.presetId === 'beyond' ? timeline(config).filter(r=>r.stage.journeySection==='expansion'||r.stage.journeySection==='timeless').map(r=>r.start) : []; }
 export function returnEnvelope(config: JourneyConfig, elapsedSeconds: number) {
   const end = config.sound.timeline.durationSeconds;
   return Math.max(0, Math.min(1, elapsedSeconds / 5, (end - elapsedSeconds) / 180));

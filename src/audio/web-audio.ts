@@ -8,6 +8,8 @@ import { MeditationSignals, type AudioEnvironmentPort } from './meditation-signa
 import { createOutput } from './output';
 import { JourneyAudio } from '../meditation-suite/audio';
 import type { PracticeSnapshot } from '../session/config';
+import type { JourneyConfig } from '../meditation-suite/model';
+import { APPROVED_NARRATION } from '../meditation-suite/voice-assets';
 interface Track {
     source: AudioBufferSourceNode;
     gain: GainNode;
@@ -46,6 +48,8 @@ export class BrowserAudio implements SessionAudio {
     readonly journeys: JourneyAudio;
     private journeySession?: string;
     private mediaInput?: AudioNode;
+    private narrationPreview?:AudioBufferSourceNode;
+    private narrationPreviewGeneration=0;
     constructor(private clock: Clock, private preferences: Preferences, private createContext = () => new AudioContext(), private fetcher: typeof fetch = (...args) => fetch(...args)) { this.signals = new MeditationSignals(clock,()=>this.environmentPort(),preferences,()=>this.load('signals.bowl')); this.journeys = new JourneyAudio(clock,()=>this.environmentPort(),(id,sha)=>this.load(id,sha),()=>this.notify()); }
     /** Independent stereo-capable buses connect before this shared Master gain. */
     environmentPort(): AudioEnvironmentPort | undefined { return this.context && this.buses.master ? { context: this.context, input: this.buses.master, mediaInput: this.mediaInput } : undefined; }
@@ -53,7 +57,7 @@ export class BrowserAudio implements SessionAudio {
     private notify() { this.listeners.forEach(listener => listener()); }
     diagnostics(): AudioDiagnostics { return { scheduled: this.scheduled, skipped: this.skipped, failures: [...this.failures], playing: this.tracks.size, state: this.context?.state || 'not initialized', ...(this.journeySession ? {journey:this.journeys.diagnostics()}: {}) }; }
     /** Call directly in a user gesture; readiness is resolved before the session clock starts. */
-    async unlock() {
+    async unlock(preload=true) {
         try {
             if (!this.context) {
                 this.context = this.createContext();
@@ -71,7 +75,7 @@ export class BrowserAudio implements SessionAudio {
                         if (scope && !this.active?.started)
                             this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
                     }
-                    else { this.stopTracks(); this.signals.stop(); this.journeys.suspend(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
+                    else { this.stopNarrationPreview();this.stopTracks(); this.signals.stop(); this.journeys.suspend(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
                     this.notify();
                 });
             }
@@ -82,7 +86,7 @@ export class BrowserAudio implements SessionAudio {
                 // Initial resume also emits statechange, which marks the scope as resuming.
                 // A newly started stage still needs its entry cues; later resumes skip them.
                 this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
-            void Promise.all(audioCatalog.filter(a => a.category === 'voice' || a.category === 'breath').map(a => this.load(a.id)));
+            if(preload)void Promise.all(audioCatalog.filter(a => (a.category === 'voice' || a.category === 'breath')&&!a.id.startsWith('suite.')).map(a => this.load(a.id)));
         }
         catch {
             this.failures.add('Audio unavailable');
@@ -95,6 +99,7 @@ export class BrowserAudio implements SessionAudio {
     }
     setPreferences(preferences: Preferences) {
         this.preferences = structuredClone(preferences);
+        if(!preferences.guidance.generalVoice||!preferences.volumes.voice||!preferences.volumes.master)this.stopNarrationPreview();
         this.journeys.setVoicePreferences(preferences.volumes.voice,preferences.guidance.generalVoice,preferences.guidance.ducking);
         this.signals.setPreferences(this.preferences);
         this.stopTracks(track => !cueEnabled(track.cueId, preferences));
@@ -147,7 +152,16 @@ export class BrowserAudio implements SessionAudio {
         if(snapshot.config.kind === 'meditation-journey') this.journeys.begin(snapshot.config,start,sessionId);
         else this.journeys.stop();
     }
-    async prepareJourney() { await this.journeys.prepare(); }
+    async prepareJourney(config?:JourneyConfig) { this.stopNarrationPreview();await this.journeys.prepare(config); }
+    async previewNarration(id:string){
+        this.stopNarrationPreview();const generation=this.narrationPreviewGeneration;
+        const asset=APPROVED_NARRATION[id];if(!asset||!this.preferences.guidance.generalVoice||!this.preferences.volumes.voice||!this.preferences.volumes.master)return false;
+        await this.unlock(false);const buffer=await this.load(asset.assetId,asset.sha256);
+        if(!buffer||!this.context||this.context.state!=='running'||generation!==this.narrationPreviewGeneration||Math.abs(buffer.duration-asset.decodedDurationSeconds)>1/buffer.sampleRate)return false;
+        const source=this.context.createBufferSource();source.buffer=buffer;source.connect(this.buses.voice!);this.narrationPreview=source;
+        source.onended=()=>{source.disconnect();if(this.narrationPreview===source)this.narrationPreview=undefined;};source.start();return true;
+    }
+    stopNarrationPreview(){++this.narrationPreviewGeneration;const source=this.narrationPreview;this.narrationPreview=undefined;if(source){try{source.stop();}catch{/* Already ended. */}source.disconnect();}}
     journeyNaturalBreathing() { this.journeys.breatheNaturally(); }
     captureJourney(seconds=1) { return this.journeys.capture(seconds); }
     enter(scope: StageAudio) {

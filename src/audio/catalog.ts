@@ -1,4 +1,6 @@
 import { voiceDurations } from './voice-metadata';
+import { suiteAudioCatalog } from './suite-audio-catalog';
+import { SHORT_CHIME } from '../meditation-suite/chime-asset';
 export type AudioCategory = 'voice' | 'breath' | 'ambience' | 'signals';
 export type AudioBus = 'master' | AudioCategory;
 export interface AudioAsset {
@@ -14,6 +16,8 @@ export interface AudioAsset {
 const asset = (id: string, category: AudioCategory, file: string, durationSeconds?: number): AudioAsset => ({ id, category, name: file.replace(/\.mp3$/, ''), localPath: `audio/${category}/${file}`, durationSeconds, loop: category === 'ambience', available: true, sourceNotes: category === 'ambience' ? 'myNoise; user-supplied personal-use track; publication explicitly authorized.' : 'User-supplied local recording.' });
 export const audioCatalog: readonly AudioAsset[] = [
     asset('signals.bowl', 'signals', 'Singing Bowl Signal.wav', 14.988027210884354),
+    {...SHORT_CHIME,id:SHORT_CHIME.assetId,category:'signals',name:'Soft practice chime',loop:false,available:true},
+    ...suiteAudioCatalog,
     asset('voice.in', 'voice', 'voice.breath-in.wav', 1.01), asset('voice.out', 'voice', 'voice.breath-out.wav', 0.83),
     asset('voice.hold60', 'voice', 'voice.60 second hold.wav', 2.72), asset('voice.hold90', 'voice', 'voice.90 second hold.wav', 2.65),
     asset('voice.hold', 'voice', 'voice.Hold.wav', 1.03),
