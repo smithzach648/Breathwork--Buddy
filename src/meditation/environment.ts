@@ -40,8 +40,12 @@ export function validRecipe(value: unknown): value is SoundRecipe {
 export function validateRecipe(value: unknown) { if (!validRecipe(value)) throw new Error('This sound recipe needs repair. Choose supported sounds and levels, then save explicitly.'); }
 export function recipeFromPreferences(p: Preferences): SoundRecipe {
     const r:SoundRecipe={version:1,texture:p.meditation.noise,source:p.meditation.music?p.background.source:'none',noiseLevel:p.meditation.noiseVolume,musicLevel:p.volumes.ambience,loop:p.background.loop,mode:p.meditation.binaural.mode,toneLevel:p.meditation.binaural.level,opening:p.meditation.openingSignal?(p.meditation.signalKind||'legacy'):'off',closing:p.meditation.completionSignal?(p.meditation.signalKind||'legacy'):'off',signalLevel:p.meditation.signalLevel??p.volumes.signals};
+    if(p.meditation.acousticScene==='off')return {...r,texture:'off',source:'none',mode:'off',opening:'off',closing:'off'};
     return p.meditation.acousticScene&&p.meditation.acousticScene!=='legacy'?sceneRecipe(r,p.meditation.acousticScene,p):r;
 }
+export function developedScene(p:Preferences):AcousticSceneId|'off'{const s=p.meditation.acousticScene;return !s||s==='legacy'?'threshold':s;}
+/** Current UI uses complete developed environments; old frozen recipes remain valid. */
+export function developedRecipe(p:Preferences):SoundRecipe{return recipeFromPreferences({...p,meditation:{...p.meditation,acousticScene:developedScene(p)}});}
 export function silentRecipe(p: Preferences): SoundRecipe { const r={...recipeFromPreferences(p),texture:'off' as const,source:'none',mode:'off' as const,opening:'off' as const,closing:'off' as const};delete r.acoustic;return r; }
 export function warmFoundation(p: Preferences): SoundRecipe { const r={...recipeFromPreferences(p),texture:'brown' as const,source:'none',mode:'off' as const,opening:'off' as const,closing:'off' as const};delete r.acoustic;return r; }
 export function sceneRecipe(r:SoundRecipe,scene:AcousticSceneId,p:Preferences):SoundRecipe{return {...r,texture:'off',mode:'off',acoustic:acousticSelection(scene,r.acoustic?.mix??p.journeyMix)};}
@@ -52,7 +56,7 @@ export function resolveEnvironment(config: PracticeConfig, p: Preferences): Froz
     const routine = config.kind === 'routine' ? config.routine : undefined;
     for (const block of routine?.stages || [config]) if (block.kind === 'meditation') {
         const key = 'id' in block ? String(block.id) : 'standalone';
-        const recipe = block.audioPolicy === 'silent' ? silentRecipe(p) : block.audioPolicy === 'custom' ? structuredClone(block.sound!) : recipeFromPreferences(p);
+        const recipe = block.audioPolicy === 'silent' ? silentRecipe(p) : block.audioPolicy === 'custom' ? structuredClone(block.sound!) : 'guidanceProfile' in config&&config.guidanceProfile?developedRecipe(p):recipeFromPreferences(p);
         // Older entire-practice music keeps its transport through inherited meditation.
         if (routine && !routine.foundation && block.audioPolicy === 'defaults' && p.background.mode === 'entire') recipe.source = p.background.source;
         validateRecipe(recipe); blocks[key] = recipe;

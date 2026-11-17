@@ -80,7 +80,7 @@ export class PracticeRuntime {
         const frozen=sound || (config.kind==='meditation-journey'?undefined:{...freezeSound(this.preferences),environment:resolveEnvironment(config,this.preferences)});
         const snapshot = createSnapshot(config, undefined, undefined, containsMeditation || config.kind==='routine' ? frozen : undefined);
         const generation = ++this.startGeneration;
-        const modern='guidanceProfile' in snapshot.config&&!!snapshot.config.guidanceProfile||Object.values(snapshot.meditationSound?.environment?.blocks??{}).some(r=>!!r.acoustic);
+        const modern=snapshot.config.kind==='meditation'&&snapshot.config.directStart||'guidanceProfile' in snapshot.config&&!!snapshot.config.guidanceProfile||Object.values(snapshot.meditationSound?.environment?.blocks??{}).some(r=>!!r.acoustic);
         const ready = snapshot.config.kind!=='meditation-journey'&&!modern && (!this.audio.startReady || this.audio.startReady());
         const unlocking = this.audio.unlock(snapshot.config.kind!=='meditation-journey'&&!modern);
         if (ready) { this.engine.start(snapshot); return; }

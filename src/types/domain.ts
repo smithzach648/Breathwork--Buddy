@@ -19,7 +19,9 @@ export interface SessionSnapshot {
     readonly routine: Routine;
     readonly plannedDurationSeconds?: number;
 }
+export interface PatternedBreathingResult {presetId:import('../session/config').PatternId;requestedCycles:number;completedCycles:number}
 export interface SessionResult {
+    patternedBreathing?:PatternedBreathingResult;
     guidanceProfile?:'soft-felt-marshall.1';
     soundMixChanges?:{atSeconds:number;mix:import('../meditation-suite/mix').ListenerMix;blockId?:string}[];
     journey?: { snapshot: import('../meditation-suite/model').JourneyConfig; naturalBreathingAtSeconds?: number };
@@ -48,6 +50,7 @@ export interface SessionResult {
         actualDurationSeconds: number;
         retentions: NonNullable<SessionResult['retentions']>;
         soundRecipe?: SoundRecipe;
+        patternedBreathing?:PatternedBreathingResult;
         customPattern?: { inhaleSeconds: number; holdInSeconds: number; exhaleSeconds: number; holdOutSeconds: number; requestedCycles: number; completedCycles: number };
         hormesisRound?: { preparationBreaths: number; intervalSeconds: number; retentionTargetSeconds: number; recoveryCompleted: boolean };
     }[];

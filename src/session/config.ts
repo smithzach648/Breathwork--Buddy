@@ -11,6 +11,7 @@ export type ExerciseConfig = {
     kind: 'patterned';
     presetId: PatternId;
     durationSeconds: number;
+    cycles?: number;
 } | {
     kind: 'hormesis';
     presetId: 'hormesis-60' | 'hormesis-progressive';
@@ -23,6 +24,7 @@ export type ExerciseConfig = {
     presetId: 'meditation';
     durationSeconds: number;
     audioPolicy: 'defaults' | 'silent' | 'custom';
+    directStart?: boolean;
     sound?: SoundRecipe;
 } | {
     kind: 'custom-pattern';
@@ -78,6 +80,7 @@ export const patterns: Record<PatternId, {
 }> = {
     box: { name: 'Box 4-4-4-4', seconds: [4, 4, 4, 4] }, '478': { name: '4-7-8', seconds: [4, 7, 8, 0] }, calm: { name: 'Calm 4-4-6-2', seconds: [4, 4, 6, 2] }, coherent: { name: 'Coherent 6-6', seconds: [6, 0, 6, 0] },
 };
+export function cyclePattern(presetId:PatternId,cycles:number):Extract<ExerciseConfig,{kind:'patterned'}>{const c={kind:'patterned' as const,presetId,cycles,durationSeconds:patterns[presetId].seconds.reduce((a,b)=>a+b,0)*cycles};validateConfig(c);return c;}
 const phases = ['inhale', 'hold-in', 'exhale', 'hold-out'] as const;
 const labels: Record<Phase, string> = { 'practice-introduction':'Exercise introduction', 'journey-preparation': 'Preparation', 'journey-rest': 'Rest and notice', 'journey-return': 'Return', 'natural-settling': 'Breathe naturally / settle', meditation: 'Meditation', 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
 export function validateConfig(config: PracticeConfig) {
@@ -100,13 +103,14 @@ export function validateConfig(config: PracticeConfig) {
         return;
     }
     if (config.kind === 'meditation') {
+        if(config.directStart!==undefined&&typeof config.directStart!=='boolean')throw new Error('Invalid meditation entry setting.');
         if (config.presetId !== 'meditation' || !Number.isInteger(config.durationSeconds) || config.durationSeconds < 60 || config.durationSeconds > 3600 || config.durationSeconds % 60 || !['defaults','silent','custom'].includes(config.audioPolicy)) throw new Error('Choose a meditation duration of 1–60 whole minutes and a supported sound policy.');
         if (config.audioPolicy==='custom'){validateRecipe(config.sound);if(config.sound?.acoustic)acousticProgram(config.sound.acoustic,config.durationSeconds);}
         return;
     }
     if (config.kind === 'patterned') {
-        if (!Object.hasOwn(patterns, config.presetId) || !Number.isFinite(config.durationSeconds) || config.durationSeconds <= 0 || config.durationSeconds > 600)
-            throw new Error('Choose a valid practice duration.');
+        if (!Object.hasOwn(patterns, config.presetId) || !Number.isFinite(config.durationSeconds) || config.durationSeconds <= 0 || (config.cycles===undefined?config.durationSeconds>600:!Number.isInteger(config.cycles)||config.cycles<1||config.cycles>100||config.durationSeconds>1800||config.durationSeconds!==config.cycles*patterns[config.presetId].seconds.reduce((a,b)=>a+b,0)))
+            throw new Error('Choose 1–100 whole cycles, up to 30 minutes of breathing.');
     }
     else if (config.kind === 'hormesis') {
         const expected = config.presetId === 'hormesis-60' ? [60, 60, 60] : config.presetId === 'hormesis-progressive' ? [60, 90, 90] : [];
@@ -191,7 +195,7 @@ export function deepFreeze<T>(value: T): T {
 export function createSnapshot(config: PracticeConfig, id: string = crypto.randomUUID(), startedAt = new Date().toISOString(), meditationSound?:FrozenSound): PracticeSnapshot {
     const copy = structuredClone(config);
     let stages = compileStages(copy);
-    if(copy.kind==='meditation'&&meditationSound?.environment?.blocks.standalone?.acoustic&&stages[0]?.phase==='prepare-inhale')stages=stages.slice(3);
+    if(copy.kind==='meditation'&&(copy.directStart||meditationSound?.environment?.blocks.standalone?.acoustic)&&stages[0]?.phase==='prepare-inhale')stages=stages.slice(3);
     if(meditationSound && !validSound(meditationSound))throw new Error('Invalid meditation sound profile');
     if(meditationSound?.environment) for(let i=0;i<stages.length;i++) if(stages[i].phase==='meditation') {
         const recipe=meditationSound.environment.blocks[stages[i].blockId||'standalone'];validateRecipe(recipe);if(recipe.acoustic)acousticProgram(recipe.acoustic,stages[i].durationMs/1000);

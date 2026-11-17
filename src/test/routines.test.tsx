@@ -13,7 +13,7 @@ import { WakeLockController } from '../session/wake-lock';
 import { BackgroundController } from '../media/background';
 import { defaultPreferences } from '../settings/preferences';
 const flush = async () => { for (let i=0;i<30;i++) await Promise.resolve(); };
-const patterned = (): RoutineStage => ({ ...newBlock(), durationSeconds: 180 });
+const patterned = (): RoutineStage => ({ id:crypto.randomUUID(),kind:'patterned',presetId:'coherent',durationSeconds:180 });
 const hormesis = (): RoutineStage => ({ id: crypto.randomUUID(), kind: 'hormesis', presetId: 'hormesis-progressive', intervalSeconds: 2, cycles: 20, retentions: [60,90,90], recoveryHoldSeconds: 15 });
 const routine = (stages: RoutineStage[] = [patterned(), hormesis()]): Routine => ({ id: crypto.randomUUID(), name: 'Morning Reset', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), stages });
 const config = (row: Routine): PracticeConfig => ({ kind:'routine', routine: row });

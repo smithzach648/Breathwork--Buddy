@@ -1,3 +1,5 @@
+import {cyclePattern,createSnapshot} from '../../src/session/config';
+import {developedRecipe,resolveEnvironment} from '../../src/meditation/environment';
 import {acousticSelection,acousticProgram} from '../../src/meditation/acoustic-scenes';
 import {PRACTICE_NARRATION} from '../../src/audio/practice-narration';
 import { createRoot } from 'react-dom/client';
@@ -52,7 +54,7 @@ const background = new BackgroundController(undefined, undefined, () => audio.en
 const noise = new NoiseController(() => audio.environmentPort());
 const binaural = new BinauralController(() => audio.environmentPort(), timing);
 runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), undefined, background, noise, binaural);
-Object.assign(window, { suiteQA:{acousticSelection,acousticProgram,PRACTICE_NARRATION,createFullJourneyConfig,APPROVED_NARRATION,FULL_CLIPS,timeline,createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
+Object.assign(window, { suiteQA:{cyclePattern,createSnapshot,developedRecipe,resolveEnvironment,acousticSelection,acousticProgram,PRACTICE_NARRATION,createFullJourneyConfig,APPROVED_NARRATION,FULL_CLIPS,timeline,createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
     jump(ms:number){timing.jump(ms);runtime.engine.reconcile();audio.resynchronize();},
     advance(ms: number) {
         timing.advance(ms); audio.resynchronize();

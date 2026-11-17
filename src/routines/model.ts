@@ -1,4 +1,4 @@
-import { patterns, validateConfig, type ExerciseConfig } from '../session/config';
+import { cyclePattern,patterns, validateConfig, type ExerciseConfig } from '../session/config';
 import type { Routine, RoutineStage } from '../types/domain';
 import {validateRecipe} from '../meditation/environment';
 export const MAX_BLOCKS = 20;
@@ -18,7 +18,7 @@ export function validateRoutine(value: unknown): asserts value is Routine {
             ids.add(stage.id);
             if(stage.guidanceProfile!==undefined)throw new Error('Breathing guidance belongs to the session, not an individual block.');
             if (stage.kind === 'patterned') {
-                if (![180, 300, 600].includes(stage.durationSeconds as number)) throw new Error('Choose 3, 5, or 10 minutes.');
+                if (stage.cycles===undefined&&![180, 300, 600].includes(stage.durationSeconds as number)) throw new Error('Choose 3, 5, or 10 minutes.');
             } else if (stage.kind === 'hormesis') {
                 if (!Array.isArray(stage.retentions)) throw new Error('Choose a supported retention sequence.');
             } else if (stage.kind === 'meditation') {
@@ -37,7 +37,7 @@ export function blockName(block: ExerciseConfig) {
     if (block.kind === 'settling') return 'Breathe naturally / settle';
     return block.kind === 'meditation' ? 'Meditation' : block.kind === 'patterned' ? patterns[block.presetId].name : block.presetId === 'hormesis-60' ? 'Hormesis 60 / 60 / 60' : 'Hormesis 60 / 90 / 90';
 }
-export function newBlock(): Extract<RoutineStage, { kind: 'patterned' }> { return { id: crypto.randomUUID(), kind: 'patterned', presetId: 'coherent', durationSeconds: 300 }; }
+export function newBlock(): Extract<RoutineStage, { kind: 'patterned' }> { return { id: crypto.randomUUID(), ...cyclePattern('coherent',10) }; }
 /** Repair supplies an editable draft; nothing is written automatically. */
 export function repairDraft(value: unknown): Routine {
     const row = record(value) ? value : {};

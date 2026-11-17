@@ -32,12 +32,12 @@ describe('runtime and UI', () => {
         const f = fixture();
         render(<App runtime={f.runtime}/>);
         fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
-        fireEvent.change(screen.getByLabelText('Duration'), { target: { value: '180' } });
+        fireEvent.change(screen.getByLabelText('Breathing cycles'), { target: { value: '10' } });
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
         await screen.findByRole('timer');expect(screen.getByRole('timer')).toHaveAttribute('aria-live', 'off');
         expect(screen.queryByRole('button', { name: 'Update app' })).not.toBeInTheDocument();
         expect(screen.getByText(/Finish or stop your practice/)).toBeInTheDocument();
-        act(() => f.timing.advance(205000));
+        act(() => f.timing.advance(185000));
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Completed');
         await waitFor(() => expect(f.runtime.getState().saving).toBe(false));
         expect(await database.history.count()).toBe(1);

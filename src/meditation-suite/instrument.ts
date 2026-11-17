@@ -26,7 +26,7 @@ export function scheduleSoftNote(context:BaseAudioContext,input:AudioNode,hz:num
   const oscillator=context.createOscillator(),gain=context.createGain();
   oscillator.setPeriodicWave(instrumentWave(context,instrument));oscillator.frequency.setValueAtTime(hz,when);
   oscillator.connect(gain);gain.connect(input);
-  const level=hold?.07:.1,curve=instrumentEnvelope(instrument);
+  const level=hold?.175:.25,curve=instrumentEnvelope(instrument);
   for(let i=0;i<curve.length;i++)curve[i]*=level;
   gain.gain.setValueCurveAtTime(curve,when,SOFT_NOTE_SECONDS);
   oscillator.start(when);oscillator.stop(when+SOFT_NOTE_SECONDS);

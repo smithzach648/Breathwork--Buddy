@@ -6,7 +6,7 @@ export type NoiseColor = 'white' | 'pink' | 'brown';
 export type BinauralMode = 'off' | 'baseline' | 'layered' | 'modulated';
 export interface BinauralPreferences { mode:BinauralMode; level:number }
 export interface MeditationPreferences {
-    acousticScene?:import('../meditation/acoustic-scenes').AcousticSceneId|'legacy';
+    acousticScene?:import('../meditation/acoustic-scenes').AcousticSceneId|'legacy'|'off';
     durationMinutes: number;
     music: boolean;
     noise: NoiseColor | 'off';
@@ -25,7 +25,7 @@ function validMeditationBase(value: unknown): value is MeditationPreferences {
     return Number.isInteger(m.durationMinutes) && m.durationMinutes >= 1 && m.durationMinutes <= 60 && ['off','white','pink','brown'].includes(m.noise) && Number.isFinite(m.noiseVolume) && m.noiseVolume >= 0 && m.noiseVolume <= .35 && ['music','openingSignal','completionSignal','showTimer'].every(key => typeof m[key as keyof MeditationPreferences] === 'boolean');
 }
 export function validBinaural(value:unknown):value is BinauralPreferences {const b=value as BinauralPreferences;return !!b && ['off','baseline','layered','modulated'].includes(b.mode) && Number.isFinite(b.level) && b.level>=0 && b.level<=.3;}
-export function validMeditation(value:unknown):value is MeditationPreferences{return validMeditationBase(value)&&validBinaural(value.binaural)&&(value.acousticScene===undefined||['legacy','threshold','expansion','timeless','open','flow'].includes(value.acousticScene))&&(value.signalKind===undefined||['legacy','bowl'].includes(value.signalKind))&&(value.signalLevel===undefined||Number.isFinite(value.signalLevel)&&value.signalLevel>=0&&value.signalLevel<=1);}
+export function validMeditation(value:unknown):value is MeditationPreferences{return validMeditationBase(value)&&validBinaural(value.binaural)&&(value.acousticScene===undefined||['legacy','off','threshold','expansion','timeless','open','flow'].includes(value.acousticScene))&&(value.signalKind===undefined||['legacy','bowl'].includes(value.signalKind))&&(value.signalLevel===undefined||Number.isFinite(value.signalLevel)&&value.signalLevel>=0&&value.signalLevel<=1);}
 export interface Preferences {
     journeyMix?: ListenerMix;
     journeyPreparation?:{affirmation:'neutral'|'spiritual'|'personal';personalAffirmation:string};
@@ -49,7 +49,7 @@ export function normalizePreferences(value: unknown): Preferences {
     if (['off', 'entire', 'retention', 'after'].includes(p.background?.mode || '')) defaults.background.mode = p.background!.mode;
     if (typeof p.background?.loop === 'boolean') defaults.background.loop = p.background.loop;
     if (validMeditationBase(p.meditation)) defaults.meditation = {...structuredClone(p.meditation),binaural:validBinaural(p.meditation.binaural)?structuredClone(p.meditation.binaural):{mode:'off',level:.08}};
-    if(defaults.meditation.acousticScene!==undefined&&!['legacy','threshold','expansion','timeless','open','flow'].includes(defaults.meditation.acousticScene))delete defaults.meditation.acousticScene;
+    if(defaults.meditation.acousticScene!==undefined&&!['legacy','off','threshold','expansion','timeless','open','flow'].includes(defaults.meditation.acousticScene))delete defaults.meditation.acousticScene;
     return { ...defaults, theme: p.theme!, volumes: { ...p.volumes! } };
 }
 function validBase(value: unknown): boolean { if (!value || typeof value !== 'object')

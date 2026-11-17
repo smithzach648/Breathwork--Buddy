@@ -98,6 +98,11 @@ export class DeterministicSessionEngine {
             this.meditationSeconds += Math.max(0, end - this.stageStart) / 1000;
             if (outcome === 'completed' && this.audioEnabled) this.sound(() => this.audio.completeStage?.({ sessionId: this.state.sessionId!, stageId: this.stageToken(), stage, start: this.stageStart, deadline: end }));
         }
+        const following=this.state.snapshot!.stages[this.index+1],config=this.state.snapshot!.config;
+        const prescription=config.kind==='routine'?config.routine.stages.find(b=>b.id===stage.blockId):config;
+        if(prescription?.kind==='patterned'&&prescription.cycles&&stage.cycle>0&&outcome==='completed'&&(following?.blockId!==stage.blockId||following?.cycle!==stage.cycle)){
+            const key=stage.blockId??'standalone';this.completedCycles.set(key,(this.completedCycles.get(key)??0)+1);
+        }
         if (stage.blockId) {
             this.blockTimes.set(stage.blockId, (this.blockTimes.get(stage.blockId) || 0) + Math.max(0, end - this.stageStart) / 1000);
             const next = this.state.snapshot!.stages[this.index + 1];
@@ -168,6 +173,7 @@ export class DeterministicSessionEngine {
         this.cancelWakeup = undefined;
         this.sound(() => { if (this.audio.finishSession) this.audio.finishSession(sessionId,outcome); else this.audio.cancelSession(sessionId); });
         const result: SessionResult = { id: sessionId, routineId: snapshot.config.kind === 'routine' ? snapshot.config.routine.id : snapshot.config.presetId, practiceName: snapshot.name, startedAt: snapshot.startedAt, endedAt: new Date(Date.parse(snapshot.startedAt) + Math.max(0, end - this.startTime)).toISOString(), plannedDurationSeconds: snapshot.plannedDurationSeconds, actualDurationSeconds: Math.max(0, end - this.startTime) / 1000, outcome, stagesCompleted: this.stagesCompleted, roundsCompleted: snapshot.config.kind === 'hormesis' ? this.roundsCompleted : undefined, retentions: this.retentions.length ? structuredClone(this.retentions) : undefined };
+        if(snapshot.config.kind==='patterned'&&snapshot.config.cycles)result.patternedBreathing={presetId:snapshot.config.presetId,requestedCycles:snapshot.config.cycles,completedCycles:this.completedCycles.get('standalone')??0};
         if (this.endReason) result.endReason = this.endReason;
         if (snapshot.config.kind === 'meditation-journey') result.journey = { snapshot: structuredClone(snapshot.config) };
         if('guidanceProfile' in snapshot.config&&snapshot.config.guidanceProfile)result.guidanceProfile=snapshot.config.guidanceProfile;
@@ -184,6 +190,7 @@ export class DeterministicSessionEngine {
                 actualDurationSeconds: this.blockTimes.get(block.id) || 0,
                 retentions: structuredClone(this.retentions.filter(retention => retention.blockId === block.id)),
                 ...(block.kind==='meditation'&&snapshot.meditationSound?.environment?.blocks[block.id]?{soundRecipe:structuredClone(snapshot.meditationSound.environment.blocks[block.id])}:{}),
+                ...(block.kind==='patterned'&&block.cycles?{patternedBreathing:{presetId:block.presetId,requestedCycles:block.cycles,completedCycles:this.completedCycles.get(block.id)??0}}:{}),
                 ...(block.kind === 'custom-pattern' ? { customPattern: { inhaleSeconds: block.inhaleSeconds, holdInSeconds: block.holdInSeconds, exhaleSeconds: block.exhaleSeconds, holdOutSeconds: block.holdOutSeconds, requestedCycles: block.cycles, completedCycles: this.completedCycles.get(block.id) || 0 } } : {}),
                 ...(block.kind === 'hormesis-round' ? { hormesisRound: { preparationBreaths: block.cycles, intervalSeconds: block.intervalSeconds, retentionTargetSeconds: block.retentionSeconds, recoveryCompleted: this.completedBlocks.has(block.id) } } : {}),
             }));
