@@ -1,3 +1,4 @@
+import {meditationBridge} from '../session/meditation-bridge';
 import {practiceRecipe,validPracticeAudio,type PracticeAudio} from '../session/practice-audio';
 import type { Preferences } from '../settings/preferences';
 import type { PracticeConfig } from '../session/config';
@@ -41,7 +42,7 @@ export function validRecipe(value: unknown): value is SoundRecipe {
 }
 export function validateRecipe(value: unknown) { if (!validRecipe(value)) throw new Error('This sound recipe needs repair. Choose supported sounds and levels, then save explicitly.'); }
 export function recipeFromPreferences(p: Preferences): SoundRecipe {
-    const r:SoundRecipe={version:1,texture:p.meditation.noise,source:p.meditation.music?p.background.source:'none',noiseLevel:p.meditation.noiseVolume,musicLevel:p.volumes.ambience,loop:p.background.loop,mode:p.meditation.binaural.mode,toneLevel:p.meditation.binaural.level,opening:p.meditation.openingSignal?(p.meditation.signalKind||'legacy'):'off',closing:p.meditation.completionSignal?(p.meditation.signalKind||'legacy'):'off',signalLevel:p.meditation.signalLevel??p.volumes.signals};
+    const r:SoundRecipe={version:1,texture:p.meditation.noise,source:p.meditation.music?p.background.source:'none',noiseLevel:p.meditation.noiseVolume,musicLevel:p.volumes.ambience,loop:p.background.loop,mode:p.meditation.binaural.mode,toneLevel:p.meditation.binaural.level,opening:p.meditation.openingSignal?(p.meditation.signalKind||'bowl'):'off',closing:p.meditation.completionSignal?(p.meditation.signalKind||'bowl'):'off',signalLevel:p.meditation.signalLevel??p.volumes.signals};
     if(p.meditation.acousticScene==='off')return {...r,texture:'off',source:'none',mode:'off',opening:'off',closing:'off'};
     return p.meditation.acousticScene&&p.meditation.acousticScene!=='legacy'?sceneRecipe(r,p.meditation.acousticScene,p):r;
 }
@@ -61,6 +62,11 @@ export function resolveEnvironment(config: PracticeConfig, p: Preferences): Froz
         const recipe = block.audioPolicy === 'silent' ? silentRecipe(p) : block.audioPolicy === 'custom' ? structuredClone(block.sound!) : 'guidanceProfile' in config&&config.guidanceProfile?developedRecipe(p):recipeFromPreferences(p);
         // Older entire-practice music keeps its transport through inherited meditation.
         if (routine && !routine.foundation && block.audioPolicy === 'defaults' && p.background.mode === 'entire') recipe.source = p.background.source;
+        if('guidanceProfile' in config&&config.guidanceProfile&&p.meditation.signalDefaults==='bowl.1'&&p.meditation.signalKind==='bowl'){
+            const replaced=recipe.opening==='legacy'||recipe.closing==='legacy';
+            if(recipe.opening==='legacy')recipe.opening='bowl';if(recipe.closing==='legacy')recipe.closing='bowl';
+            if(replaced)recipe.signalLevel=Math.min(recipe.signalLevel,.35);
+        }
         validateRecipe(recipe); blocks[key] = recipe;
     }
     const selected=config.kind==='meditation-journey'?undefined:config.kind==='routine'?routine?.practiceAudio:config.practiceAudio;
@@ -92,7 +98,10 @@ export function environmentPlan(session?: SessionState) {
         const a=e.practice,wanted=a.timing==='entire'||session.stage?.phase==='retention';
         const stages=session.snapshot!.stages,index=stages.indexOf(session.stage!),next=stages[index+1];
         const leaving=session.stage?.phase==='block-transition'&&next?.phase==='meditation';
-        return {...practiceRecipe(wanted&&!leaving?a:{...a,source:'off'}),ramp:.7,key:session.sessionId!};
+        const recipe=practiceRecipe(wanted&&!leaving?a:{...a,source:'off'});
+        const bridge=session.stage&&session.stageStart!==undefined?meditationBridge(session.snapshot!,session.stage,session.stageStart):undefined;
+        if(bridge){const now=session.stageStart!+session.stage!.durationMs-session.remainingMs,u=Math.max(0,Math.min(1,(now-bridge.start)/(bridge.leadSeconds*1000))),gain=1-u*u*(3-2*u);recipe.noiseLevel*=gain;recipe.musicLevel*=gain;}
+        return {...recipe,ramp:.7,key:session.sessionId!};
     }
     let recipe=current || e.foundation;
     let ramp=25;

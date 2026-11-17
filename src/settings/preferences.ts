@@ -16,10 +16,11 @@ export interface MeditationPreferences {
     completionSignal: boolean;
     showTimer: boolean;
     signalKind?: 'legacy' | 'bowl';
+    signalDefaults?:'bowl.1';
     signalLevel?: number;
     binaural: BinauralPreferences;
 }
-export const meditationDefaults = (): MeditationPreferences => ({ durationMinutes: 10, music: false, noise: 'brown', noiseVolume: .1, openingSignal: true, completionSignal: true, showTimer: true, binaural:{mode:'off',level:.08} });
+export const meditationDefaults = (): MeditationPreferences => ({ durationMinutes: 10, music: false, noise: 'brown', noiseVolume: .1, openingSignal: true, completionSignal: true, showTimer: true, signalKind:'bowl',signalLevel:.35,signalDefaults:'bowl.1', binaural:{mode:'off',level:.08} });
 function validMeditationBase(value: unknown): value is MeditationPreferences {
     if (!value || typeof value !== 'object') return false;
     const m = value as MeditationPreferences;
@@ -52,6 +53,7 @@ export function normalizePreferences(value: unknown): Preferences {
     if (['off', 'entire', 'retention', 'after'].includes(p.background?.mode || '')) defaults.background.mode = p.background!.mode;
     if (typeof p.background?.loop === 'boolean') defaults.background.loop = p.background.loop;
     if (validMeditationBase(p.meditation)) defaults.meditation = {...structuredClone(p.meditation),binaural:validBinaural(p.meditation.binaural)?structuredClone(p.meditation.binaural):{mode:'off',level:.08}};
+    if(defaults.meditation.signalDefaults!=='bowl.1'){defaults.meditation.signalKind='bowl';defaults.meditation.signalLevel=Math.min(defaults.meditation.signalLevel??.35,.35);defaults.meditation.signalDefaults='bowl.1';}
     if(defaults.meditation.acousticScene!==undefined&&!['legacy','off','threshold','expansion','timeless','open','flow'].includes(defaults.meditation.acousticScene))delete defaults.meditation.acousticScene;
     return { ...defaults, theme: p.theme!, volumes: { ...p.volumes! } };
 }

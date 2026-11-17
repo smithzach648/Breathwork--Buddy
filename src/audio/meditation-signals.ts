@@ -20,7 +20,7 @@ export class MeditationSignals {
         if (this.clock.now() - at > 250 || this.clock.now() < at) return;
         const p = this.preferences;
         const recipe=scope.stage.soundRecipe;
-        const kind=recipe ? ending?recipe.closing:recipe.opening : (ending?p.meditation.completionSignal:p.meditation.openingSignal)?p.meditation.signalKind||'legacy':'off';
+        const kind=recipe ? ending?recipe.closing:recipe.opening : (ending?p.meditation.completionSignal:p.meditation.openingSignal)?p.meditation.signalKind||'bowl':'off';
         const level=this.liveLevel??recipe?.signalLevel??p.meditation.signalLevel??p.volumes.signals;
         if (kind==='off' || !level || !p.volumes.master) return;
         const port = this.port(); if (!port || port.context.state !== 'running' || !port.context.createOscillator) return;

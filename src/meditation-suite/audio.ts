@@ -15,7 +15,7 @@ type Track = { source: OscillatorNode | AudioBufferSourceNode; gain: GainNode; k
 const isBreathIntro=(id:string)=>id.startsWith('suite.breath-')||id.startsWith('suite.breath.intro.');
 export class JourneyAudio {
   private config?: JourneyConfig;
-  private environment?:{program:Journey;fades:{entrySeconds:number;returnSeconds:number}};
+  private environment?:{program:Journey;fades:{entrySeconds:number;returnSeconds:number;smoothEntry?:boolean}};
   private liveMix?:ListenerMix;
   private mixChanged=false;
   private start = 0;
@@ -81,8 +81,8 @@ export class JourneyAudio {
     this.soundedVoices.clear();this.skippedVoices=[];
     this.natural = false; this.notesScheduled = this.bowlsScheduled = 0; this.resumeNaturalUntil = 0;
   }
-  beginEnvironment(selection:AcousticSelection,seconds:number,start:number,session:string){
-    this.stop();this.environment={program:acousticProgram(selection,seconds),fades:{entrySeconds:Math.min(20,seconds*.1),returnSeconds:Math.min(30,seconds*.15)}};
+  beginEnvironment(selection:AcousticSelection,seconds:number,start:number,session:string,entry?:{entrySeconds:number;smoothEntry?:boolean}){
+    this.stop();this.environment={program:acousticProgram(selection,seconds),fades:{entrySeconds:entry?.entrySeconds??Math.min(20,seconds*.1),returnSeconds:Math.min(30,seconds*.15),smoothEntry:entry?.smoothEntry}};
     this.start=start;this.session=session;this.liveMix=structuredClone(selection.mix);this.mixChanged=true;
     this.soundedBowls.clear();this.soundedVoices.clear();this.skippedVoices=[];this.natural=false;this.notesScheduled=this.bowlsScheduled=this.resumeNaturalUntil=0;
   }
@@ -182,7 +182,7 @@ export class JourneyAudio {
   }
   private playEnvironment(){
     const p=this.environment,port=this.port();if(!p||!port||port.context.state!=='running'||this.active)return;
-    const elapsed=Math.max(0,(this.clock.now()-this.start)/1000);if(elapsed>=p.program.timeline.durationSeconds)return;
+    const elapsed=(this.clock.now()-this.start)/1000;if(elapsed>=p.program.timeline.durationSeconds)return;
     const {context,input}=port,origin=context.currentTime-elapsed,token=++this.generation;
     const environment=context.createGain(),duck=context.createGain(),notes=context.createGain(),bowl=context.createGain(),voice=context.createGain();
     environment.connect(duck);duck.connect(input);notes.connect(input);bowl.connect(input);voice.connect(input);this.buses={environment,duck,notes,bowl,voice};this.active=true;

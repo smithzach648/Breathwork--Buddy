@@ -36,6 +36,9 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     const [error, setError] = useState('');
     const session = state.session;
     const meditating = session.stage?.phase === 'meditation';
+    const nextStage=session.snapshot?.stages[(session.snapshot?.stages.indexOf(session.stage!)??-1)+1];
+    const enteringMeditation=session.stage?.phase==='block-transition'&&nextStage?.phase==='meditation';
+    const stageLabel=enteringMeditation?'Settle into the sound':session.stage?.label;
     const envelope=meditating&&!session.stage?.soundRecipe?.acoustic&&session.stage!.durationMs>=600000&&(session.stage?.soundRecipe?.mode??session.snapshot?.meditationSound?.mode)!=='off'&&session.snapshot?.meditationSound?signalProfile(session.stage!.durationMs/1000):undefined;
     const elapsed=meditating?(session.stage!.durationMs-session.remainingMs)/1000:0;
     const hormesis = preset.startsWith('hormesis');
@@ -60,9 +63,9 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
       {session.stage?.blockId && <p className="muted">Block {session.stage.blockIndex! + 1} · {session.stage.blockName}</p>}
       {session.stage?.finalBreath&&<p className='eyebrow'>FINAL BREATH · ROUND {session.stage.round}</p>}
       {session.stage?.introClipId&&<p className='suite-prompt'>{PRACTICE_NARRATION[session.stage.introClipId]?.script}</p>}
-      <p className={meditating ? 'stage-title sr-only' : 'stage-title'}>{session.stage!.label}</p>
-      {(!meditating || preferences.meditation.showTimer) && <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>}
-      <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
+      <p className={meditating ? 'stage-title sr-only' : 'stage-title'}>{stageLabel}</p>
+      {!enteringMeditation&&(!meditating || preferences.meditation.showTimer) && <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>}
+      <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{stageLabel}{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
       {(['inhale','hold-in','exhale','hold-out','pre-retention-exhale'].includes(session.stage!.phase)) && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
       {meditating && onPreferencesChange && <button onClick={() => onPreferencesChange({...preferences,meditation:{...preferences.meditation,showTimer:!preferences.meditation.showTimer}})}>{preferences.meditation.showTimer ? 'Hide timer' : 'Show timer'}</button>}
       {envelope&&session.stage?.meditationPolicy!=='silent'&&<p className="muted">{elapsed<envelope.entry?'Entry':elapsed<envelope.entry+envelope.steady?'Steady':'Return'}</p>}

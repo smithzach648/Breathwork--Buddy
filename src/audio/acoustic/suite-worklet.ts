@@ -13,12 +13,13 @@ class SuiteProcessor extends AudioWorkletProcessor {
   mix?:LayerMix;
   mixRamp?:{from:LayerMix;to:LayerMix;start:number;end:number};
   entrySeconds=5;
+  smoothEntry=false;
   returnSeconds=180;
   capture?: { left: Float32Array; right: Float32Array; first: number; written: number };
-  constructor(options: { processorOptions: { program: Journey; wave: Float32Array; origin: number; mix?:LayerMix;fades?:{entrySeconds:number;returnSeconds:number} } }) {
+  constructor(options: { processorOptions: { program: Journey; wave: Float32Array; origin: number; mix?:LayerMix;fades?:{entrySeconds:number;returnSeconds:number;smoothEntry?:boolean} } }) {
     super();
     const p = options.processorOptions;
-    if(p.fades){if(!Number.isFinite(p.fades.entrySeconds)||p.fades.entrySeconds<.05||p.fades.entrySeconds>120||!Number.isFinite(p.fades.returnSeconds)||p.fades.returnSeconds<.05||p.fades.returnSeconds>180)throw new Error('Invalid sound fade.');this.entrySeconds=p.fades.entrySeconds;this.returnSeconds=p.fades.returnSeconds;}
+    if(p.fades){if(!Number.isFinite(p.fades.entrySeconds)||p.fades.entrySeconds<.05||p.fades.entrySeconds>120||!Number.isFinite(p.fades.returnSeconds)||p.fades.returnSeconds<.05||p.fades.returnSeconds>180)throw new Error('Invalid sound fade.');this.smoothEntry=p.fades.smoothEntry===true;this.entrySeconds=p.fades.entrySeconds;this.returnSeconds=p.fades.returnSeconds;}
     if(p.mix&&(!Number.isFinite(p.mix.warm)||p.mix.warm<0||p.mix.warm>3||!Number.isFinite(p.mix.binaural)||p.mix.binaural<0||p.mix.binaural>4))throw new Error('Invalid listener layer gains');
     this.mix=p.mix;
     this.origin = p.origin * sampleRate;
@@ -42,7 +43,8 @@ class SuiteProcessor extends AudioWorkletProcessor {
     if (prefix < left.length) this.synth.block(left.subarray(prefix), right.subarray(prefix), frame + prefix, mix);
     for (let i = 0; i < left.length; i++) {
       const t = (frame + i) / sampleRate;
-      const envelope = Math.max(0, Math.min(1, t / this.entrySeconds, (this.synth.recipe.timeline.durationSeconds - t) / this.returnSeconds, (currentFrame + i - this.began) / (sampleRate * .05)));
+      const entry=Math.max(0,Math.min(1,t/this.entrySeconds));
+      const envelope = Math.max(0, Math.min(1, this.smoothEntry?entry*entry*(3-2*entry):entry, (this.synth.recipe.timeline.durationSeconds - t) / this.returnSeconds, (currentFrame + i - this.began) / (sampleRate * .05)));
       const stop = this.stopped === undefined ? 1 : Math.max(0, 1 - (currentFrame + i - this.stopped) / (sampleRate * .05));
       // Undo only the laboratory's fixed trim; production applies its existing trim once downstream.
       left[i] *= 4 * envelope * stop; right[i] *= 4 * envelope * stop;
