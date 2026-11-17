@@ -6,6 +6,8 @@ const html = await readFile('dist/index.html', 'utf8');
 const manifest = JSON.parse(await readFile('dist/manifest.webmanifest', 'utf8'));
 const worker = await readFile('dist/sw.js', 'utf8');
 
+assert.equal(manifest.name, 'Breathward');
+assert.equal(manifest.short_name, 'Breathward');
 assert.equal(manifest.id, base);
 assert.equal(manifest.start_url, base);
 assert.equal(manifest.scope, base);

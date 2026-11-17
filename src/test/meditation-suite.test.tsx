@@ -191,7 +191,7 @@ describe('one session owner and existing History',()=>{
 describe('real app journey setup and preparation tour',()=>{
   it('shows the new exact journey choices and approved recorded guidance',()=>{
     const f=fixture();render(<Meditate runtime={f.runtime} state={f.runtime.getState()} onTimer={()=>{}}/>);
-    expect(screen.getByRole('heading',{name:'Meditate'})).toBeInTheDocument();expect(screen.getByText('33:00')).toBeInTheDocument();expect(screen.getByText('48:00')).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:'Meditate'})).toBeInTheDocument();expect(screen.getAllByText('33:00').length).toBeGreaterThan(0);expect(screen.getByText('48:00')).toBeInTheDocument();
     expect(screen.getAllByRole('button',{name:/^(Choose|Selected:)/})).toHaveLength(JOURNEYS.length);
     expect(screen.queryByText(/New spoken guidance has not been added/)).not.toBeInTheDocument();
     expect(screen.getByLabelText('Journey voice level')).not.toBeDisabled();

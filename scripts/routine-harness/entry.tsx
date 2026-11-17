@@ -16,6 +16,7 @@ import { defaultPreferences } from '../../src/settings/preferences';
 import { WakeLockController } from '../../src/session/wake-lock';
 import { FakeTiming } from '../../src/test/fake-time';
 import '../../src/styles/global.css';
+import '../../src/styles/breathward.css';
 import {createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude} from '../../src/audio/binaural';
 import {generateMaskingBuffer,fftSteps} from '../../src/audio/noise-spectrum';
 import {createOutput} from '../../src/audio/output';

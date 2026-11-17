@@ -11,9 +11,9 @@ describe('foundation', () => {
     it('renders and navigates every destination', async () => {
         render(<App />);
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Come back');
-        for (const name of ['Practice', 'Journal', 'History', 'Settings']) {
-            fireEvent.click(screen.getByRole('button', { name: new RegExp(name) }));
-            expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(name);
+        for (const [name,heading] of [['Practices','A way inward.'],['Saved','Your own practice.'],['Reflect','Your words.Your own meaning.'],['Settings','Settings']]) {
+            fireEvent.click(screen.getByRole('button',{name}));
+            expect(screen.getByRole('heading',{level:1})).toHaveTextContent(heading);
         }
         await waitFor(() => expect(screen.getByLabelText('Dark')).toBeEnabled());
     });

@@ -3,5 +3,8 @@ export interface JournalEntry {
     createdAt: string;
     updatedAt: string;
     text: string;
+    title?: string;
+    feeling?: string;
     sessionId?: string;
+    sessionName?: string;
 }

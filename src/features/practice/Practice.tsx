@@ -1,3 +1,5 @@
+import {PRACTICE_CARDS} from '../library/catalog';
+import {Icon} from '../../components/Icon';
 import {HormesisDetails} from './HormesisDetails';
 import {hormesisConfig} from '../../session/hormesis';
 import {withMeditation} from '../../session/practice-followup';
@@ -14,7 +16,7 @@ import { createSnapshot,cyclePattern,patterns, type ExerciseConfig,type PatternI
 import { formatDuration } from '../../shared/format';
 import { BackgroundControls } from '../../media/MediaSettings';
 import {signalProfile} from '../../meditation/profile';
-export function Practice({ runtime, state, onDone, onRoutines, onMeditation, preferences = defaultPreferences(), onPreferencesChange }: {
+export function Practice({ runtime, state, onDone, onRoutines, onMeditation, preferences = defaultPreferences(), onPreferencesChange,initialPreset='box',onReflect }: {
     runtime: PracticeRuntime;
     state: RuntimeState;
     onDone: () => void;
@@ -22,8 +24,10 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     onMeditation?: () => void;
     preferences?: Preferences;
     onPreferencesChange?: (p:Preferences)=>void;
+    initialPreset?:PatternId|'hormesis-foundation'|'hormesis-advanced';
+    onReflect?:(id:string,name:string)=>void;
 }) {
-    const [preset, setPreset] = useState<PatternId | 'hormesis-foundation' | 'hormesis-advanced'>('box');
+    const [preset, setPreset] = useState<PatternId | 'hormesis-foundation' | 'hormesis-advanced'>(initialPreset);
     const [breathingCycles,setBreathingCycles]=useState(10);
     const [addMeditation,setAddMeditation]=useState(false),[meditationMinutes,setMeditationMinutes]=useState(5),[meditationScene,setMeditationScene]=useState<AcousticSceneId|'off'>(()=>developedScene(preferences));
     const [error, setError] = useState('');
@@ -84,22 +88,22 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
       {!!session.result.retentions?.length && <ul className="retention-results">{session.result.retentions.map(r => <li key={r.stageId}>Round {r.round}: {r.durationSeconds.toFixed(1)} seconds{r.outcome === 'released' ? ' · released early' : r.outcome === 'cancelled' ? ' · cancelled' : ''}</li>)}</ul>}
       <p className="muted">{state.saving ? 'Saving on this device…' : state.saveError ? 'Not yet saved. Retry using the message above.' : 'Saved on this device.'}</p>
       {session.status === 'completed' && <BackgroundControls controller={runtime.background}/>}
-      <div className="practice-actions"><button className="primary" onClick={() => start(session.snapshot!.config)}>Start again</button><button onClick={() => { runtime.engine.reset(); onDone(); }}>Done / Home</button></div>
+      {onReflect&&<button className="button primary wide" onClick={()=>onReflect(session.result!.id,session.snapshot!.name)}>Write a reflection</button>}
+      <div className="practice-actions"><button onClick={() => start(session.snapshot!.config)}>Start again</button><button onClick={() => { runtime.engine.reset(); onDone(); }}>Done / Home</button></div>
     </section>
   </>;
     return <>
-    <p className="eyebrow">MAKE A LITTLE SPACE</p><h1>Practice</h1>
+    <p className="eyebrow">BREATHE</p><h1>{PRACTICE_CARDS.find(p=>p.preset===preset)?.name??"Practice"}</h1><div className="detail-art"><div className="orb"><Icon name="breathe" size={40}/></div></div>
     <p className="intro">Choose a rhythm. Follow the guidance at a pace that feels comfortable.</p>
-    {onMeditation && <p><button onClick={onMeditation}>Explore meditation</button></p>}
-    {onRoutines && <p><button onClick={onRoutines}>My Routines</button></p>}
+    {(onMeditation||onRoutines)&&<details><summary>More ways to practice</summary>{onMeditation&&<button onClick={onMeditation}>Explore meditation</button>}{onRoutines&&<button onClick={onRoutines}>My Routines</button>}</details>}
     {error && <p role="alert" className="notice">{error}</p>}
     <section className="panel practice-config">
-      <label htmlFor="preset">Practice</label>
+      <details><summary>Choose another practice</summary><label htmlFor="preset">Practice</label>
       <select id="preset" value={preset} onChange={e => setPreset(e.target.value as typeof preset)}>
         {Object.entries(patterns).map(([id, p]) => <option key={id} value={id}>{p.name}</option>)}
         <option value="hormesis-foundation">Hormesis · Foundation</option><option value="hormesis-advanced">Hormesis · Advanced</option>
-      </select>
-      {!hormesis ? <><label htmlFor="breathing-cycles">Breathing cycles</label><input id="breathing-cycles" type="number" min="1" max={Math.min(100,Math.floor(1800/patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)))} step="1" value={Number.isFinite(breathingCycles)?breathingCycles:''} onChange={e=>setBreathingCycles(e.target.value===''?NaN:Number(e.target.value))}/><p className="muted">One cycle includes the full inhale, any holds, and exhale. {Number.isFinite(breathingCycles)&&`${formatDuration(patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)*breathingCycles)} breathing + 25-second introduction.`}</p></> : <HormesisDetails config={selectedPractice() as Extract<ExerciseConfig,{kind:'hormesis'}>}/>}
+      </select></details>
+      {!hormesis ? <><label htmlFor="breathing-cycles">Breathing cycles</label><div className="segmented" aria-label="Complete breathing cycles">{[5,10,20].map(n=><button className="choice" key={n} aria-pressed={breathingCycles===n} onClick={()=>setBreathingCycles(n)}>{n} cycles</button>)}</div><details><summary>Choose another cycle count</summary><input aria-label="Breathing cycles" id="breathing-cycles" type="number" min="1" max={Math.min(100,Math.floor(1800/patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)))} step="1" value={Number.isFinite(breathingCycles)?breathingCycles:''} onChange={e=>setBreathingCycles(e.target.value===''?NaN:Number(e.target.value))}/></details><p className="muted">One cycle includes the full inhale, any holds, and exhale. {Number.isFinite(breathingCycles)&&`${formatDuration(patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)*breathingCycles)} breathing + 25-second introduction.`}</p></> : <HormesisDetails config={selectedPractice() as Extract<ExerciseConfig,{kind:'hormesis'}>}/>}
       <label className="theme"><input type="checkbox" checked={addMeditation} onChange={e=>setAddMeditation(e.target.checked)}/>Add meditation afterward</label>
       {addMeditation&&<><label htmlFor="followup-minutes">Meditation afterward · minutes</label><select id="followup-minutes" value={meditationMinutes} onChange={e=>setMeditationMinutes(Number(e.target.value))}>{[5,10,15,20,30].map(n=><option value={n} key={n}>{n} minutes</option>)}</select><AcousticScenePicker id="followup-scene" value={meditationScene} seconds={meditationMinutes*60} onChange={s=>{if(s!=='legacy')setMeditationScene(s);}}/><p className="muted">After the final recovery and a short transition, meditation begins automatically. No preparation is repeated.</p></>}
       {plannedSeconds!==undefined&&<p className="muted" role="status">Total planned time: {formatDuration(plannedSeconds)}, including the introduction{addMeditation?', transition and meditation':''}. Retention can be released early.</p>}

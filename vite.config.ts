@@ -13,13 +13,13 @@ export default defineConfig({
       includeManifestIcons: false,
       manifest: {
         id: base,
-        name: 'Breathwork Buddy',
-        short_name: 'Breathwork',
+        name: 'Breathward',
+        short_name: 'Breathward',
         start_url: base,
         scope: base,
         display: 'standalone',
-        theme_color: '#526b59',
-        background_color: '#f4f3ed',
+        theme_color: '#285c4b',
+        background_color: '#f4f3ec',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },

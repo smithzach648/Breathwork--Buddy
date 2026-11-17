@@ -1,28 +1,7 @@
-import { QuickRoutines } from '../routines/QuickRoutines';
-export function Home({ onExplore, onRoutines, onStartRoutine, onMeditation, onMeditate }: {
-    onExplore: () => void;
-    onMeditation: () => void;
-    onMeditate?: () => void;
-    onRoutines: () => void;
-    onStartRoutine: (id: string) => Promise<void>;
-}) {
-    return <>
-    <p className="eyebrow">A LITTLE SPACE FOR YOURSELF</p>
-    <h1>Come back<br />to your breath.</h1>
-    <p className="intro">A quiet place to pause, find your rhythm, and make room for the day.</p>
-    <section className="hero">
-      <span className="eyebrow">YOUR PRACTICE, AT YOUR PACE</span>
-      <h2>Small moments.<br />A steadier day.</h2>
-      <p>Find a comfortable rhythm with local voice guidance, natural breath sounds, and space to pause.</p>
-      <button className="primary" onClick={onExplore}>Explore the practice space <span aria-hidden="true">→</span></button>
-    </section>
-    {onMeditate&&<section className="panel suite-home"><span className="eyebrow">I WANT TO MEDITATE</span><h2>A familiar way inward.</h2><p>Two complete journeys with thoughtful preparation, musical breath pacing, continuous sound, and a gentle return.</p><button className="primary" onClick={onMeditate}>Explore journeys <span aria-hidden="true">→</span></button></section>}
-    <section className="panel"><h2>Meditation timer</h2><p>Settle in with a familiar breath and a quiet sound environment.</p><button onClick={onMeditation}>Explore meditation</button></section>
-    <QuickRoutines onOpen={onRoutines} onStart={onStartRoutine}/>
-    <div className="cards">
-      <section><span className="number">01</span><h2>Keep it personal</h2><p>Your preferences live on this device. No account needed.</p></section>
-      <section><span className="number">02</span><h2>At your pace</h2><p>Choose a gentle breathing pattern or a retention practice. Stop whenever you need.</p></section>
-    </div>
-    <p className="footnote">Your practice and history stay on this device.</p>
-  </>;
+import {Icon} from '../../components/Icon';
+import {formatDuration} from '../../shared/format';
+import {PRACTICE_CARDS,type Category,type PracticeCard} from '../library/catalog';
+export function Home({last,onOpen,onCategory,onWrite}:{last?:string;onOpen:(p:PracticeCard)=>void;onCategory:(c:Category)=>void;onWrite:()=>void}){
+ const p=PRACTICE_CARDS.find(p=>p.id===last)??PRACTICE_CARDS[0];
+ return <><p className="eyebrow">A LITTLE SPACE FOR YOURSELF</p><h1>Come back<br/>to your own rhythm.</h1><p className="intro">A breath. A place to rest. A little further inward.</p><div className="home-grid"><section className="hero"><div className="hero-art" aria-hidden="true">{[0,1,2,3,4,5].map(i=><i key={i} style={{inset:i*17}}/>)}</div><p className="eyebrow">{last?'RETURN TO YOUR PRACTICE':'A GENTLE PLACE TO BEGIN'}</p><h2>{p.name}</h2><p className="subtext">{p.technique}</p><div className="pill-row"><span className="pill">{formatDuration(p.seconds)} total</span><span className="pill">{p.kind==='breathe'?'Marshall + Soft Felt':p.kind==='journey'?'Marshall · guided':'Sound only'}</span></div><button className="button" onClick={()=>onOpen(p)}>{last?'Return to this practice':'Begin a breathing practice'}<Icon name="arrow" size={17}/></button></section><section><div className="section-heading"><h2>What feels right today?</h2></div><div className="path-list">{([['breathe','Breathe','A rhythm to follow. A moment to reset.'],['meditate','Meditate','Rest with sound, at your own pace.'],['journey','Take a journey','Preparation, exploration, and a gentle return.']] as const).map(([id,label,copy])=><button className="path-row" key={id} onClick={()=>onCategory(id)}><span className="path-icon"><Icon name={id} size={24}/></span><span className="path-copy"><strong>{label}</strong><small>{copy}</small></span><span aria-hidden="true">›</span></button>)}</div></section></div><div className="section-heading"><h2>Room to reflect</h2></div><section className="note-card"><Icon name="reflect" size={25}/><div><h3>Leave yourself a few words.</h3><p className="subtext">A feeling, an intention, something you noticed. You can write whenever you want.</p><button className="text-button" onClick={onWrite}>Write a note →</button></div></section><p className="footer-note">Your practices, settings, and reflections stay on this device. No account needed.</p></>;
 }

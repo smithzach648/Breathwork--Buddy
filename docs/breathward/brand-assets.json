@@ -1,0 +1,9 @@
+{
+  "version": "breathward.1",
+  "purpose": "Approved Breathward rebrand; original audio remains pinned separately.",
+  "sha256": {
+    "icon-192.png": "3c4172c0e7ec3f4e81d6c9f08bca9d45a366a11f72e5c5f1f9d374e8abd5b5ac",
+    "icon-512.png": "5b85b5a27ed05b999f9ee76cf7a06f54d785a7463de57fc421a959119904da71",
+    "maskable-512.png": "4a39c5f8eb02c22f039bad04ba8d4841cff17c88d84f4ce5f8337429ad81f0c0"
+  }
+}

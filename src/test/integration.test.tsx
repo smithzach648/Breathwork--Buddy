@@ -31,7 +31,9 @@ describe('runtime and UI', () => {
         await database.history.clear();
         const f = fixture();
         render(<App runtime={f.runtime}/>);
-        fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Practices' }));
+        fireEvent.click(screen.getByRole('button',{name:'Box 4-4-4-4'}));
+        await screen.findByRole('button',{name:'Start practice'});
         fireEvent.change(screen.getByLabelText('Breathing cycles'), { target: { value: '10' } });
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
         await screen.findByRole('timer');expect(screen.getByRole('timer')).toHaveAttribute('aria-live', 'off');
@@ -41,7 +43,8 @@ describe('runtime and UI', () => {
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Completed');
         await waitFor(() => expect(f.runtime.getState().saving).toBe(false));
         expect(await database.history.count()).toBe(1);
-        fireEvent.click(screen.getByRole('button', { name: /^History/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Reflect' }));
+        fireEvent.click(screen.getByRole('tab',{name:'Practice history'}));
         await screen.findByText('Box 4-4-4-4');
         expect(screen.getByText(/Completed/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Update app' }));
@@ -51,7 +54,9 @@ describe('runtime and UI', () => {
         const save = vi.fn(async (_result: SessionResult) => { });
         const f = fixture(save);
         render(<App runtime={f.runtime}/>);
-        fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Practices' }));
+        fireEvent.click(screen.getByRole('button',{name:'Box 4-4-4-4'}));
+        await screen.findByRole('button',{name:'Start practice'});
         fireEvent.change(screen.getByLabelText('Practice'), { target: { value: 'hormesis-advanced' } });
         expect(screen.getByText(/Never practice standing, walking, driving/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
