@@ -1,0 +1,878 @@
+{
+  "newCredits": 1850,
+  "previousCredits": 6315,
+  "totalCredits": 8165,
+  "voice": "Marshall",
+  "model": "eleven_v4",
+  "retakes": 0,
+  "clips": [
+    {
+      "id": "practice.intro.box.1",
+      "maxSeconds": 24.75,
+      "script": "Box breathing. Four seconds in, hold for four, four seconds out, then rest for four. Rising notes mean inhale, steady notes mean hold, and falling notes mean exhale. Keep each phase easy. You can breathe naturally whenever you prefer.",
+      "assetId": "practice.intro.box.1",
+      "durationSeconds": 24.25,
+      "sha256": "a082525ae3738ab5ca3b283a61f2e12cd5400a7addcd232dd4a84f5a45783571",
+      "approved": true,
+      "generationId": "xktrTgEXSPastA0dfTAF",
+      "credits": 234,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 17.44,
+      "addedSilenceSeconds": 6.81,
+      "splices": [
+        {
+          "sourceFrame": 53175,
+          "seam": 0.0000014193449260346824,
+          "quietSeconds": 0.46,
+          "extraFrames": 39927,
+          "outputSeconds": 1.2057823129251701
+        },
+        {
+          "sourceFrame": 114877,
+          "seam": 0.000010178920092585031,
+          "quietSeconds": 0.2,
+          "extraFrames": 17360,
+          "outputSeconds": 3.510294784580499
+        },
+        {
+          "sourceFrame": 176609,
+          "seam": 0.00000262654020843911,
+          "quietSeconds": 0.41000000000000003,
+          "extraFrames": 35587,
+          "outputSeconds": 5.303764172335601
+        },
+        {
+          "sourceFrame": 235156,
+          "seam": 0.000005800899089081213,
+          "quietSeconds": 0.32,
+          "extraFrames": 27775,
+          "outputSeconds": 7.438321995464853
+        },
+        {
+          "sourceFrame": 303664,
+          "seam": 0.0000013313016324900673,
+          "quietSeconds": 0.62,
+          "extraFrames": 53815,
+          "outputSeconds": 9.621609977324264
+        },
+        {
+          "sourceFrame": 395848,
+          "seam": 0.000007073297183524119,
+          "quietSeconds": 0.36,
+          "extraFrames": 31247,
+          "outputSeconds": 12.932244897959183
+        },
+        {
+          "sourceFrame": 472922,
+          "seam": 0.000016888803656911477,
+          "quietSeconds": 0.17,
+          "extraFrames": 14756,
+          "outputSeconds": 15.388503401360545
+        },
+        {
+          "sourceFrame": 582437,
+          "seam": 0.0000026048478503071237,
+          "quietSeconds": 0.51,
+          "extraFrames": 44267,
+          "outputSeconds": 18.206439909297053
+        },
+        {
+          "sourceFrame": 664833,
+          "seam": 0.0000035893913263862487,
+          "quietSeconds": 0.41000000000000003,
+          "extraFrames": 35587,
+          "outputSeconds": 21.07861678004535
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 24.25,
+          "peak": 0.8055127263069153
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 24.25,
+          "peak": 0.8054932951927185
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.478.1",
+      "maxSeconds": 24.75,
+      "script": "Four-seven-eight breathing. Breathe in for four, hold comfortably for seven, and breathe out for eight. The notes rise as you inhale, stay at one pitch during the hold, and fall as you exhale. Let comfort guide you, and return to natural breathing whenever you choose.",
+      "assetId": "practice.intro.478.1",
+      "durationSeconds": 24.24997732426304,
+      "sha256": "879e8fd0ffd1da69d63666139f16ba1c471309a92ab605968bef1756be04281a",
+      "approved": true,
+      "generationId": "nsYLObWVS1eP6gtTfMzU",
+      "credits": 268,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 18.32,
+      "addedSilenceSeconds": 5.929977324263039,
+      "splices": [
+        {
+          "sourceFrame": 76100,
+          "seam": 5.85050884183147e-7,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 51049,
+          "outputSeconds": 1.72562358276644
+        },
+        {
+          "sourceFrame": 153139,
+          "seam": 7.759057325529284e-7,
+          "quietSeconds": 0.43,
+          "extraFrames": 38510,
+          "outputSeconds": 4.630113378684808
+        },
+        {
+          "sourceFrame": 239491,
+          "seam": 0.0000017066150803657365,
+          "quietSeconds": 0.31,
+          "extraFrames": 27763,
+          "outputSeconds": 7.461451247165533
+        },
+        {
+          "sourceFrame": 322269,
+          "seam": 4.2820741441573773e-7,
+          "quietSeconds": 0.59,
+          "extraFrames": 52840,
+          "outputSeconds": 9.968049886621316
+        },
+        {
+          "sourceFrame": 421527,
+          "seam": 0.000005017041985411197,
+          "quietSeconds": 0.31,
+          "extraFrames": 27763,
+          "outputSeconds": 13.416984126984127
+        },
+        {
+          "sourceFrame": 606084,
+          "seam": 2.0795889099645137e-7,
+          "quietSeconds": 0.49,
+          "extraFrames": 43884,
+          "outputSeconds": 18.231496598639456
+        },
+        {
+          "sourceFrame": 676448,
+          "seam": 0.000012710780538327526,
+          "quietSeconds": 0.22,
+          "extraFrames": 19703,
+          "outputSeconds": 20.822154195011336
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 24.24997732426304,
+          "peak": 0.798811674118042
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 24.249958333333332,
+          "peak": 0.7988147735595703
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.calm.1",
+      "maxSeconds": 24.75,
+      "script": "We'll use a calm breathing rhythm. Four seconds in, a gentle hold for four, six seconds out, then rest for two. Rising notes mean inhale. Steady notes mark a hold, and falling notes mean exhale. Keep it comfortable, and breathe naturally whenever you prefer.",
+      "assetId": "practice.intro.calm.1",
+      "durationSeconds": 24.25,
+      "sha256": "41e75e5eec70fb6165c811c627b1918d52b2247dfd75643a43c11044bcd86330",
+      "approved": true,
+      "generationId": "6FGmBajt4IJnXcNbzTen",
+      "credits": 258,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 18.56,
+      "addedSilenceSeconds": 5.69,
+      "splices": [
+        {
+          "sourceFrame": 89057,
+          "seam": 0.000001138927132160461,
+          "quietSeconds": 0.44,
+          "extraFrames": 38336,
+          "outputSeconds": 2.019433106575964
+        },
+        {
+          "sourceFrame": 157698,
+          "seam": 0.000006831201062595937,
+          "quietSeconds": 0.2,
+          "extraFrames": 17426,
+          "outputSeconds": 4.4452154195011335
+        },
+        {
+          "sourceFrame": 254393,
+          "seam": 0.000005539147423405666,
+          "quietSeconds": 0.43,
+          "extraFrames": 37465,
+          "outputSeconds": 7.032993197278912
+        },
+        {
+          "sourceFrame": 320642,
+          "seam": 0.000002435586338833673,
+          "quietSeconds": 0.32,
+          "extraFrames": 27881,
+          "outputSeconds": 9.384784580498867
+        },
+        {
+          "sourceFrame": 381280,
+          "seam": 6.379551109603199e-7,
+          "quietSeconds": 0.5,
+          "extraFrames": 43564,
+          "outputSeconds": 11.392018140589569
+        },
+        {
+          "sourceFrame": 483281,
+          "seam": 0.0000029593784347525798,
+          "quietSeconds": 0.42,
+          "extraFrames": 36594,
+          "outputSeconds": 14.69281179138322
+        },
+        {
+          "sourceFrame": 663263,
+          "seam": 0.000001953469563886756,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 49663,
+          "outputSeconds": 19.603832199546485
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 24.25,
+          "peak": 0.8116795420646667
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 24.25,
+          "peak": 0.815308690071106
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.coherent.1",
+      "maxSeconds": 24.75,
+      "script": "We'll use an even six-six rhythm. Six seconds in, and six seconds out. Follow the rising notes as you breathe in and the falling notes as you breathe out. There is no hold. Let the breath stay easy and unforced.",
+      "assetId": "practice.intro.coherent.1",
+      "durationSeconds": 20.272086167800452,
+      "sha256": "c7b2722596dfeab16320674efb5b20d997ec5eb6d7794a17c481d487929bddff",
+      "approved": true,
+      "generationId": "18c9Vw9iXsOJT48nCAwg",
+      "credits": 211,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 14.48,
+      "addedSilenceSeconds": 5.792018140589569,
+      "splices": [
+        {
+          "sourceFrame": 101135,
+          "seam": 0.000004179947609372903,
+          "quietSeconds": 0.42,
+          "extraFrames": 63479,
+          "outputSeconds": 2.293310657596372
+        },
+        {
+          "sourceFrame": 164021,
+          "seam": 0.000010968961760227103,
+          "quietSeconds": 0.18,
+          "extraFrames": 27205,
+          "outputSeconds": 5.158730158730159
+        },
+        {
+          "sourceFrame": 224836,
+          "seam": 0.000006945302629901562,
+          "quietSeconds": 0.22,
+          "extraFrames": 33251,
+          "outputSeconds": 7.154648526077097
+        },
+        {
+          "sourceFrame": 447050,
+          "seam": 0.00000261932245848584,
+          "quietSeconds": 0.51,
+          "extraFrames": 77082,
+          "outputSeconds": 12.947505668934241
+        },
+        {
+          "sourceFrame": 519849,
+          "seam": 0.000002266002184114768,
+          "quietSeconds": 0.36,
+          "extraFrames": 54411,
+          "outputSeconds": 16.346167800453514
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 20.272086167800452,
+          "peak": 0.8136187195777893
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 20.272083333333335,
+          "peak": 0.8131051063537598
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.custom.1",
+      "maxSeconds": 24.75,
+      "script": "Your chosen breathing pattern is ready. Rising notes guide the inhale, repeated notes at one pitch mark a hold, and falling notes guide the exhale. Each note marks one second. Keep the breath comfortable. You can return to natural breathing or stop whenever you wish.",
+      "assetId": "practice.intro.custom.1",
+      "durationSeconds": 24.08,
+      "sha256": "420b6546bb5b2468cb17c4c374d5a034e3068e20582188a9a934bbf9185e20e4",
+      "approved": true,
+      "generationId": "ouuo1JcfVoM3CtbWaGl2",
+      "credits": 267,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 17.2,
+      "addedSilenceSeconds": 6.88,
+      "splices": [
+        {
+          "sourceFrame": 97116,
+          "seam": 0.000002094003093588981,
+          "quietSeconds": 0.54,
+          "extraFrames": 71546,
+          "outputSeconds": 2.2021768707482994
+        },
+        {
+          "sourceFrame": 196121,
+          "seam": 0.000006711729383823695,
+          "quietSeconds": 0.37,
+          "extraFrames": 49022,
+          "outputSeconds": 6.069546485260771
+        },
+        {
+          "sourceFrame": 421972,
+          "seam": 0.000003111093292318401,
+          "quietSeconds": 0.55,
+          "extraFrames": 72871,
+          "outputSeconds": 12.302494331065759
+        },
+        {
+          "sourceFrame": 524337,
+          "seam": 0.000002675531959539512,
+          "quietSeconds": 0.52,
+          "extraFrames": 68896,
+          "outputSeconds": 16.27609977324263
+        },
+        {
+          "sourceFrame": 589597,
+          "seam": 0.000009561983461026102,
+          "quietSeconds": 0.31,
+          "extraFrames": 41073,
+          "outputSeconds": 19.318185941043083
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 24.08,
+          "peak": 0.7911795377731323
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 24.08,
+          "peak": 0.7911633253097534
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.hormesis.1",
+      "maxSeconds": 29.75,
+      "script": "For this Hormesis practice, stay seated or lying down somewhere safe. Follow the rising and falling notes for your chosen breathing rhythm. Afterward, let the breath pause only while comfortable. Release whenever you need to, and follow the recovery cues. There is no need to reach the timer's target.",
+      "assetId": "practice.intro.hormesis.1",
+      "durationSeconds": 26.991995464852607,
+      "sha256": "840d2f24868523ddce52f29a317db71874ef2f593da6c8b9148ce4034ff00c4b",
+      "approved": true,
+      "generationId": "nJ2P2Llnnj5Ypy0IV1P3",
+      "credits": 301,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 19.28,
+      "addedSilenceSeconds": 7.711995464852608,
+      "splices": [
+        {
+          "sourceFrame": 76351,
+          "seam": 0.000012187283573439345,
+          "quietSeconds": 0.17,
+          "extraFrames": 25927,
+          "outputSeconds": 1.7313151927437642
+        },
+        {
+          "sourceFrame": 213672,
+          "seam": 0.000002954173851321684,
+          "quietSeconds": 0.59,
+          "extraFrames": 89981,
+          "outputSeconds": 5.433083900226757
+        },
+        {
+          "sourceFrame": 395392,
+          "seam": 0.0000020912998479616363,
+          "quietSeconds": 0.5700000000000001,
+          "extraFrames": 86931,
+          "outputSeconds": 11.594104308390023
+        },
+        {
+          "sourceFrame": 571205,
+          "seam": 0.0000012928435353387613,
+          "quietSeconds": 0.47000000000000003,
+          "extraFrames": 71680,
+          "outputSeconds": 17.55201814058957
+        },
+        {
+          "sourceFrame": 735995,
+          "seam": 0.000004057784735778114,
+          "quietSeconds": 0.43,
+          "extraFrames": 65580,
+          "outputSeconds": 22.914149659863945
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 26.991995464852607,
+          "peak": 0.8275085091590881
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 26.991979166666667,
+          "peak": 0.8274403810501099
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.round1.1",
+      "maxSeconds": 2.75,
+      "script": "Round one.",
+      "assetId": "practice.voice.round1.1",
+      "durationSeconds": 1.12,
+      "sha256": "f1c8d8981540afd9c9021cebc7f511ef876c9b48c8e6f40a69de0cd69bc66e79",
+      "approved": true,
+      "generationId": "JuhJc0BQ1P9F9sxy9g0N",
+      "credits": 10,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 1.12,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 1.12,
+          "peak": 0.6900856494903564
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 1.12,
+          "peak": 0.6889181733131409
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.round2.1",
+      "maxSeconds": 2.75,
+      "script": "Round two.",
+      "assetId": "practice.voice.round2.1",
+      "durationSeconds": 1.12,
+      "sha256": "8ef74b93fabf2a0ca4f92982a7361fa2608dbd2cc570b0a2f0a0971111c71742",
+      "approved": true,
+      "generationId": "22zhThig1kQeL233mOVv",
+      "credits": 10,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 1.12,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 1.12,
+          "peak": 0.6783258318901062
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 1.12,
+          "peak": 0.6783254742622375
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.finalRound.1",
+      "maxSeconds": 2.75,
+      "script": "Final round.",
+      "assetId": "practice.voice.finalRound.1",
+      "durationSeconds": 1.12,
+      "sha256": "4756f92f71c5944b0f58ad925063da2ebce0bbe1f9bca8daadc077f4d6486b1f",
+      "approved": true,
+      "generationId": "j95BNNnxt4FfBH8o5Bc9",
+      "credits": 12,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 1.12,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 1.12,
+          "peak": 0.768802285194397
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 1.12,
+          "peak": 0.768308162689209
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.hold60.1",
+      "maxSeconds": 10,
+      "script": "Let the breath pause. Up to sixty seconds, only while comfortable. Release whenever you choose.",
+      "assetId": "practice.voice.hold60.1",
+      "durationSeconds": 9.048004535147392,
+      "sha256": "5c2c3f05102b3cf54043672bdcb6e8d1219e882584cf39e0d8332c426710491f",
+      "approved": true,
+      "generationId": "OruiWsssyKPsNa49YdLU",
+      "credits": 95,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 6.96,
+      "addedSilenceSeconds": 2.0880045351473924,
+      "splices": [
+        {
+          "sourceFrame": 68778,
+          "seam": 0.000006039531854185043,
+          "quietSeconds": 0.45,
+          "extraFrames": 42282,
+          "outputSeconds": 1.559591836734694
+        },
+        {
+          "sourceFrame": 209140,
+          "seam": 0.0000022034600988263264,
+          "quietSeconds": 0.53,
+          "extraFrames": 49799,
+          "outputSeconds": 5.701179138321995
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 9.048004535147392,
+          "peak": 0.7519345879554749
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 9.048,
+          "peak": 0.7540161609649658
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.hold90.1",
+      "maxSeconds": 10,
+      "script": "Let the breath pause. Up to ninety seconds, only while comfortable. Release whenever you choose.",
+      "assetId": "practice.voice.hold90.1",
+      "durationSeconds": 8.839977324263039,
+      "sha256": "e88b604f91796a15b90ac1be17ab09c7c1577165c5984ab47f50e32dc8b05d47",
+      "approved": true,
+      "generationId": "gMKxtMURu5xLbQL0uNsd",
+      "credits": 96,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 6.8,
+      "addedSilenceSeconds": 2.0399773242630386,
+      "splices": [
+        {
+          "sourceFrame": 72911,
+          "seam": 0.000007674590051465202,
+          "quietSeconds": 0.38,
+          "extraFrames": 32558,
+          "outputSeconds": 1.6533106575963719
+        },
+        {
+          "sourceFrame": 144622,
+          "seam": 1.2360550272205728e-7,
+          "quietSeconds": 0.19,
+          "extraFrames": 16279,
+          "outputSeconds": 4.017687074829932
+        },
+        {
+          "sourceFrame": 204880,
+          "seam": 0.0000041911230255209375,
+          "quietSeconds": 0.48,
+          "extraFrames": 41126,
+          "outputSeconds": 5.753219954648526
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 8.839977324263039,
+          "peak": 0.6927427053451538
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 8.839958333333334,
+          "peak": 0.6897649765014648
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.fullExhale.1",
+      "maxSeconds": 3.75,
+      "script": "Let the breath out.",
+      "assetId": "practice.voice.fullExhale.1",
+      "durationSeconds": 1.68,
+      "sha256": "4a893414988d371434bbd9c92128487a891cc164751933420ac2ad4a8bbbd18a",
+      "approved": true,
+      "generationId": "8EAC1wVtUHWOJjULJgw4",
+      "credits": 19,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 1.68,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 1.68,
+          "peak": 0.49204686284065247
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 1.68,
+          "peak": 0.4920237064361572
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.recoveryInhale.1",
+      "maxSeconds": 3.75,
+      "script": "Take an easy breath in.",
+      "assetId": "practice.voice.recoveryInhale.1",
+      "durationSeconds": 2,
+      "sha256": "d84a65c3335eb99016532752a0f0e0a76b5a37a78500f38e0201cc96192527ff",
+      "approved": true,
+      "generationId": "PhGTZTIdrdEwULqOdc0G",
+      "credits": 23,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 2,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 2,
+          "peak": 0.5867557525634766
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 2,
+          "peak": 0.587043046951294
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.recoveryExhale.1",
+      "maxSeconds": 5.75,
+      "script": "Let it go, and settle.",
+      "assetId": "practice.voice.recoveryExhale.1",
+      "durationSeconds": 3.12,
+      "sha256": "4b2608eae50ac52d9fb12599304bbd78d6565f75b4956138d69c107252e7bf7a",
+      "approved": true,
+      "generationId": "V2t5zgoOF3mNKQhP9oJd",
+      "credits": 22,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 2.4,
+      "addedSilenceSeconds": 0.72,
+      "splices": [
+        {
+          "sourceFrame": 56754,
+          "seam": 0.00001246462397830328,
+          "quietSeconds": 0.28,
+          "extraFrames": 31752,
+          "outputSeconds": 1.2869387755102042
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 3.12,
+          "peak": 0.5403066277503967
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 3.12,
+          "peak": 0.5402698516845703
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.five.1",
+      "maxSeconds": 0.95,
+      "script": "Five.",
+      "assetId": "practice.voice.five.1",
+      "durationSeconds": 0.8,
+      "sha256": "996bb0291547e85eb557c50130eae6aa725bf250ecc492768a42ac5afc06ba4a",
+      "approved": true,
+      "generationId": "zZailaBF59ECZaPAnZL3",
+      "credits": 5,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 0.8,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 0.8,
+          "peak": 0.7617335915565491
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 0.8,
+          "peak": 0.761182427406311
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.four.1",
+      "maxSeconds": 0.95,
+      "script": "Four.",
+      "assetId": "practice.voice.four.1",
+      "durationSeconds": 0.72,
+      "sha256": "5758be27a63c3d7d6673d5e60f0b42621e94701d6ab71cfa7b98f03907be0be4",
+      "approved": true,
+      "generationId": "nSY7A37TUroLtpU9tH3V",
+      "credits": 5,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 0.72,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 0.72,
+          "peak": 0.637288510799408
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 0.72,
+          "peak": 0.6370118260383606
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.three.1",
+      "maxSeconds": 0.95,
+      "script": "Three.",
+      "assetId": "practice.voice.three.1",
+      "durationSeconds": 0.64,
+      "sha256": "3258fcd9a3375cc7ce9555f649eaf7c38304139977d1cffd82de7f6aaeac4bc3",
+      "approved": true,
+      "generationId": "cmWnpagWBGUZJXQ18F1R",
+      "credits": 6,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 0.64,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 0.64,
+          "peak": 0.5160624384880066
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 0.64,
+          "peak": 0.5160943269729614
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.two.1",
+      "maxSeconds": 0.95,
+      "script": "Two.",
+      "assetId": "practice.voice.two.1",
+      "durationSeconds": 0.64,
+      "sha256": "58c0d8cac1113f4f4f9895111afcbdd284f4007bf75ab2a5ac7de237cac68c9e",
+      "approved": true,
+      "generationId": "82HsouOyd5q9xi201sLz",
+      "credits": 4,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 0.64,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 0.64,
+          "peak": 0.5761836767196655
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 0.64,
+          "peak": 0.576207160949707
+        }
+      ]
+    },
+    {
+      "id": "practice.voice.one.1",
+      "maxSeconds": 0.95,
+      "script": "One.",
+      "assetId": "practice.voice.one.1",
+      "durationSeconds": 0.72,
+      "sha256": "cc239d2c58a7c855348e3a185195b2204f03cae92191ca431f7fd2db22c41a7b",
+      "approved": true,
+      "generationId": "SCG3LXleYlNRk338YonU",
+      "credits": 4,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 0.72,
+      "addedSilenceSeconds": 0,
+      "splices": [],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 0.72,
+          "peak": 0.5240302681922913
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 0.72,
+          "peak": 0.5239181518554688
+        }
+      ]
+    }
+  ]
+}

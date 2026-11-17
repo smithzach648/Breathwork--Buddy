@@ -1,3 +1,4 @@
+import {PRACTICE_NARRATION} from '../../audio/practice-narration';
 import { BlockDetails } from '../history/BlockDetails';
 import { MeditationAudio } from '../meditation/Meditation';
 import { defaultPreferences, type Preferences } from '../../settings/preferences';
@@ -23,12 +24,12 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     const [error, setError] = useState('');
     const session = state.session;
     const meditating = session.stage?.phase === 'meditation';
-    const envelope=meditating&&session.stage!.durationMs>=600000&&session.snapshot?.meditationSound?.mode!=='off'&&session.snapshot?.meditationSound?signalProfile(session.stage!.durationMs/1000):undefined;
+    const envelope=meditating&&!session.stage?.soundRecipe?.acoustic&&session.stage!.durationMs>=600000&&session.snapshot?.meditationSound?.mode!=='off'&&session.snapshot?.meditationSound?signalProfile(session.stage!.durationMs/1000):undefined;
     const elapsed=meditating?(session.stage!.durationMs-session.remainingMs)/1000:0;
     const hormesis = preset.startsWith('hormesis');
     async function start(config?: PracticeConfig) {
         try {
-            await runtime.start(config || (hormesis ? { kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { kind: 'patterned', presetId: preset as PatternId, durationSeconds: duration }), config ? session.snapshot?.meditationSound : undefined);
+            await runtime.start(config || (hormesis ? { guidanceProfile:'soft-felt-marshall.1',kind: 'hormesis', presetId: preset as 'hormesis-60' | 'hormesis-progressive', intervalSeconds: interval, cycles, retentions: preset === 'hormesis-60' ? [60, 60, 60] : [60, 90, 90], recoveryHoldSeconds: 15 } : { guidanceProfile:'soft-felt-marshall.1',kind: 'patterned', presetId: preset as PatternId, durationSeconds: duration }), config ? session.snapshot?.meditationSound : undefined);
             setError('');
         }
         catch (e) {
@@ -42,13 +43,14 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
     <section className="panel active-practice">
       {(!meditating || session.snapshot!.config.kind === 'routine') && <p>{session.snapshot!.name}</p>}
       {session.stage?.blockId && <p className="muted">Block {session.stage.blockIndex! + 1} · {session.stage.blockName}</p>}
+      {session.stage?.introClipId&&<p className='suite-prompt'>{PRACTICE_NARRATION[session.stage.introClipId]?.script}</p>}
       <p className={meditating ? 'stage-title sr-only' : 'stage-title'}>{session.stage!.label}</p>
       {(!meditating || preferences.meditation.showTimer) && <p className="stage-time" role="timer" aria-live="off" aria-label="Stage time remaining">{formatDuration(session.remainingMs / 1000)}</p>}
       <p className={meditating ? 'sr-only' : undefined} role="status" aria-live="polite" aria-atomic="true">{session.stage!.label}{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') && session.stage!.round > 0 && session.stage!.phase !== 'round-announcement' ? ` · Round ${session.stage!.round} of ${session.stage!.totalRounds}` : ''}</p>
       {(session.stage!.phase === 'inhale' || session.stage!.phase === 'exhale') && <p className="muted">{(session.snapshot!.config.kind === 'hormesis' || session.snapshot!.config.kind === 'hormesis-round' || session.stage!.blockKind === 'hormesis' || session.stage!.blockKind === 'hormesis-round') ? 'Breath' : 'Cycle'} {session.stage!.cycle} of {session.stage!.totalCycles}</p>}
       {meditating && onPreferencesChange && <button onClick={() => onPreferencesChange({...preferences,meditation:{...preferences.meditation,showTimer:!preferences.meditation.showTimer}})}>{preferences.meditation.showTimer ? 'Hide timer' : 'Show timer'}</button>}
       {envelope&&session.stage?.meditationPolicy!=='silent'&&<p className="muted">{elapsed<envelope.entry?'Entry':elapsed<envelope.entry+envelope.steady?'Steady':'Return'}</p>}
-      {meditating && session.stage!.durationMs<600000 && session.snapshot?.meditationSound?.mode!=='off' && session.snapshot?.meditationSound && session.stage!.meditationPolicy!=='silent' && <p className="notice">This short block uses masking and selected audio only. Binaural sessions need at least 10 minutes; your selected mode stays saved.</p>}
+      {meditating && !session.stage?.soundRecipe?.acoustic && session.stage!.durationMs<600000 && session.snapshot?.meditationSound?.mode!=='off' && session.snapshot?.meditationSound && session.stage!.meditationPolicy!=='silent' && <p className="notice">This short block uses masking and selected audio only. Binaural sessions need at least 10 minutes; your selected mode stays saved.</p>}
       <div className="practice-actions">
         {session.releaseAvailable && <button className="primary" onClick={() => runtime.engine.releaseRetention()}>Release retention</button>}
         <button onClick={() => runtime.engine.stop(meditating ? 'ended-early' : undefined)}>{meditating ? 'End Early' : 'Stop practice'}</button>
@@ -57,6 +59,7 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
       {!meditating && <p className="muted">Elapsed {formatDuration(session.elapsedMs / 1000)}</p>}
       {meditating && session.stage?.meditationPolicy === 'silent' ? <p className="muted">Silent environment</p> : meditating && onPreferencesChange ? <MeditationAudio preferences={preferences} onChange={onPreferencesChange} runtime={runtime} running/> : <BackgroundControls controller={runtime.background}/>}
       {session.snapshot!.config.kind === 'patterned' && runtime.background?.getMode() === 'retention' && <p className="muted">Retention-only background is unavailable for this practice. Choose Entire practice in Settings to hear background audio.</p>}
+      {state.audio.acoustic?.error&&<p role="status" className="notice">{state.audio.acoustic.error}</p>}
       {state.audio.failures.length > 0 && <p className="muted">Some audio is unavailable. Practice timing continues normally.</p>}
     </section>
   </>;
@@ -94,7 +97,7 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
         <p className="muted">Practice seated or lying down somewhere safe. Never while driving or in or near water. Release or stop whenever uncomfortable.</p>
       </>}
       <button className="primary" onClick={() => start()}>Start practice</button>
-      <p className="muted">Start with a 4-second inhale, 6-second exhale, and 3 seconds to settle.{!hormesis && ' Your selected practice time begins after preparation.'}</p>
+      <p className="muted">Marshall introduces your exercise before the Soft Felt notes begin.{hormesis?' The introduction lasts 30 seconds.':' Your selected breathing time begins after the 25-second introduction.'}</p>
       <p className="muted">Voice and breath levels can be adjusted in Settings.</p>
     </section>
   </>;

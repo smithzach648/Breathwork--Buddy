@@ -16,6 +16,7 @@ export function validateRoutine(value: unknown): asserts value is Routine {
         try {
             if (!record(stage) || !validId(stage.id) || ids.has(stage.id)) throw new Error('Each block needs a unique valid identity.');
             ids.add(stage.id);
+            if(stage.guidanceProfile!==undefined)throw new Error('Breathing guidance belongs to the session, not an individual block.');
             if (stage.kind === 'patterned') {
                 if (![180, 300, 600].includes(stage.durationSeconds as number)) throw new Error('Choose 3, 5, or 10 minutes.');
             } else if (stage.kind === 'hormesis') {

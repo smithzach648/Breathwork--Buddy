@@ -94,10 +94,10 @@ export function App({ runtime: providedRuntime }: {
         }
     }
     async function startRoutine(id: string) {
-        void runtime.audio.unlock();
+        void runtime.audio.unlock(false);
         const routine = await routineRepository.read(id);
         navigate('Practice');
-        try { await runtime.start({ kind: 'routine', routine }); }
+        try { await runtime.start({ kind: 'routine', routine,guidanceProfile:'soft-felt-marshall.1' }); }
         catch (error) { setError(error instanceof Error ? error.message : 'Routine could not start.'); throw error; }
     }
     function openMeditation() { navigate('Meditation'); }
@@ -112,15 +112,15 @@ export function App({ runtime: providedRuntime }: {
       {practiceState.saveError && <div role="alert" className="notice">{practiceState.saveError} <button onClick={() => runtime.retrySaving()}>Retry saving</button></div>}
       {practiceState.session.status==='running'&&practiceState.session.snapshot?.config.kind==='meditation-journey'&&page!=='Meditate'&&page!=='Practice'&&<p className="notice">A journey is in progress. <button onClick={()=>navigate('Meditate')}>Return to journey</button></p>}
       {needRefresh && <div className="notice" role="status">{practiceState.starting || practiceState.session.status === 'running' ? 'An update is ready. Finish or stop your practice to update.' : <>A new version is ready. <button onClick={() => void update()}>Update app</button></>}</div>}
-      {routinesOpen ? <Routines preferences={prefs} runtime={runtime} onStart={startRoutine} onBack={() => navigate('Home')} binauralSelected={prefs.meditation.binaural.mode!=='off'}/> : <>
-      {page === 'Home' && <><Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine} onMeditation={openMeditation} onMeditate={()=>navigate('Meditate')}/>{prefs.meditation.binaural.mode!=='off'&&<p className="notice">Saved meditation blocks shorter than 10 minutes use masking and selected audio only. Your binaural selection remains saved for longer blocks.</p>}</>}
+      {routinesOpen ? <Routines preferences={prefs} runtime={runtime} onStart={startRoutine} onBack={() => navigate('Home')} binauralSelected={(!prefs.meditation.acousticScene||prefs.meditation.acousticScene==='legacy')&&prefs.meditation.binaural.mode!=='off'}/> : <>
+      {page === 'Home' && <><Home onExplore={() => navigate('Practice')} onRoutines={() => setRoutinesOpen(true)} onStartRoutine={startRoutine} onMeditation={openMeditation} onMeditate={()=>navigate('Meditate')}/>{(!prefs.meditation.acousticScene||prefs.meditation.acousticScene==='legacy')&&prefs.meditation.binaural.mode!=='off'&&<p className="notice">Saved meditation blocks shorter than 10 minutes use masking and selected audio only. Your binaural selection remains saved for longer blocks.</p>}</>}
       {(page==='Meditate'||page==='Practice'&&practiceState.session.snapshot?.config.kind==='meditation-journey')&&(ready?<Meditate runtime={runtime} state={practiceState} onTimer={openMeditation} preferences={prefs} onPreferencesChange={saveSettings}/>:<p role="status">Loading your saved settings…</p>)}
       {page === 'Practice' && practiceState.session.snapshot?.config.kind!=='meditation-journey' && <Practice runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => setRoutinesOpen(true)} onMeditation={openMeditation} preferences={prefs} onPreferencesChange={saveSettings}/>}
       {page === 'Meditation' && !ready && <p role="status">Loading your saved settings…</p>}
       {page === 'Meditation' && ready && (practiceState.starting || practiceState.session.snapshot?.config.kind==='meditation' && (practiceState.session.status==='running' || practiceState.session.result) ? <Practice runtime={runtime} state={practiceState} onDone={()=>navigate('Meditation')} preferences={prefs} onPreferencesChange={saveSettings}/> : <Meditation preferences={prefs} onChange={saveSettings} runtime={runtime} onStart={startMeditation} onChooseTrack={()=>navigate('Settings')}/>)}
       {page === 'Journal' && <Journal />}
       {page === 'History' && <History version={practiceState.historyVersion}/>}
-      {page === 'Settings' && <Settings theme={prefs.theme} volumes={prefs.volumes} ready={ready} saving={saving} storageFailed={!!error} legacy={legacy} onThemeChange={changeTheme} onVolumeChange={(bus, value) => saveSettings({ ...latestPrefs.current, volumes: { ...latestPrefs.current.volumes, [bus]: value } })} preferences={prefs} onPreferencesChange={saveSettings} background={runtime.background} running={practiceState.session.status === 'running'}/>}
+      {page === 'Settings' && <Settings theme={prefs.theme} volumes={prefs.volumes} ready={ready} saving={saving} storageFailed={!!error} legacy={legacy} onThemeChange={changeTheme} onVolumeChange={(bus, value) => saveSettings({ ...latestPrefs.current, volumes: { ...latestPrefs.current.volumes, [bus]: value } })} preferences={prefs} onPreferencesChange={saveSettings} background={runtime.background} running={practiceState.session.status === 'running'} onJourneyMixChange={mix=>runtime.setJourneyMix(mix)} liveJourneyMix={practiceState.audio.journey?.liveMix??practiceState.audio.acoustic?.liveMix}/>}
       </>}
     </main>
     <Navigation page={page} onNavigate={navigate}/>

@@ -226,10 +226,11 @@ export class JourneySynth {
         to = from + count;
       const aL = this.aL.subarray(from, to),
         aR = this.aR.subarray(from, to);
-      current.synth.block(aL, aR, absolute - current.start, mix);
+      const spanMix=mix&&(mix.warmStep||mix.binauralStep)?{...mix,warm:mix.warm+(mix.warmStep??0)*Math.min(from,mix.rampFrames??from),binaural:mix.binaural+(mix.binauralStep??0)*Math.min(from,mix.rampFrames??from),rampFrames:Math.max(0,(mix.rampFrames??left.length)-from)}:mix;
+      current.synth.block(aL, aR, absolute - current.start, spanMix);
       const bL = this.bL.subarray(from, to),
         bR = this.bR.subarray(from, to);
-      if (next && absolute + count > current.end - blendFrames) next.synth.block(bL, bR, absolute - next.start, mix);else {
+      if (next && absolute + count > current.end - blendFrames) next.synth.block(bL, bR, absolute - next.start, spanMix);else {
         bL.fill(0);
         bR.fill(0);
       }

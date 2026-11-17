@@ -6,6 +6,9 @@ import { MediaSettings } from '../../media/MediaSettings';
 import { mediaLibrary } from '../../media/library';
 import {activeRecipe,recipeFromPreferences} from '../../meditation/environment';
 import { signalProfile } from '../../meditation/profile';
+import {ACOUSTIC_SCENES,type AcousticSceneId} from '../../meditation/acoustic-scenes';
+import {AcousticScenePicker,AcousticLevels} from '../../meditation/AcousticControls';
+import {normalizeMix} from '../../meditation-suite/mix';
 const emptyNoise={playing:false,preview:false,color:'off',error:''};
 const emptyTone={playing:false,preview:false,mode:'off',error:''};
 export function MeditationAudio({preferences:p,onChange,runtime,running=false}: {preferences:Preferences;onChange:(p:Preferences)=>void;runtime:PracticeRuntime;running?:boolean;onChooseTrack?:()=>void}) {
@@ -21,7 +24,20 @@ export function MeditationAudio({preferences:p,onChange,runtime,running=false}: 
     const set=(change:Partial<Preferences['meditation']>)=>onChange({...p,meditation:{...p.meditation,...change}});
     useEffect(()=>{const refresh=()=>setOnline(navigator.onLine);window.addEventListener('online',refresh);window.addEventListener('offline',refresh);return()=>{window.removeEventListener('online',refresh);window.removeEventListener('offline',refresh);};},[]);
     useEffect(()=>{let live=true;const source=p.background.source;if(online||!source.startsWith('ambience.')){setOfflineMissing(false);return;}mediaLibrary.get(`offline:${source}`).then(row=>{if(live)setOfflineMissing(!row);}).catch(()=>{if(live)setOfflineMissing(true);});return()=>{live=false;};},[online,p.background.source]);
-    return <div className="meditation-audio"><h2>Sound environment</h2>
+    const selectedScene=running?recipe?.acoustic?.scene:p.meditation.acousticScene;
+    const chooseScene=(scene:AcousticSceneId|'legacy')=>{runtime.stopNoisePreview();set({acousticScene:scene});};
+    const soundState=runtime.getState?.()?.audio.acoustic;
+    if(selectedScene&&selectedScene!=='legacy'){
+        const mix=running?soundState?.liveMix??recipe?.acoustic?.mix??normalizeMix(p.journeyMix):normalizeMix(p.journeyMix);
+        return <div className="meditation-audio"><h2>Sound environment</h2><AcousticScenePicker id="meditation-acoustic" value={selectedScene} onChange={chooseScene} disabled={running} seconds={p.meditation.durationMinutes*60}/><p className="muted">{ACOUSTIC_SCENES.find(s=>s.id===selectedScene)?.description} The timer starts directly, without preparation or spoken guidance.</p><AcousticLevels mix={mix} onChange={journeyMix=>{runtime.setJourneyMix(journeyMix);onChange({...p,journeyMix});}}/>
+            <p className="muted">Use stereo headphones at a comfortable volume. These are original listening environments, not a measurement of your mental state. Levels can be changed during listening, including in Settings.</p>
+            {p.meditation.music&&<><p className="muted">Your selected companion audio is included.</p><label className="volume-control"><span>Selected audio level</span><input aria-label="Meditation music level" type="range" min="0" max="1" step=".01" value={p.volumes.ambience} onChange={e=>onChange({...p,volumes:{...p.volumes,ambience:Number(e.target.value)}})}/></label></>}
+            {!running&&<><div className="practice-actions"><button type="button" onClick={()=>void runtime.previewNoise(recipeFromPreferences(p))}>Preview environment</button><button type="button" onClick={()=>runtime.stopNoisePreview()}>Stop preview</button></div><p className="muted">Preview plays the opening excerpt. The full sound journey follows your chosen meditation time.</p><fieldset><legend>Soft signals</legend><label className="theme"><input type="checkbox" checked={p.meditation.openingSignal} onChange={e=>set({openingSignal:e.target.checked})}/>Opening signal</label><label className="theme"><input type="checkbox" checked={p.meditation.completionSignal} onChange={e=>set({completionSignal:e.target.checked})}/>Completion signal</label><label htmlFor="signal-kind">Signal sound</label><select id="signal-kind" value={p.meditation.signalKind||'legacy'} onChange={e=>set({signalKind:e.target.value as 'legacy'|'bowl'})}><option value="legacy">Legacy soft chime</option><option value="bowl">Recorded singing bowl</option></select><label className="volume-control"><span>Signal level</span><input aria-label="Signal level" type="range" min="0" max="1" step=".01" value={p.meditation.signalLevel??p.volumes.signals} onChange={e=>set({signalLevel:Number(e.target.value)})}/></label></fieldset></>}
+            {soundState?.error&&<p role="status" className="notice">{soundState.error}</p>}
+        </div>;
+    }
+    return <div className="meditation-audio"><h2>Sound environment</h2><AcousticScenePicker id="meditation-acoustic" value="legacy" onChange={chooseScene} disabled={running} seconds={p.meditation.durationMinutes*60}/>
+
         <label htmlFor="meditation-environment">Environment</label><select id="meditation-environment" disabled={running} value={environment} onChange={event=>{const value=event.target.value;set({music:value!=='generated',noise:value==='selected'?'off':texture==='off'?'brown':texture});}}><option value="generated">Generated</option><option value="selected">Selected audio</option><option value="mix">Mix</option></select>
         {music&&<><p className="muted">Selected track: {runtime.background?.getState().name || (p.background.source==='none'?'none selected':p.background.source==='ambience.floating'?'Floating':p.background.source==='ambience.homeAgain'?'Home Again':'My Audio')}. {offlineMissing?'This track has no offline copy. Generated sound will continue.':'Save a built-in offline copy below for listening without a connection.'}</p>
             {!running&&<details><summary>Choose or import audio</summary><MediaSettings preferences={p} onChange={onChange} controller={runtime.background} running={false} libraryOnly/></details>}
@@ -46,15 +62,16 @@ export function Meditation({preferences:p,onChange,runtime,onStart}: {preference
     const busy=state?.starting || state?.session.status==='running';
     useEffect(()=>()=>runtime.stopNoisePreview(),[runtime]);
     function duration(value:string){setMinutes(value);const n=Number(value);if(Number.isInteger(n)&&n>=1&&n<=60)onChange({...p,meditation:{...p.meditation,durationMinutes:n}});}
-    const n=Number(minutes),short=p.meditation.binaural.mode!=='off'&&Number.isInteger(n)&&n>=1&&n<10;
+    const acoustic=!!p.meditation.acousticScene&&p.meditation.acousticScene!=='legacy';
+    const n=Number(minutes),short=!acoustic&&p.meditation.binaural.mode!=='off'&&Number.isInteger(n)&&n>=1&&n<10;
     const profile=Number.isInteger(n)&&n>=10&&n<=60?signalProfile(n*60):undefined;
-    function start(){if(!Number.isInteger(n)||n<1||n>60){setError('Choose 1–60 whole minutes.');return;}if(short){setError('Binaural sessions need 10–60 minutes. Choose at least 10 minutes or turn the binaural layer Off for a shorter meditation.');return;}setError('');onStart({kind:'meditation',presetId:'meditation',durationSeconds:n*60,audioPolicy:'defaults'});}
-    return <><p className="eyebrow">A QUIET MOMENT</p><h1>Meditation</h1><p className="intro">Settle in with a familiar breath, then let your attention rest.</p>{error&&<p className="notice" role="alert">{error}</p>}
+    function start(){if(!Number.isInteger(n)||n<1||n>60){setError('Choose 1–60 whole minutes.');return;}if(acoustic&&p.meditation.acousticScene==='flow'&&n<3){setError('Choose at least 3 minutes for the sound journey, or select one environment.');return;}if(short){setError('Binaural sessions need 10–60 minutes. Choose at least 10 minutes or turn the binaural layer Off for a shorter meditation.');return;}setError('');onStart({kind:'meditation',presetId:'meditation',durationSeconds:n*60,audioPolicy:'defaults'});}
+    return <><p className="eyebrow">A QUIET MOMENT</p><h1>Meditation</h1><p className="intro">Choose your sound, settle in, and let your attention rest.</p>{error&&<p className="notice" role="alert">{error}</p>}
         <section className="panel meditation-setup"><label htmlFor="meditation-duration">Meditation duration</label><select id="meditation-duration" disabled={busy} value={custom?'custom':minutes} onChange={event=>{if(event.target.value==='custom')setCustom(true);else{setCustom(false);duration(event.target.value);}}}>{presets.map(value=><option key={value} value={value}>{value} minutes</option>)}<option value="custom">Custom · 1–60 minutes</option></select>
         {custom&&<><label htmlFor="custom-meditation-minutes">Custom minutes</label><input id="custom-meditation-minutes" disabled={busy} type="number" min="1" max="60" step="1" value={minutes} onChange={event=>duration(event.target.value)}/></>}
-        <p className="muted">Meditation time begins after the 4-second inhale, 6-second exhale and 3-second settle. Your sound environment enters softly during this preparation.</p>
+        <p className="muted">{acoustic?'Your chosen time starts directly. No preparation or narration is added.':'Meditation time begins after the 4-second inhale, 6-second exhale and 3-second settle. Your sound environment enters softly during this preparation.'}</p>
         {short&&<p className="notice">Binaural sessions need 10–60 minutes. Choose a longer duration or set Binaural layer to Off. Short meditation remains available for masking, selected audio or silence.</p>}
-        {p.meditation.binaural.mode!=='off'&&profile&&<p className="muted">Entry {(profile.entry/60).toFixed(1)} min · Steady {(profile.steady/60).toFixed(1)} min · Return {(profile.return/60).toFixed(1)} min. The tones stay at the same frequencies throughout.</p>}
+        {!acoustic&&p.meditation.binaural.mode!=='off'&&profile&&<p className="muted">Entry {(profile.entry/60).toFixed(1)} min · Steady {(profile.steady/60).toFixed(1)} min · Return {(profile.return/60).toFixed(1)} min. The tones stay at the same frequencies throughout.</p>}
         <MeditationAudio preferences={p} onChange={onChange} runtime={runtime} running={!!busy}/><button className="primary" disabled={busy} onClick={start}>Start meditation</button>
         {busy&&<p role="status">A practice is in progress. Open Practice to return to it.</p>}</section></>;
 }

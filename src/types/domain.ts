@@ -20,6 +20,8 @@ export interface SessionSnapshot {
     readonly plannedDurationSeconds?: number;
 }
 export interface SessionResult {
+    guidanceProfile?:'soft-felt-marshall.1';
+    soundMixChanges?:{atSeconds:number;mix:import('../meditation-suite/mix').ListenerMix;blockId?:string}[];
     journey?: { snapshot: import('../meditation-suite/model').JourneyConfig; naturalBreathingAtSeconds?: number };
     id: string;
     routineId: string;

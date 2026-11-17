@@ -1,5 +1,5 @@
 import { toneRecipe } from '../binaural';
-import { signalProfile } from '../../meditation/profile';
+import { signalProfile } from '../../meditation/signal-profile';
 export const ENGINE_VERSION = '4c.1.0';
 export type Selection = 'combined' | 'tones' | 'noise';
 export type Knot = {

@@ -34,10 +34,10 @@ describe('runtime and UI', () => {
         fireEvent.click(screen.getByRole('button', { name: /^Practice/ }));
         fireEvent.change(screen.getByLabelText('Duration'), { target: { value: '180' } });
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
-        expect(screen.getByRole('timer')).toHaveAttribute('aria-live', 'off');
+        await screen.findByRole('timer');expect(screen.getByRole('timer')).toHaveAttribute('aria-live', 'off');
         expect(screen.queryByRole('button', { name: 'Update app' })).not.toBeInTheDocument();
         expect(screen.getByText(/Finish or stop your practice/)).toBeInTheDocument();
-        act(() => f.timing.advance(193000));
+        act(() => f.timing.advance(205000));
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Completed');
         await waitFor(() => expect(f.runtime.getState().saving).toBe(false));
         expect(await database.history.count()).toBe(1);
@@ -56,8 +56,8 @@ describe('runtime and UI', () => {
         fireEvent.change(screen.getByLabelText('Breaths per round'), { target: { value: '20' } });
         expect(screen.getByText(/Never while driving/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
-        expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
-        act(() => f.timing.advance(110326));
+        await screen.findByRole('timer');expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
+        act(() => f.timing.advance(127000));
         fireEvent.click(screen.getByRole('button', { name: 'Release retention' }));
         expect(screen.getAllByText('Recovery inhale').length).toBeGreaterThan(0);
         act(() => f.timing.advance(4000));
@@ -66,7 +66,7 @@ describe('runtime and UI', () => {
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cancelled');
         const first = f.runtime.engine.getState().sessionId;
         fireEvent.click(screen.getByRole('button', { name: 'Start again' }));
-        expect(f.runtime.engine.getState().sessionId).not.toBe(first);
+        await waitFor(()=>expect(f.runtime.engine.getState().sessionId).not.toBe(first));
         fireEvent.click(screen.getByRole('button', { name: 'Stop practice' }));
         await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
         expect(save.mock.calls[0][0].retentions![0].durationSeconds).toBe(12);

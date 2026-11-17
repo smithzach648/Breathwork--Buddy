@@ -83,7 +83,7 @@ export interface RenderOptions {
   fade?: boolean;
 }
 /** Production-only relative layer scaling. Omission preserves every laboratory sample. */
-export interface LayerMix { warm:number; binaural:number }
+export interface LayerMix { warm:number; binaural:number; warmStep?:number; binauralStep?:number; rampFrames?:number }
 export function validateOptions(r: {
   timeline: {
     durationSeconds: number;
@@ -140,11 +140,13 @@ export class Synth {
       rate = o.sampleRate,
       n = r.noise,
       am = r.modulations.am,
-      tones = o.selection !== 'noise' && (mix === undefined || mix.binaural > 0),
-      noise = o.selection !== 'tones' && n.kind !== 'off' && (mix === undefined || mix.warm > 0),
+      tones = o.selection !== 'noise' && (mix === undefined || mix.binaural > 0 || !!mix.binauralStep),
+      noise = o.selection !== 'tones' && n.kind !== 'off' && (mix === undefined || mix.warm > 0 || !!mix.warmStep),
       master = r.output.level * r.output.trim * (o.matchGain ?? 1),
       toneGain = toneAmplitude * r.output.toneLevel * (mix?.binaural ?? 1),
       noiseLevel = n.level * (mix?.warm ?? 1),
+      toneStep = toneAmplitude * r.output.toneLevel * (mix?.binauralStep ?? 0),
+      noiseStep = n.level * (mix?.warmStep ?? 0),
       fadeFrames = r.output.fadeSeconds * rate;
     for (let i = 0; i < left.length; i++) {
       const frame = firstFrame + i;
@@ -168,18 +170,19 @@ export class Synth {
           l += gain * Math.sin(tau * (cycles % 1) + p.leftPhase);
           rr += gain * Math.sin(tau * ((cycles + p.deltaHz * sourceTime) % 1) + p.rightPhase);
         }
-        const env = (this.stageClock ? 1 : toneEnvelopeAt(r, t)) * toneGain;
+        const env = (this.stageClock ? 1 : toneEnvelopeAt(r, t)) * (toneGain + toneStep * Math.min(i,mix?.rampFrames??i));
         l *= env * (am.enabled ? 1 + am.depth * Math.sin(tau * am.rateHz * sourceTime + am.phase) : 1);
         rr *= env * (am.enabled ? 1 + am.depth * Math.sin(tau * am.rateHz * sourceTime + am.phase + am.channelPhase) : 1);
       }
       if (noise) {
         const x = this.wave[sourceFrame % this.wave.length];
+        const level=noiseLevel+noiseStep*Math.min(i,mix?.rampFrames??i);
         if (n.kind === 'warm-static') {
-          l += x * noiseLevel;
-          rr += x * noiseLevel;
+          l += x * level;
+          rr += x * level;
         } else {
-          l += noiseLevel * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 0) * rate));
-          rr += noiseLevel * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 1) * rate));
+          l += level * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 0) * rate));
+          rr += level * ((1 - n.mix) * x + n.mix * this.noise(sourceFrame, delayAt(r, sourceTime, 1) * rate));
         }
       }
       const fade = o.fade === false ? 1 : Math.max(0, Math.min(1, frame / fadeFrames, (this.frames - 1 - frame) / fadeFrames));

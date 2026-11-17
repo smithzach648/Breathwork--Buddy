@@ -64,4 +64,15 @@ describe('approved-recording scheduling and fallback (synthetic fixtures only)',
     f.clock.jump(95000);f.context.currentTime=105;f.audio.breatheNaturally();expect(intro.disconnect).toHaveBeenCalled();
     f.audio.suspend();f.audio.play(true);expect(f.audio.diagnostics().notesScheduled).toBe(160);f.audio.stop();
   });
+  it('enabling a live muted voice schedules only complete future clips once',async()=>{
+    const f=fixture({voice:0});await f.audio.prepare(f.config);f.audio.begin(f.config,0,'one');f.audio.play();
+    expect(f.sources.filter(s=>s.kind==='voice')).toHaveLength(0);
+    const {changeMix,presetMix}=await import('../meditation-suite/mix');f.clock.jump(3000);f.context.currentTime=13;
+    f.audio.setMix(changeMix(presetMix(),'voice',1));f.audio.setVoicePreferences(1,true,true);
+    await new Promise(r=>setTimeout(r,0));
+    const voices=f.sources.filter(s=>s.kind==='voice');expect(voices).toHaveLength(narrationPlan(f.config).length-1);
+    expect(voices.every(s=>s.start.mock.calls[0][0]>f.context.currentTime)).toBe(true);
+    const count=voices.length;f.audio.setMix(changeMix(presetMix(),'voice',.3));await new Promise(r=>setTimeout(r,0));expect(f.sources.filter(s=>s.kind==='voice')).toHaveLength(count);f.audio.stop();
+  });
+
 });

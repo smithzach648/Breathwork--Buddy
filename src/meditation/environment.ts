@@ -2,10 +2,12 @@ import type { Preferences } from '../settings/preferences';
 import type { PracticeConfig } from '../session/config';
 import type { SessionState } from '../session/engine';
 import { meditationWindow } from './policy';
+import {acousticSelection,validAcousticSelection,ACOUSTIC_SCENES,type AcousticSelection,type AcousticSceneId} from './acoustic-scenes';
 
 export type SignalKind = 'off' | 'legacy' | 'bowl';
 /** Additive JSON recipe; local media identities remain device-local. */
 export interface SoundRecipe {
+    acoustic?:AcousticSelection;
     version: 1;
     texture: Preferences['meditation']['noise'];
     source: string;
@@ -32,14 +34,17 @@ export function validRecipe(value: unknown): value is SoundRecipe {
         && typeof r.source === 'string' && /^(none|ambience\.(floating|homeAgain)|local:[A-Za-z0-9_-]{1,128})$/.test(r.source)
         && bounded(r.noiseLevel,.35) && bounded(r.musicLevel,1) && typeof r.loop === 'boolean'
         && ['off','baseline','layered','modulated'].includes(r.mode) && bounded(r.toneLevel,.3)
-        && [r.opening,r.closing].every(s=>['off','legacy','bowl'].includes(s)) && bounded(r.signalLevel,1);
+        && [r.opening,r.closing].every(s=>['off','legacy','bowl'].includes(s)) && bounded(r.signalLevel,1)
+        && (r.acoustic===undefined||validAcousticSelection(r.acoustic)&&r.texture==='off'&&r.mode==='off');
 }
 export function validateRecipe(value: unknown) { if (!validRecipe(value)) throw new Error('This sound recipe needs repair. Choose supported sounds and levels, then save explicitly.'); }
 export function recipeFromPreferences(p: Preferences): SoundRecipe {
-    return {version:1,texture:p.meditation.noise,source:p.meditation.music?p.background.source:'none',noiseLevel:p.meditation.noiseVolume,musicLevel:p.volumes.ambience,loop:p.background.loop,mode:p.meditation.binaural.mode,toneLevel:p.meditation.binaural.level,opening:p.meditation.openingSignal?(p.meditation.signalKind||'legacy'):'off',closing:p.meditation.completionSignal?(p.meditation.signalKind||'legacy'):'off',signalLevel:p.meditation.signalLevel??p.volumes.signals};
+    const r:SoundRecipe={version:1,texture:p.meditation.noise,source:p.meditation.music?p.background.source:'none',noiseLevel:p.meditation.noiseVolume,musicLevel:p.volumes.ambience,loop:p.background.loop,mode:p.meditation.binaural.mode,toneLevel:p.meditation.binaural.level,opening:p.meditation.openingSignal?(p.meditation.signalKind||'legacy'):'off',closing:p.meditation.completionSignal?(p.meditation.signalKind||'legacy'):'off',signalLevel:p.meditation.signalLevel??p.volumes.signals};
+    return p.meditation.acousticScene&&p.meditation.acousticScene!=='legacy'?sceneRecipe(r,p.meditation.acousticScene,p):r;
 }
-export function silentRecipe(p: Preferences): SoundRecipe { return {...recipeFromPreferences(p),texture:'off',source:'none',mode:'off',opening:'off',closing:'off'}; }
-export function warmFoundation(p: Preferences): SoundRecipe { return {...recipeFromPreferences(p),texture:'brown',source:'none',mode:'off',opening:'off',closing:'off'}; }
+export function silentRecipe(p: Preferences): SoundRecipe { const r={...recipeFromPreferences(p),texture:'off' as const,source:'none',mode:'off' as const,opening:'off' as const,closing:'off' as const};delete r.acoustic;return r; }
+export function warmFoundation(p: Preferences): SoundRecipe { const r={...recipeFromPreferences(p),texture:'brown' as const,source:'none',mode:'off' as const,opening:'off' as const,closing:'off' as const};delete r.acoustic;return r; }
+export function sceneRecipe(r:SoundRecipe,scene:AcousticSceneId,p:Preferences):SoundRecipe{return {...r,texture:'off',mode:'off',acoustic:acousticSelection(scene,r.acoustic?.mix??p.journeyMix)};}
 export function customMeditation(p: Preferences): SoundRecipe { return {...recipeFromPreferences(p),opening:'off',closing:'bowl',signalLevel:.5}; }
 export function preferencesFromRecipe(p:Preferences,r:SoundRecipe):Preferences {return {...structuredClone(p),background:{source:r.source,loop:r.loop,mode:'off'},volumes:{...p.volumes,ambience:r.musicLevel},meditation:{...p.meditation,noise:r.texture,noiseVolume:r.noiseLevel,music:r.source!=='none',binaural:{mode:r.mode,level:r.toneLevel},openingSignal:r.opening!=='off',completionSignal:r.closing!=='off',signalLevel:r.signalLevel}};}
 export function resolveEnvironment(config: PracticeConfig, p: Preferences): FrozenEnvironment {
@@ -59,6 +64,7 @@ export function validEnvironment(e: FrozenEnvironment) {
         && !!e.legacyBackground && ['off','entire','retention','after'].includes(e.legacyBackground.mode) && typeof e.legacyBackground.source==='string' && typeof e.legacyBackground.loop==='boolean' && bounded(e.legacyMusicLevel,1);
 }
 export function recipeSummary(r: SoundRecipe) {
+    if(r.acoustic)return `${ACOUSTIC_SCENES.find(s=>s.id===r.acoustic!.scene)?.name??'Acoustic environment'} · no preparation · opening ${r.opening} / closing ${r.closing}`;
     const track=r.source==='ambience.floating'?'Floating':r.source==='ambience.homeAgain'?'Home Again':'My Audio';
     return `${r.texture==='off'?(r.source==='none'?'Off':'Selected audio'):r.texture==='brown'?'Warm':'Legacy masking'}${r.source!=='none'?(r.texture!=='off'?' + ':' · ')+track:''} · ${r.mode==='off'?'tones Off':r.mode==='modulated'?'Experimental Modulated':r.mode} · opening ${r.opening} / closing ${r.closing}`;
 }

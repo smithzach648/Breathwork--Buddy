@@ -11,7 +11,7 @@ export function meditationWindow(session?: SessionState) {
         target = 3; start -= stages.slice(0,index).reduce((sum,stage)=>sum+stage.durationMs,0); fadeMs = 13000;
     } else if (session.stage.phase === 'block-transition') { target = index + 1; fadeMs = 3000; }
     else if (session.stage.phase === 'meditation') {
-        fadeMs = index === 3 ? 13000 : 3000; start -= fadeMs;
+        fadeMs = index===0 ? 0 : index === 3 ? 13000 : 3000; start -= fadeMs;
     } else return undefined;
     const stage = stages[target];
     if (stage?.phase !== 'meditation') return undefined;

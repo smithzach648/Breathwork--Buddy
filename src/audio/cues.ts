@@ -1,6 +1,7 @@
 import type { StageAudio } from '../session/audio-port';
 import type { Phase } from '../session/config';
 import { roundVoiceIds, voiceDurations } from './voice-metadata';
+import {practiceStageCues} from './practice-guidance';
 export interface AudioCue {
     id: string;
     at: number;
@@ -10,6 +11,7 @@ export interface AudioCue {
 }
 /** Absolute monotonic times. Files never decide the duration or transition. */
 export function stageCues(scope: StageAudio): AudioCue[] {
+    if(scope.stage.guidanceProfile)return practiceStageCues(scope);
     const { stage, start, deadline } = scope;
     const cues: AudioCue[] = [];
     const voice = (id: string, at = start, until = deadline) => cues.push({ id, at, until, breath: false });
