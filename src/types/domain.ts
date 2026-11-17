@@ -4,6 +4,8 @@ import type { FrozenSound } from '../meditation/profile';
 import type { SoundRecipe } from '../meditation/environment';
 export type RoutineStage = ExerciseConfig & { readonly id: string };
 export interface Routine {
+    readonly practiceAudio?:import('../session/practice-audio').PracticeAudio;
+    readonly flowGuidance?:'flow.1';
     readonly id: string;
     readonly name: string;
     readonly description?: string;

@@ -1,3 +1,5 @@
+import {RoutineDesigner} from '../features/routines/RoutineDesigner';
+import type {RoutineTemplateId} from '../routines/templates';
 import { useEffect, useState, useRef, useSyncExternalStore } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { defaultPreferences, type Theme } from '../settings/preferences';
@@ -32,11 +34,13 @@ export function App({ runtime: providedRuntime }: {
     const [page, setPage] = useState<Page>(()=>pages.find(name=>`#${name.toLowerCase()}`===location.hash)||'Home');
     const [routinesOpen, setRoutinesOpen] = useState(false);
     const [builderOpen,setBuilderOpen]=useState(false);
+    const [designerOpen,setDesignerOpen]=useState(false),[selectedTemplate,setSelectedTemplate]=useState<RoutineTemplateId>();
     const [library,setLibrary]=useState(readLibrary),[category,setCategory]=useState<Category>('all');
     const [selectedPreset,setSelectedPreset]=useState<PatternId|'hormesis-foundation'|'hormesis-advanced'>('box');
     const [selectedJourney,setSelectedJourney]=useState<JourneyId>();
     const [reflectTab,setReflectTab]=useState<'journal'|'history'>(()=>location.hash==='#history'?'history':'journal');
     const [reflection,setReflection]=useState<ReflectionRequest>();
+    const navigationVersion=useRef(0);
     const settingsReturn=useRef<Page>('Home');
     const reflectionToken=useRef(0);
     const [prefs, setPrefs] = useState(defaultPreferences);
@@ -73,7 +77,7 @@ export function App({ runtime: providedRuntime }: {
         visible();
         return () => { document.removeEventListener('visibilitychange', visible); runtime.cancelStart(); runtime.engine.stop(); runtime.background?.dispose(); runtime.noise?.dispose(); runtime.binaural?.dispose(); };
     }, [runtime]);
-    useEffect(()=>{const change=()=>{runtime.stopNoisePreview();setRoutinesOpen(false);setBuilderOpen(false);setReflection(undefined);if(location.hash==='#history')setReflectTab('history');if(location.hash==='#journal')setReflectTab('journal');setPage(pages.find(name=>`#${name.toLowerCase()}`===location.hash)||'Home');};window.addEventListener('hashchange',change);return()=>window.removeEventListener('hashchange',change);},[runtime]);
+    useEffect(()=>{const change=()=>{navigationVersion.current++;runtime.stopNoisePreview();setRoutinesOpen(false);setBuilderOpen(false);setDesignerOpen(false);setReflection(undefined);if(location.hash==='#history')setReflectTab('history');if(location.hash==='#journal')setReflectTab('journal');setPage(pages.find(name=>`#${name.toLowerCase()}`===location.hash)||'Home');};window.addEventListener('hashchange',change);return()=>window.removeEventListener('hashchange',change);},[runtime]);
     useEffect(() => {
         const media = matchMedia('(prefers-color-scheme: dark)');
         const apply = () => {
@@ -92,8 +96,9 @@ export function App({ runtime: providedRuntime }: {
     }
     function changeTheme(theme: Theme) { saveSettings({ ...latestPrefs.current, theme }); }
     function navigate(destination: Page) {
+        navigationVersion.current++;
         runtime.stopNoisePreview();
-        setRoutinesOpen(false);setBuilderOpen(false);
+        setRoutinesOpen(false);setBuilderOpen(false);setDesignerOpen(false);
         setReflection(undefined);
         if(destination==='History')setReflectTab('history');
         if(destination==='Journal')setReflectTab('journal');
@@ -128,9 +133,12 @@ export function App({ runtime: providedRuntime }: {
         if(runtime.getState().starting||runtime.getState().session.status==='running'){navigate(activePage);return;}
         runtime.engine.reset();updateLibrary({...library,last:card.id});
         if(card.preset){setSelectedPreset(card.preset);navigate('Practice');}
+        else if(card.template){openDesigner(card.template);}
         else if(card.journey){setSelectedJourney(card.journey);navigate('Meditate');}
         else if(card.scene){saveSettings({...latestPrefs.current,meditation:{...latestPrefs.current.meditation,acousticScene:card.scene}});navigate('Meditation');}
     }
+    function openDesigner(template?:RoutineTemplateId){setSelectedTemplate(template);navigate('Practices');setCategory('routine');setDesignerOpen(true);}
+    async function startDesigned(config:PracticeConfig){const version=navigationVersion.current;await runtime.start(config);if(navigationVersion.current===version)navigate('Practice');}
     function writeReflection(sessionId?:string,sessionName?:string){navigate('Reflect');setReflectTab('journal');setReflection({token:++reflectionToken.current,sessionId,sessionName});}
     const activePage:Page=practiceState.session.snapshot?.config.kind==='meditation-journey'?'Meditate':practiceState.session.snapshot?.config.kind==='meditation'?'Meditation':'Practice';
     const active=practiceState.starting||practiceState.session.status==='running';
@@ -143,10 +151,10 @@ export function App({ runtime: providedRuntime }: {
       {error && <p role="alert" className="notice">{error}</p>}
       {practiceState.saveError && <div role="alert" className="notice">{practiceState.saveError} <button onClick={() => runtime.retrySaving()}>Retry saving</button></div>}
       {needRefresh && <div className="notice" role="status">{practiceState.starting || practiceState.session.status === 'running' ? 'An update is ready. Finish or stop your practice to update.' : <>A new version is ready. <button onClick={() => void update()}>Update app</button></>}</div>}
-      {builderOpen?<SimpleRoutineBuilder preferences={prefs} onSaved={()=>navigate('Saved')} onBack={()=>navigate('Saved')}/>:routinesOpen ? <Routines preferences={prefs} runtime={runtime} onStart={startRoutine} onBack={() => navigate('Saved')} /> : <>
+      {designerOpen?<RoutineDesigner key={selectedTemplate??'custom'} template={selectedTemplate} preferences={prefs} onBack={()=>{navigate('Practices');setCategory('routine');}} onSaved={()=>navigate('Saved')} onStart={startDesigned}/>:builderOpen?<SimpleRoutineBuilder preferences={prefs} onSaved={()=>navigate('Saved')} onBack={()=>navigate('Saved')}/>:routinesOpen ? <Routines preferences={prefs} runtime={runtime} onStart={startRoutine} onBack={() => navigate('Saved')} /> : <>
       {page === 'Home' && <Home last={library.last} onOpen={openCard} onCategory={chooseCategory} onWrite={()=>writeReflection()}/>}
-      {page==='Practices'&&<PracticeLibrary category={category} onCategory={setCategory} favorites={library.favorites} onFavorite={favorite} onOpen={openCard}/>}
-      {page==='Saved'&&<><PracticeLibrary saved category="all" onCategory={setCategory} favorites={library.favorites} onFavorite={favorite} onOpen={openCard} onBuild={()=>setBuilderOpen(true)}/><QuickRoutines onOpen={()=>setRoutinesOpen(true)} onStart={startRoutine}/></>}
+      {page==='Practices'&&<PracticeLibrary category={category} onCategory={setCategory} favorites={library.favorites} onFavorite={favorite} onOpen={openCard} onBuild={()=>openDesigner()}/>}
+      {page==='Saved'&&<><PracticeLibrary saved category="all" onCategory={setCategory} favorites={library.favorites} onFavorite={favorite} onOpen={openCard} onBuild={()=>openDesigner()}/><QuickRoutines onOpen={()=>setRoutinesOpen(true)} onStart={startRoutine}/></>}
       {['Practice','Meditate','Meditation'].includes(page)&&!active&&!practiceState.session.result&&<button className="back" onClick={()=>navigate('Practices')}><Icon name="back" size={16}/>All practices</button>}
       {(page==='Meditate'||page==='Practice'&&practiceState.session.snapshot?.config.kind==='meditation-journey')&&(ready?<Meditate key={selectedJourney??'journeys'} initialJourney={selectedJourney} runtime={runtime} state={practiceState} onTimer={openMeditation} preferences={prefs} onPreferencesChange={saveSettings} onReflect={writeReflection}/>:<p role="status">Loading your saved settings…</p>)}
       {page === 'Practice' && practiceState.session.snapshot?.config.kind!=='meditation-journey' && (ready?<Practice key={selectedPreset} initialPreset={selectedPreset} runtime={runtime} state={practiceState} onDone={() => navigate('Home')} onRoutines={() => {navigate('Saved');setRoutinesOpen(true);}} onMeditation={openMeditation} preferences={prefs} onPreferencesChange={saveSettings} onReflect={writeReflection}/>:<p role="status">Loading your saved settings…</p>)}

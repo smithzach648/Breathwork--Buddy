@@ -1,6 +1,7 @@
+import {REFINEMENT_NARRATION} from './refinement-narration';
 import {HORMESIS_NARRATION} from './hormesis-narration';
 export interface PracticeNarrationAsset {id:string;script:string;maxSeconds:number;assetId:string;durationSeconds:number;sha256:string;approved:true}
-export const PRACTICE_NARRATION:Readonly<Record<string,PracticeNarrationAsset>>=Object.freeze({...HORMESIS_NARRATION,
+export const PRACTICE_NARRATION:Readonly<Record<string,PracticeNarrationAsset>>=Object.freeze({...HORMESIS_NARRATION,...REFINEMENT_NARRATION,
   "practice.intro.box.1": {
     "id": "practice.intro.box.1",
     "maxSeconds": 24.75,

@@ -1,6 +1,7 @@
+import {refinementAudioCatalog} from './refinement-audio-catalog';
 import {hormesisAudioCatalog} from './hormesis-audio-catalog';
 import type {AudioAsset} from './catalog';
-export const practiceAudioCatalog:readonly AudioAsset[]=[...hormesisAudioCatalog,
+export const practiceAudioCatalog:readonly AudioAsset[]=[...hormesisAudioCatalog,...refinementAudioCatalog,
   {
     "id": "practice.intro.box.1",
     "category": "voice",

@@ -1,6 +1,7 @@
 import type {ExerciseConfig} from './config';
 export const HORMESIS_VERSION='hormesis.2';
 export const HORMESIS_OPTIONS={
+ two:{presetId:'hormesis-two',name:'Hormesis · Two rounds',intervalSeconds:2,cycles:30,retentions:[60,60],introId:'practice.intro.hormesis-two.1',introSeconds:90},
  foundation:{presetId:'hormesis-foundation',name:'Hormesis · Foundation',intervalSeconds:4,cycles:20,retentions:[60,60,60],introId:'practice.intro.hormesis-foundation.2',introSeconds:90},
  advanced:{presetId:'hormesis-advanced',name:'Hormesis · Advanced',intervalSeconds:2,cycles:30,retentions:[60,90,90],introId:'practice.intro.hormesis-advanced.2',introSeconds:90},
 } as const;

@@ -1,3 +1,4 @@
+import {practiceRecipe,validPracticeAudio,type PracticeAudio} from '../session/practice-audio';
 import type { Preferences } from '../settings/preferences';
 import type { PracticeConfig } from '../session/config';
 import type { SessionState } from '../session/engine';
@@ -21,6 +22,7 @@ export interface SoundRecipe {
     signalLevel: number;
 }
 export interface FrozenEnvironment {
+    practice?:PracticeAudio;
     version: 1;
     foundation?: SoundRecipe;
     blocks: Record<string, SoundRecipe>;
@@ -61,10 +63,13 @@ export function resolveEnvironment(config: PracticeConfig, p: Preferences): Froz
         if (routine && !routine.foundation && block.audioPolicy === 'defaults' && p.background.mode === 'entire') recipe.source = p.background.source;
         validateRecipe(recipe); blocks[key] = recipe;
     }
-    return {version:1,...(routine?.foundation?{foundation:structuredClone(routine.foundation)}:{}),blocks,legacyBackground:structuredClone(p.background),legacyMusicLevel:p.volumes.ambience};
+    const selected=config.kind==='meditation-journey'?undefined:config.kind==='routine'?routine?.practiceAudio:config.practiceAudio;
+    const hasHormesis=config.kind==='hormesis'||config.kind==='hormesis-round'||routine?.stages.some(b=>b.kind==='hormesis'||b.kind==='hormesis-round');
+    const practice=selected&&!hasHormesis?{...selected,timing:'entire' as const}:selected;
+    return {version:1,...(practice?{practice:structuredClone(practice)}:{}),...(routine?.foundation?{foundation:structuredClone(routine.foundation)}:{}),blocks,legacyBackground:structuredClone(p.background),legacyMusicLevel:p.volumes.ambience};
 }
 export function validEnvironment(e: FrozenEnvironment) {
-    return !!e && e.version===1 && (e.foundation===undefined || validRecipe(e.foundation)) && !!e.blocks && typeof e.blocks==='object'&&!Array.isArray(e.blocks)&&Object.keys(e.blocks).length<=20&&Object.values(e.blocks).every(validRecipe)
+    return !!e && (e.practice===undefined||validPracticeAudio(e.practice)) && e.version===1 && (e.foundation===undefined || validRecipe(e.foundation)) && !!e.blocks && typeof e.blocks==='object'&&!Array.isArray(e.blocks)&&Object.keys(e.blocks).length<=20&&Object.values(e.blocks).every(validRecipe)
         && !!e.legacyBackground && ['off','entire','retention','after'].includes(e.legacyBackground.mode) && typeof e.legacyBackground.source==='string' && typeof e.legacyBackground.loop==='boolean' && bounded(e.legacyMusicLevel,1);
 }
 export function recipeSummary(r: SoundRecipe) {
@@ -82,6 +87,13 @@ export function environmentPlan(session?: SessionState) {
     const e=session.snapshot?.meditationSound?.environment;
     if (!e) return undefined;
     const current=activeRecipe(session);
+    if(e.practice){
+        if(current)return {...current,ramp:.7,key:session.sessionId!};
+        const a=e.practice,wanted=a.timing==='entire'||session.stage?.phase==='retention';
+        const stages=session.snapshot!.stages,index=stages.indexOf(session.stage!),next=stages[index+1];
+        const leaving=session.stage?.phase==='block-transition'&&next?.phase==='meditation';
+        return {...practiceRecipe(wanted&&!leaving?a:{...a,source:'off'}),ramp:.7,key:session.sessionId!};
+    }
     let recipe=current || e.foundation;
     let ramp=25;
     if(session.snapshot?.config.kind==='meditation'){const w=meditationWindow(session);if(w)ramp=Math.max(.7,(w.fadeDeadline-(session.stageStart!+session.stage!.durationMs-session.remainingMs))/1000);}

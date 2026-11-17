@@ -1,3 +1,4 @@
+import {validPracticeAudio} from '../session/practice-audio';
 import {hormesisOption} from '../session/hormesis';
 import { cyclePattern,patterns, validateConfig, type ExerciseConfig } from '../session/config';
 import type { Routine, RoutineStage } from '../types/domain';
@@ -11,6 +12,8 @@ export function validateRoutine(value: unknown): asserts value is Routine {
     if (typeof value.name !== 'string' || !value.name.trim() || value.name.trim().length > MAX_NAME) throw new Error('Give your routine a name of 1–80 characters.');
     if (typeof value.createdAt !== 'string' || typeof value.updatedAt !== 'string' || !Number.isFinite(Date.parse(value.createdAt)) || !Number.isFinite(Date.parse(value.updatedAt))) throw new Error('Routine dates are invalid. Edit and save to repair them.');
     if (!Array.isArray(value.stages) || !value.stages.length || value.stages.length > MAX_BLOCKS) throw new Error('Add between 1 and 20 blocks.');
+    if(value.practiceAudio!==undefined&&!validPracticeAudio(value.practiceAudio))throw new Error('Choose a supported practice background.');
+    if(value.flowGuidance!==undefined&&value.flowGuidance!=='flow.1')throw new Error('Unsupported routine guidance.');
     if(value.foundation!==undefined) validateRecipe(value.foundation);
     const ids = new Set<string>();
     Array.from(value.stages).forEach((stage: unknown, index: number) => {

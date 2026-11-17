@@ -1,0 +1,549 @@
+{
+  "newCredits": 1566,
+  "previousCredits": 9610,
+  "totalCredits": 11176,
+  "voice": "Marshall",
+  "model": "eleven_v4",
+  "retakes": 0,
+  "clips": [
+    {
+      "id": "practice.flow.intro.1",
+      "script": "Settle into a comfortable position. We will move through your chosen breathing patterns, then make room for meditation. Rising notes guide the inhale. Falling notes guide the exhale. Steady notes mark an optional hold. Let comfort guide you throughout.",
+      "maxSeconds": 34.75,
+      "assetId": "practice.flow.intro.1",
+      "durationSeconds": 22.463990929705215,
+      "sha256": "4239296d1f000214cb03bcf93a0a68a40f6d96f4a746f7f0bd1f2e339aa5c4df",
+      "approved": true,
+      "generationId": "Wu3mSJfIDnmcs63o6l4P",
+      "credits": 270,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 17.28,
+      "addedSilenceSeconds": 5.183990929705216,
+      "splices": [
+        {
+          "sourceFrame": 110883,
+          "seam": 5.195533958612941e-7,
+          "quietSeconds": 0.61,
+          "extraFrames": 46177,
+          "outputSeconds": 2.5143537414965986
+        },
+        {
+          "sourceFrame": 237636,
+          "seam": 0.000003048240159841953,
+          "quietSeconds": 0.3,
+          "extraFrames": 22710,
+          "outputSeconds": 6.435668934240363
+        },
+        {
+          "sourceFrame": 337796,
+          "seam": 0.000001692713567535975,
+          "quietSeconds": 0.56,
+          "extraFrames": 42392,
+          "outputSeconds": 9.221836734693877
+        },
+        {
+          "sourceFrame": 433685,
+          "seam": 5.473535225064552e-7,
+          "quietSeconds": 0.48,
+          "extraFrames": 36336,
+          "outputSeconds": 12.357460317460317
+        },
+        {
+          "sourceFrame": 538706,
+          "seam": 0.000001482326865698269,
+          "quietSeconds": 0.55,
+          "extraFrames": 41635,
+          "outputSeconds": 15.562834467120181
+        },
+        {
+          "sourceFrame": 671309,
+          "seam": 0.0000013982966038383893,
+          "quietSeconds": 0.52,
+          "extraFrames": 39364,
+          "outputSeconds": 19.513809523809524
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 22.463990929705215,
+          "peak": 0.7476120591163635
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 22.463979166666668,
+          "peak": 0.7487541437149048
+        }
+      ]
+    },
+    {
+      "id": "practice.flow.box.1",
+      "script": "Box breathing. 4 seconds in, hold for 4, 4 seconds out, then rest for 4. Keep each phase easy.",
+      "maxSeconds": 15.75,
+      "assetId": "practice.flow.box.1",
+      "durationSeconds": 11.543990929705215,
+      "sha256": "6e8dcea27b79810fb53de8fe669edfa22712ec4710a1eeea98458a3561653b56",
+      "approved": true,
+      "generationId": "lHwWseHGD2inZ6vaaIcb",
+      "credits": 103,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 8.88,
+      "addedSilenceSeconds": 2.6639909297052156,
+      "splices": [
+        {
+          "sourceFrame": 62356,
+          "seam": 0.000007214141987788025,
+          "quietSeconds": 0.37,
+          "extraFrames": 23496,
+          "outputSeconds": 1.4139682539682539
+        },
+        {
+          "sourceFrame": 123942,
+          "seam": 0.000008173848982551135,
+          "quietSeconds": 0.26,
+          "extraFrames": 16511,
+          "outputSeconds": 3.343265306122449
+        },
+        {
+          "sourceFrame": 180158,
+          "seam": 0.0000021704429400415393,
+          "quietSeconds": 0.39,
+          "extraFrames": 24767,
+          "outputSeconds": 4.992403628117914
+        },
+        {
+          "sourceFrame": 236688,
+          "seam": 0.000002972484480778803,
+          "quietSeconds": 0.34,
+          "extraFrames": 21591,
+          "outputSeconds": 6.835873015873016
+        },
+        {
+          "sourceFrame": 296608,
+          "seam": 0.0000024807841327856295,
+          "quietSeconds": 0.49,
+          "extraFrames": 31117,
+          "outputSeconds": 8.684195011337868
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 11.543990929705215,
+          "peak": 0.39259400963783264
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 11.543979166666666,
+          "peak": 0.392346054315567
+        }
+      ]
+    },
+    {
+      "id": "practice.flow.calm.1",
+      "script": "Now, 4 seconds in, a comfortable hold for 4, 6 seconds out, then rest for 2. Follow the notes gently.",
+      "maxSeconds": 15.75,
+      "assetId": "practice.flow.calm.1",
+      "durationSeconds": 11.231995464852607,
+      "sha256": "346661347ffb49c50542cf164aa23faba0102836fea85228c10f6d3233006ed0",
+      "approved": true,
+      "generationId": "8kDk2e6fPXHnnpb9su59",
+      "credits": 110,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 8.64,
+      "addedSilenceSeconds": 2.591995464852608,
+      "splices": [
+        {
+          "sourceFrame": 84650,
+          "seam": 0.00000781646122050006,
+          "quietSeconds": 0.25,
+          "extraFrames": 19179,
+          "outputSeconds": 1.9195011337868482
+        },
+        {
+          "sourceFrame": 175984,
+          "seam": 0.000005029614840168506,
+          "quietSeconds": 0.37,
+          "extraFrames": 28385,
+          "outputSeconds": 4.42546485260771
+        },
+        {
+          "sourceFrame": 235873,
+          "seam": 0.0000065128497226396576,
+          "quietSeconds": 0.33,
+          "extraFrames": 25316,
+          "outputSeconds": 6.427142857142857
+        },
+        {
+          "sourceFrame": 300136,
+          "seam": 0.000001413463223798317,
+          "quietSeconds": 0.54,
+          "extraFrames": 41427,
+          "outputSeconds": 8.4584126984127
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 11.231995464852607,
+          "peak": 0.5737559199333191
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 11.231979166666667,
+          "peak": 0.5735222101211548
+        }
+      ]
+    },
+    {
+      "id": "practice.flow.478.1",
+      "script": "Now, breathe in for 4, hold comfortably for 7, and breathe out for 8. You can return to natural breathing whenever you need.",
+      "maxSeconds": 15.75,
+      "assetId": "practice.flow.478.1",
+      "durationSeconds": 12.063990929705215,
+      "sha256": "abf341813a1a4622f7cc59f7c6c136e60e58b6de0966aabfcaf4ca49f7a66523",
+      "approved": true,
+      "generationId": "jGTOV4oncJiQgAOf62Qy",
+      "credits": 133,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 9.28,
+      "addedSilenceSeconds": 2.7839909297052152,
+      "splices": [
+        {
+          "sourceFrame": 24597,
+          "seam": 0.000002311663365617278,
+          "quietSeconds": 0.17,
+          "extraFrames": 11995,
+          "outputSeconds": 0.5577551020408164
+        },
+        {
+          "sourceFrame": 95396,
+          "seam": 0.000004769296538142953,
+          "quietSeconds": 0.45,
+          "extraFrames": 31752,
+          "outputSeconds": 2.435170068027211
+        },
+        {
+          "sourceFrame": 186143,
+          "seam": 0.000002494090949767269,
+          "quietSeconds": 0.44,
+          "extraFrames": 31046,
+          "outputSeconds": 5.2129251700680275
+        },
+        {
+          "sourceFrame": 273374,
+          "seam": 6.133522560958227e-7,
+          "quietSeconds": 0.68,
+          "extraFrames": 47981,
+          "outputSeconds": 7.894943310657596
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 12.063990929705215,
+          "peak": 0.5931347012519836
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 12.063979166666666,
+          "peak": 0.5936442017555237
+        }
+      ]
+    },
+    {
+      "id": "practice.flow.coherent.1",
+      "script": "An even rhythm now. 6 seconds in, and 6 seconds out. There is no hold. Keep the breath easy and unforced.",
+      "maxSeconds": 15.75,
+      "assetId": "practice.flow.coherent.1",
+      "durationSeconds": 12.064013605442177,
+      "sha256": "cfee86840bf047824b85fb75fc6993de9fe9afe01b10868fa6a6afd93476d406",
+      "approved": true,
+      "generationId": "Kb0SuqpRKVWniYZyRqUF",
+      "credits": 114,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 9.28,
+      "addedSilenceSeconds": 2.7840136054421767,
+      "splices": [
+        {
+          "sourceFrame": 74879,
+          "seam": 0.000004970067493559327,
+          "quietSeconds": 0.46,
+          "extraFrames": 29882,
+          "outputSeconds": 1.6979365079365079
+        },
+        {
+          "sourceFrame": 146417,
+          "seam": 0.0000033238402465940453,
+          "quietSeconds": 0.34,
+          "extraFrames": 22086,
+          "outputSeconds": 3.9977097505668935
+        },
+        {
+          "sourceFrame": 222961,
+          "seam": 0.0000014621150512539316,
+          "quietSeconds": 0.56,
+          "extraFrames": 36378,
+          "outputSeconds": 6.23421768707483
+        },
+        {
+          "sourceFrame": 285071,
+          "seam": 0.0000037172278553043725,
+          "quietSeconds": 0.53,
+          "extraFrames": 34429,
+          "outputSeconds": 8.46750566893424
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 12.064013605442177,
+          "peak": 0.5090136528015137
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 12.064,
+          "peak": 0.5108329057693481
+        }
+      ]
+    },
+    {
+      "id": "practice.intro.hormesis-two.1",
+      "script": "This Hormesis practice has 2 rounds. Stay seated or lying down somewhere safe. Never practice standing, walking, driving, or in water. Stop for dizziness or discomfort. In each round, follow 30 breaths, 2 seconds in and 2 seconds out. A short chime marks the final breath: 4 seconds in, then 6 seconds out. Afterward, pause only while comfortable, for up to 60 seconds. Release whenever you need to. There is no need to reach the count. The final 5 seconds are spoken. Then follow the recovery: breathe in for 4, hold comfortably for up to 15, breathe out for 6, and settle. After the second recovery, let your breath return naturally.",
+      "maxSeconds": 89.75,
+      "assetId": "practice.intro.hormesis-two.1",
+      "durationSeconds": 72.54,
+      "sha256": "af8b44aafb180f8c475fff196286872b5ba12c9ca50265ea0e3c4bb175f2019a",
+      "approved": true,
+      "generationId": "iFumOhX76Jbf8zD1XDcb",
+      "credits": 653,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 46.8,
+      "addedSilenceSeconds": 25.74,
+      "splices": [
+        {
+          "sourceFrame": 135152,
+          "seam": 0.0000018298106851943885,
+          "quietSeconds": 0.49,
+          "extraFrames": 69614,
+          "outputSeconds": 3.064671201814059
+        },
+        {
+          "sourceFrame": 271912,
+          "seam": 0.0000014270515293901553,
+          "quietSeconds": 0.51,
+          "extraFrames": 72455,
+          "outputSeconds": 7.744353741496599
+        },
+        {
+          "sourceFrame": 457132,
+          "seam": 0.000002836507746906136,
+          "quietSeconds": 0.4,
+          "extraFrames": 56828,
+          "outputSeconds": 13.587324263038548
+        },
+        {
+          "sourceFrame": 571792,
+          "seam": 0.000001701965857137111,
+          "quietSeconds": 0.58,
+          "extraFrames": 82400,
+          "outputSeconds": 17.4759410430839
+        },
+        {
+          "sourceFrame": 694697,
+          "seam": 0.00000697690165907261,
+          "quietSeconds": 0.32,
+          "extraFrames": 45462,
+          "outputSeconds": 22.13138321995465
+        },
+        {
+          "sourceFrame": 804358,
+          "seam": 4.991007926946622e-7,
+          "quietSeconds": 0.49,
+          "extraFrames": 69614,
+          "outputSeconds": 25.648911564625852
+        },
+        {
+          "sourceFrame": 919017,
+          "seam": 0.0000032949512842606055,
+          "quietSeconds": 0.35000000000000003,
+          "extraFrames": 49724,
+          "outputSeconds": 29.827437641723357
+        },
+        {
+          "sourceFrame": 978420,
+          "seam": 0.000010476153875060845,
+          "quietSeconds": 0.25,
+          "extraFrames": 35517,
+          "outputSeconds": 32.301972789115645
+        },
+        {
+          "sourceFrame": 1049837,
+          "seam": 0.000011830832590931095,
+          "quietSeconds": 0.47000000000000003,
+          "extraFrames": 66773,
+          "outputSeconds": 34.726780045351475
+        },
+        {
+          "sourceFrame": 1094183,
+          "seam": 0.000009728369150252547,
+          "quietSeconds": 0.2,
+          "extraFrames": 28414,
+          "outputSeconds": 37.246485260770974
+        },
+        {
+          "sourceFrame": 1248572,
+          "seam": 0.000008593228812969755,
+          "quietSeconds": 0.41000000000000003,
+          "extraFrames": 58248,
+          "outputSeconds": 41.391678004535144
+        },
+        {
+          "sourceFrame": 1330037,
+          "seam": 2.5595056740712607e-7,
+          "quietSeconds": 0.36,
+          "extraFrames": 51145,
+          "outputSeconds": 44.559773242630385
+        },
+        {
+          "sourceFrame": 1425568,
+          "seam": 0.0000010024278935816255,
+          "quietSeconds": 0.42,
+          "extraFrames": 59669,
+          "outputSeconds": 47.88575963718821
+        },
+        {
+          "sourceFrame": 1533171,
+          "seam": 0.0000014616761063734884,
+          "quietSeconds": 0.46,
+          "extraFrames": 65352,
+          "outputSeconds": 51.67877551020408
+        },
+        {
+          "sourceFrame": 1612498,
+          "seam": 0.000004451113454706501,
+          "quietSeconds": 0.44,
+          "extraFrames": 62511,
+          "outputSeconds": 54.95947845804989
+        },
+        {
+          "sourceFrame": 1677820,
+          "seam": 0.0000010244730219710618,
+          "quietSeconds": 0.41000000000000003,
+          "extraFrames": 58248,
+          "outputSeconds": 57.85818594104308
+        },
+        {
+          "sourceFrame": 1787189,
+          "seam": 0.000010598991138976999,
+          "quietSeconds": 0.44,
+          "extraFrames": 62511,
+          "outputSeconds": 61.659024943310655
+        },
+        {
+          "sourceFrame": 1859915,
+          "seam": 0.000005151363893673988,
+          "quietSeconds": 0.29,
+          "extraFrames": 41200,
+          "outputSeconds": 64.72562358276645
+        },
+        {
+          "sourceFrame": 1901849,
+          "seam": 0.00000863373679749202,
+          "quietSeconds": 0.49,
+          "extraFrames": 69614,
+          "outputSeconds": 66.61074829931972
+        },
+        {
+          "sourceFrame": 1978771,
+          "seam": 0.000006242576546355849,
+          "quietSeconds": 0.21,
+          "extraFrames": 29835,
+          "outputSeconds": 69.93356009070295
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 72.54,
+          "peak": 0.7862547636032104
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 72.54,
+          "peak": 0.7876527309417725
+        }
+      ]
+    },
+    {
+      "id": "practice.hold.soften.1",
+      "script": "Let your shoulders soften, and let the effort settle. There is nothing to achieve here. Stay only while comfortable. You can let the breath return whenever you need.",
+      "maxSeconds": 21.75,
+      "assetId": "practice.hold.soften.1",
+      "durationSeconds": 15.08,
+      "sha256": "6b63204ddbce8ab566f423ff340fd005e68eed255e947f6df9de20587d271e48",
+      "approved": true,
+      "generationId": "wCaYDn0JIHy8I6qC90yH",
+      "credits": 183,
+      "voiceId": "Gr5QdabS0jJCHV2pLdyD",
+      "modelId": "eleven_v4",
+      "sourceSeconds": 11.6,
+      "addedSilenceSeconds": 3.48,
+      "splices": [
+        {
+          "sourceFrame": 94123,
+          "seam": 0.000011394908142392524,
+          "quietSeconds": 0.35000000000000003,
+          "extraFrames": 21924,
+          "outputSeconds": 2.134308390022676
+        },
+        {
+          "sourceFrame": 181695,
+          "seam": 0.000004572423677018378,
+          "quietSeconds": 0.87,
+          "extraFrames": 54497,
+          "outputSeconds": 4.617210884353741
+        },
+        {
+          "sourceFrame": 296608,
+          "seam": 0.0000021919511254964164,
+          "quietSeconds": 0.6,
+          "extraFrames": 37584,
+          "outputSeconds": 8.458707482993198
+        },
+        {
+          "sourceFrame": 396849,
+          "seam": 0.0000023284005692403298,
+          "quietSeconds": 0.63,
+          "extraFrames": 39463,
+          "outputSeconds": 11.583990929705216
+        }
+      ],
+      "preEncodingSamplesPreserved": true,
+      "measurements": [
+        {
+          "rate": 44100,
+          "durationSeconds": 15.08,
+          "peak": 0.41113758087158203
+        },
+        {
+          "rate": 48000,
+          "durationSeconds": 15.08,
+          "peak": 0.41152578592300415
+        }
+      ]
+    }
+  ]
+}

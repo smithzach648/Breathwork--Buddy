@@ -78,7 +78,7 @@ export class PracticeRuntime {
         if (this.state.starting || this.engine.getState().status === 'running') throw new Error('Finish or stop the current practice first.');
         const containsMeditation = config.kind === 'meditation' || config.kind === 'routine' && config.routine.stages.some(block=>block.kind==='meditation');
         const frozen=sound || (config.kind==='meditation-journey'?undefined:{...freezeSound(this.preferences),environment:resolveEnvironment(config,this.preferences)});
-        const snapshot = createSnapshot(config, undefined, undefined, containsMeditation || config.kind==='routine' ? frozen : undefined);
+        const snapshot = createSnapshot(config, undefined, undefined, containsMeditation || config.kind==='routine' || 'practiceAudio' in config&&config.practiceAudio ? frozen : undefined);
         const generation = ++this.startGeneration;
         const modern=snapshot.config.kind==='meditation'&&snapshot.config.directStart||'guidanceProfile' in snapshot.config&&!!snapshot.config.guidanceProfile||Object.values(snapshot.meditationSound?.environment?.blocks??{}).some(r=>!!r.acoustic);
         const ready = snapshot.config.kind!=='meditation-journey'&&!modern && (!this.audio.startReady || this.audio.startReady());

@@ -26,3 +26,5 @@ h1{overflow-wrap:anywhere}h2{margin:14px 0}.panel{padding:24px;border-radius:22p
 input,select,textarea{max-width:100%;min-width:0}fieldset{min-width:0;max-width:100%}.volume-control{min-width:0}.theme{min-width:0}.panel{min-width:0}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:719px){.card-grid{display:block}}
 
 .import-label{grid-template-columns:minmax(0,1fr)}input[type=file]{width:100%;min-width:0;max-width:100%}
+
+.practice-background{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}.practice-background p{margin:12px 0}.create-routine-card{background:var(--soft);border-style:dashed}.designer-blocks .action-row button{flex:1 1 5rem;min-width:0;font-size:.8rem}.designer-blocks h2{overflow-wrap:anywhere}.designer-blocks .field input{width:100%}.designer-blocks .builder-block{padding:18px}.routine-editor details{min-width:0}
