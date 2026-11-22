@@ -1,3 +1,4 @@
+import {PracticeNarrationControl} from '../practice/PracticeNarrationControl';
 import type { Theme } from '../../settings/preferences';
 import type { LegacyStatus } from '../../storage/legacy';
 import type { Preferences } from '../../settings/preferences';
@@ -39,6 +40,7 @@ export function Settings({ theme, volumes, ready, saving, storageFailed, legacy,
       </label>)}</fieldset>
       <fieldset disabled={!ready}>{([['breathSounds', 'Breath sounds'], ['spokenBreath', 'Spoken breath cues'], ['generalVoice', 'General voice guidance'], ['ducking', 'Lower background during voice guidance']] as const).map(([key, label]) => <label className="theme" key={key}><input type="checkbox" checked={preferences.guidance[key]} onChange={e => onPreferencesChange({ ...preferences, guidance: { ...preferences.guidance, [key]: e.target.checked } })}/>{label}</label>)}</fieldset>
     </section>
+    <section className="panel"><h2>Breathing practice voice</h2><PracticeNarrationControl value={preferences.practiceNarration??'full'} disabled={!ready} running={running} onChange={practiceNarration=>onPreferencesChange({...preferences,practiceNarration})}/></section>
     <section className="panel suite-setup"><h2>Journey sound balance</h2><p>Adjust Warm, binaural tones, Soft Felt, narration and the bowl while listening. Changes fade in smoothly and are saved for next time.</p><JourneyMixControls mix={liveJourneyMix??normalizeMix(preferences.journeyMix)} disabled={!ready} onChange={journeyMix=>{onJourneyMixChange?.(journeyMix);onPreferencesChange({...preferences,journeyMix});}}/></section>
     {ready && <MediaSettings preferences={preferences} onChange={onPreferencesChange} controller={background} running={running}/>}
     <section className="panel"><h2>On this device</h2>

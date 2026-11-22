@@ -1,3 +1,4 @@
+import {compactAudioCatalog} from './compact-audio-catalog';
 import { voiceDurations } from './voice-metadata';
 import { suiteAudioCatalog } from './suite-audio-catalog';
 import {practiceAudioCatalog} from './practice-audio-catalog';
@@ -20,6 +21,7 @@ export const audioCatalog: readonly AudioAsset[] = [
     {...SHORT_CHIME,id:SHORT_CHIME.assetId,category:'signals',name:'Soft practice chime',loop:false,available:true},
     ...suiteAudioCatalog,
     ...practiceAudioCatalog,
+    ...compactAudioCatalog,
     asset('voice.in', 'voice', 'voice.breath-in.wav', 1.01), asset('voice.out', 'voice', 'voice.breath-out.wav', 0.83),
     asset('voice.hold60', 'voice', 'voice.60 second hold.wav', 2.72), asset('voice.hold90', 'voice', 'voice.90 second hold.wav', 2.65),
     asset('voice.hold', 'voice', 'voice.Hold.wav', 1.03),

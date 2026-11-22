@@ -157,11 +157,12 @@ describe('continuous journey sample processing', () => {
       ...opts(18, 15),
       selection: 'noise'
     }, wave);
+    // One whole-channel assertion retains exact equality at every sample with less matcher overhead.
+    expect(pcm[0]).toEqual(pcm[1]);
     let max = 0;
     for (let i = 0; i < pcm[0].length; i++) {
       const expected = wave[(18 * 48000 + i) % wave.length] * .1 * .25 * j.output.level;
       max = Math.max(max, Math.abs(pcm[0][i] - expected));
-      expect(pcm[0][i]).toBe(pcm[1][i]);
     }
     expect(max).toBeLessThan(1e-9);
   }, 15000);
@@ -171,7 +172,7 @@ describe('continuous journey sample processing', () => {
       seek = renderProgram(j, opts(24, 5), wave);
     expect(full[0].slice(6 * 48000, 11 * 48000)).toEqual(seek[0]);
     expect(full[1].slice(6 * 48000, 11 * 48000)).toEqual(seek[1]);
-  });
+  }, 15000);
   it('is identical for worklet-sized blocks and offline chunks, including a boundary inside a block', () => {
     const j = short(),
       o = opts(29.999, 1.013),

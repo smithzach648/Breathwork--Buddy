@@ -1,3 +1,4 @@
+import {validNarrationMode,type PracticeNarrationMode} from '../session/practice-narration';
 import {validPracticeAudio,type PracticeAudio} from '../session/practice-audio';
 import type { AudioBus } from '../audio/catalog';
 import { normalizeMix, presetMix, validMix, type ListenerMix } from '../meditation-suite/mix';
@@ -29,6 +30,7 @@ function validMeditationBase(value: unknown): value is MeditationPreferences {
 export function validBinaural(value:unknown):value is BinauralPreferences {const b=value as BinauralPreferences;return !!b && ['off','baseline','layered','modulated'].includes(b.mode) && Number.isFinite(b.level) && b.level>=0 && b.level<=.3;}
 export function validMeditation(value:unknown):value is MeditationPreferences{return validMeditationBase(value)&&validBinaural(value.binaural)&&(value.acousticScene===undefined||['legacy','off','threshold','expansion','timeless','open','flow'].includes(value.acousticScene))&&(value.signalKind===undefined||['legacy','bowl'].includes(value.signalKind))&&(value.signalLevel===undefined||Number.isFinite(value.signalLevel)&&value.signalLevel>=0&&value.signalLevel<=1);}
 export interface Preferences {
+    practiceNarration?:PracticeNarrationMode;
     practiceAudio?:PracticeAudio;
     journeyMix?: ListenerMix;
     journeyPreparation?:{affirmation:'neutral'|'spiritual'|'personal';personalAffirmation:string};
@@ -39,13 +41,14 @@ export interface Preferences {
     background: { source: string; mode: BackgroundMode; loop: boolean };
     meditation: MeditationPreferences;
 }
-export function defaultPreferences(): Preferences { return { id: 'preferences', theme: 'system', volumes: { master: 0.8, voice: 1, breath: 0.6, ambience: 0.4, signals: 0.7 }, guidance: { breathSounds: true, spokenBreath: true, generalVoice: true, ducking: true }, background: { source: 'none', mode: 'off', loop: true }, meditation: meditationDefaults(), journeyMix:presetMix() }; }
+export function defaultPreferences(): Preferences { return { id: 'preferences', practiceNarration:'full', theme: 'system', volumes: { master: 0.8, voice: 1, breath: 0.6, ambience: 0.4, signals: 0.7 }, guidance: { breathSounds: true, spokenBreath: true, generalVoice: true, ducking: true }, background: { source: 'none', mode: 'off', loop: true }, meditation: meditationDefaults(), journeyMix:presetMix() }; }
 /** Extend older valid rows without losing their existing theme or volumes. */
 export function normalizePreferences(value: unknown): Preferences {
     const defaults = defaultPreferences();
     if (!validBase(value)) return defaults;
     const p = value as Partial<Preferences>;
     defaults.journeyMix=normalizeMix(p.journeyMix);
+    if(validNarrationMode(p.practiceNarration))defaults.practiceNarration=p.practiceNarration;
     if(validPracticeAudio(p.practiceAudio))defaults.practiceAudio=structuredClone(p.practiceAudio);
     if(validJourneyPreparation(p.journeyPreparation))defaults.journeyPreparation=structuredClone(p.journeyPreparation);
     for (const key of ['breathSounds', 'spokenBreath', 'generalVoice', 'ducking'] as const) if (typeof p.guidance?.[key] === 'boolean') defaults.guidance[key] = p.guidance[key];
@@ -62,6 +65,6 @@ function validBase(value: unknown): boolean { if (!value || typeof value !== 'ob
 export function validPreferences(value: unknown): value is Preferences {
     if (!validBase(value)) return false;
     const p = value as Preferences;
-    return (p.practiceAudio===undefined||validPracticeAudio(p.practiceAudio))&&(p.journeyPreparation===undefined||validJourneyPreparation(p.journeyPreparation))&&(p.journeyMix===undefined||validMix(p.journeyMix)) && validMeditation(p.meditation) && !!p.guidance && ['breathSounds', 'spokenBreath', 'generalVoice', 'ducking'].every(key => typeof p.guidance[key as keyof Preferences['guidance']] === 'boolean') && !!p.background && typeof p.background.source === 'string' && ['off', 'entire', 'retention', 'after'].includes(p.background.mode) && typeof p.background.loop === 'boolean';
+    return (p.practiceNarration===undefined||validNarrationMode(p.practiceNarration))&&(p.practiceAudio===undefined||validPracticeAudio(p.practiceAudio))&&(p.journeyPreparation===undefined||validJourneyPreparation(p.journeyPreparation))&&(p.journeyMix===undefined||validMix(p.journeyMix)) && validMeditation(p.meditation) && !!p.guidance && ['breathSounds', 'spokenBreath', 'generalVoice', 'ducking'].every(key => typeof p.guidance[key as keyof Preferences['guidance']] === 'boolean') && !!p.background && typeof p.background.source === 'string' && ['off', 'entire', 'retention', 'after'].includes(p.background.mode) && typeof p.background.loop === 'boolean';
 }
 function validJourneyPreparation(value:unknown):value is NonNullable<Preferences['journeyPreparation']>{const v=value as Preferences['journeyPreparation'];return !!v&&['neutral','spiritual','personal'].includes(v.affirmation)&&typeof v.personalAffirmation==='string'&&v.personalAffirmation.length<=2000;}

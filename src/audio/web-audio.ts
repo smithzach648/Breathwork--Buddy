@@ -1,3 +1,4 @@
+import type {PracticeNarrationMode} from '../session/practice-narration';
 import {meditationBridge} from '../session/meditation-bridge';
 import type { Clock } from '../session/clock';
 import type { StageAudio, SessionAudio } from '../session/audio-port';
@@ -44,6 +45,7 @@ export class BrowserAudio implements SessionAudio {
     private tracks = new Set<Track>();
     private retiring = new Set<Track>();
     private snapshot?:PracticeSnapshot;
+    private practiceLiveMode?:PracticeNarrationMode;
     private active: {
         scope: StageAudio;
         epoch: number;
@@ -114,6 +116,7 @@ export class BrowserAudio implements SessionAudio {
             this.offset = this.context.currentTime - this.clock.now() / 1000;
     }
     setPreferences(preferences: Preferences) {
+        if(preferences.practiceNarration!==this.preferences.practiceNarration&&this.active&&!this.journeySession)this.practiceLiveMode=preferences.practiceNarration??'full';
         const mixChanged=JSON.stringify(preferences.journeyMix)!==JSON.stringify(this.preferences.journeyMix);
         if(!this.preferences.guidance.breathSounds&&preferences.guidance.breathSounds&&this.active?.scope.stage.guidanceProfile)this.practiceResumeNatural=true;
         this.preferences = structuredClone(preferences);
@@ -168,7 +171,7 @@ export class BrowserAudio implements SessionAudio {
         return loading;
     }
     beginSession(snapshot: PracticeSnapshot, start: number, sessionId: string) {
-        this.snapshot=snapshot;
+        this.snapshot=snapshot;this.practiceLiveMode=undefined;
         this.practiceResumeNatural=false;
         this.acousticSession=undefined;this.acousticStageId=undefined;this.sessionMixOverride=undefined;
         this.journeySession = snapshot.config.kind === 'meditation-journey' ? sessionId : undefined;
@@ -222,13 +225,14 @@ export class BrowserAudio implements SessionAudio {
         this.active.started = true;
         this.signals.play(scope);
         if(scope.stage.guidanceProfile){if(!scope.resuming)this.mapClock();this.schedulePracticeNotes(scope);}
-        for (const cue of stageCues(scope)) {
+        for (const cue of this.practiceCues(scope)) {
             if (!cueEnabled(cue.id, this.preferences)) continue;
             if (scope.resuming && cue.at <= this.clock.now() + 10)
                 continue;
             void this.schedule(cue, scope, epoch);
         }
     }
+    private practiceCues(scope:StageAudio){return stageCues(this.practiceLiveMode&&scope.stage.practiceNarration?{...scope,stage:{...scope.stage,practiceNarration:{...scope.stage.practiceNarration,mode:this.practiceLiveMode}}}:scope);}
     private current(scope: StageAudio, epoch: number) { return this.active?.epoch === epoch && this.active.scope.stageId === scope.stageId && this.active.scope.sessionId === scope.sessionId; }
     private schedulePracticeNotes(scope:StageAudio){
         const phase=musicalPhase(scope.stage.phase),context=this.context;

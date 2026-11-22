@@ -1,3 +1,4 @@
+import {withPracticeNarration} from './practice-narration';
 import { BrowserTiming, type Clock, type Scheduler } from './clock';
 import { createSnapshot, type PracticeConfig, type PracticeSnapshot } from './config';
 import { DeterministicSessionEngine, type SessionState } from './engine';
@@ -75,6 +76,7 @@ export class PracticeRuntime {
     private publish() { const session = this.engine.getState(); this.media(() => { this.background?.sync(session); this.background?.setDucking(this.audio.voiceActive?.() || false); }); this.media(()=>{this.noise?.sync(session);this.noise?.setDucking(this.audio.voiceActive?.() || false);}); this.media(()=>{this.binaural?.sync(session);this.binaural?.setDucking(this.audio.voiceActive?.() || false);}); this.state = { ...this.state, session, audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
     start(config: PracticeConfig, sound?: FrozenSound) {
         this.stopNoisePreview();
+        if(!sound)config=withPracticeNarration(config,this.preferences);
         if (this.state.starting || this.engine.getState().status === 'running') throw new Error('Finish or stop the current practice first.');
         const containsMeditation = config.kind === 'meditation' || config.kind === 'routine' && config.routine.stages.some(block=>block.kind==='meditation');
         const frozen=sound || (config.kind==='meditation-journey'?undefined:{...freezeSound(this.preferences),environment:resolveEnvironment(config,this.preferences)});

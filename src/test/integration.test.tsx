@@ -61,7 +61,7 @@ describe('runtime and UI', () => {
         expect(screen.getByText(/Never practice standing, walking, driving/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start practice' }));
         await screen.findByRole('timer');expect(screen.queryByRole('button', { name: 'Release retention' })).not.toBeInTheDocument();
-        act(() => f.timing.advance(231000));
+        act(() => {while(f.runtime.engine.getState().stage?.phase!=='retention')f.timing.advance(f.runtime.engine.getState().remainingMs);f.timing.advance(12000);});
         fireEvent.click(screen.getByRole('button', { name: 'Release retention' }));
         expect(screen.getAllByText('Recovery inhale').length).toBeGreaterThan(0);
         act(() => f.timing.advance(4000));

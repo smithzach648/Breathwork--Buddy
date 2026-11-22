@@ -1,3 +1,4 @@
+import {validNarrationChoice,type PracticeNarrationChoice} from './practice-narration';
 import {validPracticeAudio,type PracticeAudio} from './practice-audio';
 import {HORMESIS_VERSION,hormesisOption} from './hormesis';
 import {acousticProgram} from '../meditation/acoustic-scenes';
@@ -48,9 +49,10 @@ export type ExerciseConfig = {
     presetId: 'settling';
     durationSeconds: number;
 };
-export type PracticeConfig = ((ExerciseConfig | { kind: 'routine'; routine: Routine }) & {guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;practiceAudio?:PracticeAudio}) | JourneyConfig;
+export type PracticeConfig = ((ExerciseConfig | { kind: 'routine'; routine: Routine }) & {guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;practiceNarration?:PracticeNarrationChoice;practiceAudio?:PracticeAudio}) | JourneyConfig;
 export type Phase = 'practice-introduction' | 'journey-preparation' | 'journey-rest' | 'journey-return' | 'natural-settling' | 'meditation' | 'block-transition' | 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
 export interface PlannedStage {
+    readonly practiceNarration?:PracticeNarrationChoice;
     readonly guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;
     readonly holdGuidance?:boolean;
     readonly introClipId?:string;
@@ -90,6 +92,7 @@ export function cyclePattern(presetId:PatternId,cycles:number):Extract<ExerciseC
 const phases = ['inhale', 'hold-in', 'exhale', 'hold-out'] as const;
 const labels: Record<Phase, string> = { 'practice-introduction':'Exercise introduction', 'journey-preparation': 'Preparation', 'journey-rest': 'Rest and notice', 'journey-return': 'Return', 'natural-settling': 'Breathe naturally / settle', meditation: 'Meditation', 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
 export function validateConfig(config: PracticeConfig) {
+    if('practiceNarration' in config&&config.practiceNarration!==undefined&&(!validNarrationChoice(config.practiceNarration)||!('guidanceProfile' in config)||!config.guidanceProfile))throw new Error('Choose supported practice narration.');
     if('practiceAudio' in config&&config.practiceAudio!==undefined&&!validPracticeAudio(config.practiceAudio))throw new Error('Choose a supported practice background.');
     if('guidanceProfile' in config && config.guidanceProfile!==undefined && config.guidanceProfile!==PRACTICE_GUIDANCE_VERSION)throw new Error('Unsupported breathing guidance version.');
     if('guidanceProfile' in config && config.guidanceProfile && config.kind==='patterned'&&!Number.isInteger(config.durationSeconds))throw new Error('Musical breathing uses whole seconds.');
@@ -153,7 +156,7 @@ export function patternedStages(seconds: readonly number[], durationSeconds: num
 export function compileStages(config: PracticeConfig): PlannedStage[] {
     validateConfig(config);
     if (config.kind === 'meditation-journey') return compileJourney(config);
-    if(config.guidanceProfile){const legacy={...config};delete legacy.guidanceProfile;return compileMusicalPractice(config,compileStages(legacy));}
+    if(config.guidanceProfile){const legacy={...config};delete legacy.guidanceProfile;delete legacy.practiceNarration;return compileMusicalPractice(config,compileStages(legacy));}
     const stages: PlannedStage[] = (['prepare-inhale', 'prepare-exhale', 'prepare-settle'] as const).map((phase, i) => ({ phase, label: labels[phase], durationMs: [4000, 6000, 3000][i], round: 0, totalRounds: config.kind === 'hormesis' ? 3 : 1, cycle: 0, totalCycles: 0 }));
     if (config.kind === 'routine') {
         config.routine.stages.forEach((block, index) => {
