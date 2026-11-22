@@ -1,3 +1,4 @@
+import {RecoverySoundPicker,PracticeSoundPreview} from './PracticeSoundPreview';
 import {withPracticeNarration,type PracticeNarrationMode} from '../../session/practice-narration';
 import {PracticeNarrationControl} from './PracticeNarrationControl';
 import {practiceAudioFor} from '../../session/practice-audio';
@@ -118,6 +119,8 @@ export function Practice({ runtime, state, onDone, onRoutines, onMeditation, pre
         <option value="hormesis-foundation">Hormesis · Foundation</option><option value="hormesis-advanced">Hormesis · Advanced</option>
       </select></details>
       {!hormesis ? <><label htmlFor="breathing-cycles">Breathing cycles</label><div className="segmented" aria-label="Complete breathing cycles">{[5,10,20,...(preset==='coherent'?[25]:[])].map(n=><button className="choice" key={n} aria-pressed={breathingCycles===n} onClick={()=>setBreathingCycles(n)}>{n} cycles</button>)}</div><details><summary>Choose another cycle count</summary><input aria-label="Breathing cycles" id="breathing-cycles" type="number" min="1" max={Math.min(100,Math.floor(1800/patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)))} step="1" value={Number.isFinite(breathingCycles)?breathingCycles:''} onChange={e=>setBreathingCycles(e.target.value===''?NaN:Number(e.target.value))}/></details><p className="muted">One cycle includes the full inhale, any holds, and exhale. {Number.isFinite(breathingCycles)&&`${formatDuration(patterns[preset as PatternId].seconds.reduce((a,b)=>a+b,0)*breathingCycles)} breathing${introSeconds?' + '+introSeconds+'-second introduction':''}.`}</p></> : <HormesisDetails config={selectedPractice() as Extract<ExerciseConfig,{kind:'hormesis'}>}/>}
+      {hormesis&&<RecoverySoundPicker value={preferences.recoveryHoldSound??'chords'} onChange={recoveryHoldSound=>onPreferencesChange?.({...preferences,recoveryHoldSound})}/>}
+      <PracticeSoundPreview config={selection()} runtime={runtime} preferences={preferences}/>
       <PracticeNarrationControl value={narration} onChange={changeNarration}/>
       <PracticeAudioControls narration={narration} value={practiceAudio} hormesis={hormesis} onChange={next=>{setPracticeAudio(next);onPreferencesChange?.({...preferences,practiceAudio:next});}}/>
       <label className="theme"><input type="checkbox" checked={addMeditation} onChange={e=>setAddMeditation(e.target.checked)}/>Add meditation afterward</label>

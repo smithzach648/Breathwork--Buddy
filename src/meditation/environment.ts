@@ -88,14 +88,14 @@ export function activeRecipe(session?: SessionState) {
     return window ? session?.snapshot?.meditationSound?.environment?.blocks[window.blockId] : undefined;
 }
 /** Pure engine-derived presentation intent. No future breathing/retention timers. */
-export function environmentPlan(session?: SessionState) {
+export function environmentPlan(session?: SessionState,practiceLevel?:number) {
     if (!session || session.status!=='running') return undefined;
     const e=session.snapshot?.meditationSound?.environment;
     if (!e) return undefined;
     const current=activeRecipe(session);
     if(e.practice){
         if(current)return {...current,ramp:.7,key:session.sessionId!};
-        const a=e.practice,wanted=a.timing==='entire'||session.stage?.phase==='retention';
+        const a={...e.practice,level:practiceLevel??e.practice.level},wanted=a.timing==='entire'||session.stage?.phase==='retention';
         const stages=session.snapshot!.stages,index=stages.indexOf(session.stage!),next=stages[index+1];
         const leaving=session.stage?.phase==='block-transition'&&next?.phase==='meditation';
         const recipe=practiceRecipe(wanted&&!leaving?a:{...a,source:'off'});

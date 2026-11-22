@@ -1,3 +1,4 @@
+import {schedulePracticePulse,practicePulse,practicePreviewPlan} from '../../src/audio/practice-tones';
 import {templateRoutine,ROUTINE_TEMPLATES} from '../../src/routines/templates';
 import {hormesisConfig} from '../../src/session/hormesis';
 import {withMeditation} from '../../src/session/practice-followup';
@@ -58,7 +59,7 @@ const background = new BackgroundController(undefined, undefined, () => audio.en
 const noise = new NoiseController(() => audio.environmentPort());
 const binaural = new BinauralController(() => audio.environmentPort(), timing);
 runtime = new PracticeRuntime(timing, timing, audio, new WakeLockController(undefined, () => true), undefined, background, noise, binaural);
-Object.assign(window, { suiteQA:{templateRoutine,ROUTINE_TEMPLATES,hormesisConfig,withMeditation,cyclePattern,createSnapshot,developedRecipe,resolveEnvironment,acousticSelection,acousticProgram,PRACTICE_NARRATION,createFullJourneyConfig,APPROVED_NARRATION,FULL_CLIPS,timeline,createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,releaseSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
+Object.assign(window, { suiteQA:{schedulePracticePulse,practicePulse,practicePreviewPlan,templateRoutine,ROUTINE_TEMPLATES,hormesisConfig,withMeditation,cyclePattern,createSnapshot,developedRecipe,resolveEnvironment,acousticSelection,acousticProgram,PRACTICE_NARRATION,createFullJourneyConfig,APPROVED_NARRATION,FULL_CLIPS,timeline,createJourneyConfig,createRefinedJourneyConfig,layerMix,JourneySynth,warm,encodeWav,scheduleSoftNote,releaseSoftNote,softNoteHz,noteHz,journeyNotes,presetMix,changeMix,narrationPlan,SCRIPT_CLIPS,LEARN_CLIPS,REFRESH_SCRIPT,AUDITION_SCRIPT,JourneyAudio},acousticDSP:{createToneGraph,toneRecipe,scheduleToneEnvelope,toneAmplitude,generateMaskingBuffer,fftSteps,createOutput},routineQA: { runtime, timing, database, noise, binaural, background, events,
     jump(ms:number){timing.jump(ms);runtime.engine.reconcile();audio.resynchronize();},
     advance(ms: number) {
         timing.advance(ms); audio.resynchronize();

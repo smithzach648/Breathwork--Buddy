@@ -1,3 +1,4 @@
+import {withPracticeSound,type RecoveryHoldSound} from './recovery-sound';
 import {withPracticeNarration} from './practice-narration';
 import { BrowserTiming, type Clock, type Scheduler } from './clock';
 import { createSnapshot, type PracticeConfig, type PracticeSnapshot } from './config';
@@ -17,6 +18,7 @@ import type { JourneyConfig } from '../meditation-suite/model';
 export interface RuntimeAudio extends SessionAudio {
     unlock(preload?:boolean): Promise<void>;
     setPreferences(p: Preferences): void;
+    setSignalLevel?(level:number):void;
     setJourneyMix?(mix:import('../meditation-suite/mix').ListenerMix):void;
     resynchronize(): void;
     diagnostics(): AudioDiagnostics;
@@ -33,6 +35,8 @@ export interface RuntimeAudio extends SessionAudio {
     journeyNaturalBreathing?(): void;
     previewSignal?(recipe:SoundRecipe):Promise<void>;
     stopSignalPreview?():void;
+    previewPracticeTones?(config:PracticeConfig,style:RecoveryHoldSound):number;
+    stopPracticeTonePreview?():void;
 }
 export interface RuntimeState {
     session: SessionState;
@@ -41,6 +45,7 @@ export interface RuntimeState {
     saving: boolean;
     historyVersion: number;
     starting: boolean;
+    practiceBackgroundLevel?:number;
 }
 export function canActivateUpdate(status: SessionState['status']) { return status !== 'running'; }
 export class PracticeRuntime {
@@ -52,6 +57,8 @@ export class PracticeRuntime {
     private state: RuntimeState;
     private startGeneration = 0;
     private previewGeneration = 0;
+    private practiceBackgroundLevel?:number;
+    private backgroundSession?:string;
     private preferences = defaultPreferences();
     private previewTimer?:ReturnType<typeof setTimeout>;
     private naturalAdaptations = new Map<string,number>();
@@ -63,6 +70,7 @@ export class PracticeRuntime {
         this.state = { session: this.engine.getState(), audio: audio.diagnostics(), saveError: '', saving: false, historyVersion: 0, starting: false };
         this.engine.subscribe(() => {
             const session = this.engine.getState();
+            if(session.sessionId!==this.backgroundSession){this.backgroundSession=session.sessionId;this.practiceBackgroundLevel=undefined;}
             this.wake.setSession(session.status === 'running' ? session.sessionId! : null);
             this.publish();
             if (session.result && !this.seen.has(session.result.id))
@@ -73,10 +81,10 @@ export class PracticeRuntime {
     getState = () => this.state;
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private media(action: () => void) { try { action(); } catch { /* Long-media presentation can never interrupt session truth. */ } }
-    private publish() { const session = this.engine.getState(); this.media(() => { this.background?.sync(session); this.background?.setDucking(this.audio.voiceActive?.() || false); }); this.media(()=>{this.noise?.sync(session);this.noise?.setDucking(this.audio.voiceActive?.() || false);}); this.media(()=>{this.binaural?.sync(session);this.binaural?.setDucking(this.audio.voiceActive?.() || false);}); this.state = { ...this.state, session, audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
+    private publish() { const session = this.engine.getState(); this.media(() => { this.background?.sync(session); this.background?.setDucking(this.audio.voiceActive?.() || false); }); this.media(()=>{this.noise?.sync(session);this.noise?.setDucking(this.audio.voiceActive?.() || false);}); this.media(()=>{this.binaural?.sync(session);this.binaural?.setDucking(this.audio.voiceActive?.() || false);}); this.state = { ...this.state, session, practiceBackgroundLevel:this.practiceBackgroundLevel, audio: this.audio.diagnostics(), saving: this.pending.size > 0 }; this.listeners.forEach(listener => listener()); }
     start(config: PracticeConfig, sound?: FrozenSound) {
         this.stopNoisePreview();
-        if(!sound)config=withPracticeNarration(config,this.preferences);
+        if(!sound)config=withPracticeSound(withPracticeNarration(config,this.preferences),this.preferences);
         if (this.state.starting || this.engine.getState().status === 'running') throw new Error('Finish or stop the current practice first.');
         const containsMeditation = config.kind === 'meditation' || config.kind === 'routine' && config.routine.stages.some(block=>block.kind==='meditation');
         const frozen=sound || (config.kind==='meditation-journey'?undefined:{...freezeSound(this.preferences),environment:resolveEnvironment(config,this.preferences)});
@@ -116,7 +124,9 @@ export class PracticeRuntime {
         this.preferences=structuredClone(p);this.audio.setPreferences(p);this.media(()=>this.background?.setPreferences(p));this.media(()=>this.noise?.setPreferences(p));this.media(()=>this.binaural?.setPreferences(p));
     }
     visibilityChanged(visible: boolean) { if (!visible) this.stopNoisePreview(); if (!visible && this.state.starting) this.cancelStart(); this.media(()=>this.noise?.visibilityChanged(visible));this.media(()=>this.binaural?.visibilityChanged(visible)); this.audio.resynchronize(); this.engine.setVisible(visible); this.media(() => this.background?.visibilityChanged(visible)); this.wake.visibilityChanged(); }
-    stopNoisePreview() { ++this.previewGeneration;this.audio.stopNarrationPreview?.();this.audio.stopAcousticPreview?.();this.audio.stopSignalPreview?.();if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();});this.media(()=>this.noise?.setPreferences(this.preferences));this.media(()=>this.binaural?.setPreferences(this.preferences));this.media(()=>this.background?.setPreferences(this.preferences)); }
+    stopNoisePreview() { ++this.previewGeneration;this.audio.stopPracticeTonePreview?.();this.audio.stopNarrationPreview?.();this.audio.stopAcousticPreview?.();this.audio.stopSignalPreview?.();if(this.previewTimer)clearTimeout(this.previewTimer);this.previewTimer=undefined;this.media(()=>this.noise?.stopPreview());this.media(()=>this.binaural?.stopPreview());this.media(()=>{if(this.background?.getState().preview)this.background.stop();});this.media(()=>this.noise?.setPreferences(this.preferences));this.media(()=>this.binaural?.setPreferences(this.preferences));this.media(()=>this.background?.setPreferences(this.preferences)); }
+    setPracticeBackgroundLevel(level:number){if(!Number.isFinite(level)||level<0||level>1)throw new Error('Sound level must be between zero and one.');if(this.engine.getState().status!=='running')return;this.practiceBackgroundLevel=level;this.noise?.setPracticeLevel(level);this.background?.setPracticeLevel(level);this.publish();}
+    async previewPracticeTones(config:PracticeConfig){if(this.state.starting||this.engine.getState().status==='running')return 0;this.stopNoisePreview();const generation=++this.previewGeneration;await this.audio.unlock(false);if(generation!==this.previewGeneration||this.state.starting||this.engine.getState().status==='running')return 0;const seconds=this.audio.previewPracticeTones?.(config,this.preferences.recoveryHoldSound??'chords')??0;this.previewTimer=setTimeout(()=>this.stopNoisePreview(),seconds*1000+100);return seconds;}
     async previewSignal(recipe:SoundRecipe) {if(this.engine.getState().status==='running'||this.state.starting)return;this.stopNoisePreview();const generation=++this.previewGeneration;await this.audio.unlock();await this.audio.readyForStart?.();if(generation===this.previewGeneration&&this.engine.getState().status!=='running')await this.audio.previewSignal?.(recipe);}
     async previewNoise(recipe?:SoundRecipe) { if (this.engine.getState().status === 'running' || this.state.starting) return;this.stopNoisePreview(); const generation=++this.previewGeneration; await this.audio.unlock(!recipe?.acoustic);if(recipe?.acoustic){if(generation!==this.previewGeneration||this.engine.getState().status==='running'||this.state.starting)return;await this.audio.previewAcoustic?.(recipe.acoustic,()=>generation===this.previewGeneration&&this.engine.getState().status!=='running'&&!this.state.starting);if(generation!==this.previewGeneration||this.engine.getState().status==='running'||this.state.starting)return;if(recipe.source!=='none'){const companion=preferencesFromRecipe(this.preferences,recipe);this.background?.setPreferences(companion);this.background?.preview(recipe.source);}
         this.previewTimer=setTimeout(()=>this.stopNoisePreview(),20000);return;} if (generation===this.previewGeneration && this.engine.getState().status !== 'running' && !this.state.starting) {const p=recipe?preferencesFromRecipe(this.preferences,recipe):this.preferences;this.noise?.setPreferences(p);this.binaural?.setPreferences(p);this.background?.setPreferences(p);this.noise?.preview();this.binaural?.preview();if(p.meditation.music)this.background?.preview(p.background.source);this.previewTimer=setTimeout(()=>this.stopNoisePreview(),20000);} }

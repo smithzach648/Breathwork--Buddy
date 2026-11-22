@@ -22,26 +22,26 @@ export function instrumentWave(context:BaseAudioContext,instrument:SoftInstrumen
   return wave;
 }
 /** The same note instrument is used by native live playback and the offline A/B renderer. */
-export function scheduleSoftNote(context:BaseAudioContext,input:AudioNode,hz:number,when:number,hold=false,instrument:SoftInstrument='felt') {
+export function scheduleSoftNote(context:BaseAudioContext,input:AudioNode,hz:number,when:number,hold=false,instrument:SoftInstrument='felt',scale=1) {
   const oscillator=context.createOscillator(),gain=context.createGain();
   oscillator.setPeriodicWave(instrumentWave(context,instrument));oscillator.frequency.setValueAtTime(hz,when);
   oscillator.connect(gain);gain.connect(input);
   const level=hold?.175:.25,curve=instrumentEnvelope(instrument);
-  for(let i=0;i<curve.length;i++)curve[i]*=level;
+  for(let i=0;i<curve.length;i++)curve[i]*=level*scale;
   gain.gain.setValueCurveAtTime(curve,when,SOFT_NOTE_SECONDS);
   oscillator.start(when);oscillator.stop(when+SOFT_NOTE_SECONDS);
   return {oscillator,gain};
 }
 
 /** Hold the actual envelope value and release an audible note before retiring its oscillator. */
-export function releaseSoftNote(context:BaseAudioContext,gain:GainNode,when:number,hold=false,instrument:SoftInstrument='felt'){
+export function releaseSoftNote(context:BaseAudioContext,gain:GainNode,when:number,hold=false,instrument:SoftInstrument='felt',scale=1){
  const now=context.currentTime,end=Math.min(when+SOFT_NOTE_SECONDS,now+.025);
  if(now<=when||now>=when+SOFT_NOTE_SECONDS)return now;
  const p=gain.gain;
  if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(now);
  else{
   const curve=instrumentEnvelope(instrument),position=(now-when)/SOFT_NOTE_SECONDS*(curve.length-1),i=Math.floor(position),u=position-i;
-  const value=(curve[i]+((curve[i+1]??curve[i])-curve[i])*u)*(hold?.175:.25);
+  const value=(curve[i]+((curve[i+1]??curve[i])-curve[i])*u)*(hold?.175:.25)*scale;
   p.cancelScheduledValues(when);p.setValueAtTime(value,now);
  }
  p.linearRampToValueAtTime(0,end);return end;

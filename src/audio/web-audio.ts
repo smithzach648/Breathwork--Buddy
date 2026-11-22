@@ -1,3 +1,6 @@
+import {schedulePracticePulse,practicePreviewPlan} from './practice-tones';
+import type {RecoveryHoldSound} from '../session/recovery-sound';
+import type {PracticeConfig} from '../session/config';
 import type {PracticeNarrationMode} from '../session/practice-narration';
 import {meditationBridge} from '../session/meditation-bridge';
 import type { Clock } from '../session/clock';
@@ -21,6 +24,8 @@ import type {AcousticSelection} from '../meditation/acoustic-scenes';
 import type {ListenerMix} from '../meditation-suite/mix';
 interface Track {
     softHold?:boolean;
+    softScale?:number;
+    hz?:number;
     source: AudioBufferSourceNode | OscillatorNode;
     gain: GainNode;
     scope: StageAudio;
@@ -30,6 +35,7 @@ interface Track {
     end: number;
 }
 export interface AudioDiagnostics {
+    signalLevel?:number;
     acoustic?:ReturnType<JourneyAudio['diagnostics']>;
     journey?: ReturnType<JourneyAudio['diagnostics']>;
     scheduled: number;
@@ -45,6 +51,8 @@ export class BrowserAudio implements SessionAudio {
     private tracks = new Set<Track>();
     private retiring = new Set<Track>();
     private snapshot?:PracticeSnapshot;
+    private recoverySoundOverride?:RecoveryHoldSound;
+    private tonePreview=new Set<{oscillator:OscillatorNode;gain:GainNode}>();
     private practiceLiveMode?:PracticeNarrationMode;
     private active: {
         scope: StageAudio;
@@ -73,7 +81,7 @@ export class BrowserAudio implements SessionAudio {
     environmentPort(): AudioEnvironmentPort | undefined { return this.context && this.buses.master ? { context: this.context, input: this.buses.master, mediaInput: this.mediaInput } : undefined; }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify() { this.listeners.forEach(listener => listener()); }
-    diagnostics(): AudioDiagnostics { return { scheduled: this.scheduled, skipped: this.skipped, failures: [...this.failures], playing: this.tracks.size, state: this.context?.state || 'not initialized', ...(this.journeySession ? {journey:this.journeys.diagnostics()}: {}),...(this.acousticSession?{acoustic:this.journeys.diagnostics()}:{}) }; }
+    diagnostics(): AudioDiagnostics { return { signalLevel:this.signals.currentLevel(),scheduled: this.scheduled, skipped: this.skipped, failures: [...this.failures], playing: this.tracks.size, state: this.context?.state || 'not initialized', ...(this.journeySession ? {journey:this.journeys.diagnostics()}: {}),...(this.acousticSession?{acoustic:this.journeys.diagnostics()}:{}) }; }
     /** Call directly in a user gesture; readiness is resolved before the session clock starts. */
     async unlock(preload=true) {
         try {
@@ -93,7 +101,7 @@ export class BrowserAudio implements SessionAudio {
                         if (scope && !this.active?.started)
                             this.enter({ ...scope, resuming: this.clock.now() - scope.start > 250 });
                     }
-                    else { this.stopNarrationPreview();this.stopTracks(); this.signals.stop(); this.journeys.suspend(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
+                    else { this.stopPracticeTonePreview();this.stopNarrationPreview();this.stopTracks(); this.signals.stop(); this.journeys.suspend(); if (this.active) this.active = { ...this.active, epoch: ++this.epoch, started: false }; }
                     this.notify();
                 });
             }
@@ -117,6 +125,7 @@ export class BrowserAudio implements SessionAudio {
     }
     setPreferences(preferences: Preferences) {
         if(preferences.practiceNarration!==this.preferences.practiceNarration&&this.active&&!this.journeySession)this.practiceLiveMode=preferences.practiceNarration??'full';
+        const recoveryChanged=preferences.recoveryHoldSound!==this.preferences.recoveryHoldSound;
         const mixChanged=JSON.stringify(preferences.journeyMix)!==JSON.stringify(this.preferences.journeyMix);
         if(!this.preferences.guidance.breathSounds&&preferences.guidance.breathSounds&&this.active?.scope.stage.guidanceProfile)this.practiceResumeNatural=true;
         this.preferences = structuredClone(preferences);
@@ -125,6 +134,8 @@ export class BrowserAudio implements SessionAudio {
         this.journeys.setVoicePreferences(preferences.volumes.voice,preferences.guidance.generalVoice,preferences.guidance.ducking);
         this.signals.setPreferences(this.preferences);
         this.stopTracks(track => !cueEnabled(track.cueId, preferences));
+        if(!preferences.guidance.breathSounds||!preferences.volumes.breath||!preferences.volumes.master)this.stopPracticeTonePreview();
+        if(recoveryChanged&&this.active?.scope.stage.phase==='recovery-hold'){this.recoverySoundOverride=preferences.recoveryHoldSound??'chords';this.stopTracks(t=>t.scope.stageId===this.active?.scope.stageId&&t.cueId.startsWith('breath.'),true);this.schedulePracticeNotes(this.active.scope,true);}
         for (const bus of ['master', 'voice', 'breath'] as const) {
             const node = this.buses[bus];
             if (node && this.context)
@@ -132,6 +143,7 @@ export class BrowserAudio implements SessionAudio {
         }
         this.notify();
     }
+    setSignalLevel(level:number){this.signals.setLevel(level);this.notify();}
     setJourneyMix(mix:import('../meditation-suite/mix').ListenerMix){if(this.active)this.sessionMixOverride=structuredClone(mix);this.journeys.setMix(mix);}
     load(id: string, expectedSha256?:string): Promise<AudioBuffer | undefined> {
         const cacheKey=expectedSha256?`${id}/${expectedSha256}`:id;
@@ -171,7 +183,7 @@ export class BrowserAudio implements SessionAudio {
         return loading;
     }
     beginSession(snapshot: PracticeSnapshot, start: number, sessionId: string) {
-        this.snapshot=snapshot;this.practiceLiveMode=undefined;
+        this.stopPracticeTonePreview();this.snapshot=snapshot;this.practiceLiveMode=undefined;this.recoverySoundOverride=undefined;
         this.practiceResumeNatural=false;
         this.acousticSession=undefined;this.acousticStageId=undefined;this.sessionMixOverride=undefined;
         this.journeySession = snapshot.config.kind === 'meditation-journey' ? sessionId : undefined;
@@ -234,10 +246,10 @@ export class BrowserAudio implements SessionAudio {
     }
     private practiceCues(scope:StageAudio){return stageCues(this.practiceLiveMode&&scope.stage.practiceNarration?{...scope,stage:{...scope.stage,practiceNarration:{...scope.stage.practiceNarration,mode:this.practiceLiveMode}}}:scope);}
     private current(scope: StageAudio, epoch: number) { return this.active?.epoch === epoch && this.active.scope.stageId === scope.stageId && this.active.scope.sessionId === scope.sessionId; }
-    private schedulePracticeNotes(scope:StageAudio){
+    private schedulePracticeNotes(scope:StageAudio,liveChange=false){
         const phase=musicalPhase(scope.stage.phase),context=this.context;
         if(!phase||!context||!this.preferences.guidance.breathSounds)return;
-        if(scope.resuming)this.practiceResumeNatural=phase!=='inhale'||this.clock.now()-scope.start>100;
+        if(!liveChange&&scope.resuming)this.practiceResumeNatural=phase!=='inhale'||this.clock.now()-scope.start>100;
         else if(phase==='inhale')this.practiceResumeNatural=false;
         if(this.practiceResumeNatural)return;
         if(scope.stage.finalBreathSignal&&!scope.resuming&&this.clock.now()-scope.start<250){
@@ -248,9 +260,11 @@ export class BrowserAudio implements SessionAudio {
         }
         const seconds=scope.stage.durationMs/1000;if(!Number.isInteger(seconds)||seconds<1||seconds>20)return;
         for(let i=0;i<seconds;i++){
-            const at=scope.start+i*1000;if(at<this.clock.now()-20||scope.resuming&&at<=this.clock.now()+10)continue;
-            const when=Math.max(context.currentTime,this.offset+at/1000),{oscillator,gain}=scheduleSoftNote(context,this.buses.breath!,softNoteHz(phase,i,seconds),when,phase.startsWith('hold'),'felt');
-            const track:Track={source:oscillator,gain,scope,cueId:'breath.soft-felt',softHold:phase.startsWith('hold'),when,end:when+.86};this.tracks.add(track);oscillator.onended=()=>{this.tracks.delete(track);this.retiring.delete(track);oscillator.disconnect();gain.disconnect();this.notify();};this.scheduled++;
+            const at=scope.start+i*1000;if(at<this.clock.now()-20||(scope.resuming||liveChange)&&at<=this.clock.now()+10)continue;
+            const when=Math.max(context.currentTime,this.offset+at/1000),recovery=scope.stage.phase==='recovery-hold'?(this.recoverySoundOverride??scope.stage.recoveryHoldSound??'single'):'ordinary';
+            for(const {oscillator,gain,hz,scale} of schedulePracticePulse(context,this.buses.breath!,phase,i,seconds,when,recovery)){
+                const track:Track={source:oscillator,gain,scope,cueId:recovery==='chords'?'breath.recovery-chord':'breath.soft-felt',softHold:phase.startsWith('hold'),softScale:scale,hz,when,end:when+.86};this.tracks.add(track);oscillator.onended=()=>{this.tracks.delete(track);this.retiring.delete(track);oscillator.disconnect();gain.disconnect();this.notify();};this.scheduled++;
+            }
         }
         this.notify();
     }
@@ -303,8 +317,8 @@ export class BrowserAudio implements SessionAudio {
         for (const track of new Set([...this.tracks,...this.retiring])) {
             if (!shouldStop(track)||smoothNotes&&this.retiring.has(track))continue;
             this.tracks.delete(track);
-            if(smoothNotes&&track.cueId==='breath.soft-felt'&&context?.state==='running'&&context.currentTime>track.when&&context.currentTime<track.end){
-                const end=releaseSoftNote(context,track.gain,track.when,track.softHold);
+            if(smoothNotes&&(track.cueId==='breath.soft-felt'||track.cueId==='breath.recovery-chord')&&context?.state==='running'&&context.currentTime>track.when&&context.currentTime<track.end){
+                const end=releaseSoftNote(context,track.gain,track.when,track.softHold,'felt',track.softScale);
                 this.retiring.add(track);try{track.source.stop(end);}catch{/* Already ended. */}continue;
             }
             this.retiring.delete(track);
@@ -354,6 +368,13 @@ export class BrowserAudio implements SessionAudio {
     stopSignalPreview(){this.signals.stop('preview');}
     async previewAcoustic(selection:AcousticSelection,valid=()=>true){await this.journeys.prepare(undefined,true);if(!valid())return;this.journeys.beginEnvironment(selection,180,this.clock.now(),'preview-acoustic');this.acousticSession='preview-acoustic';this.journeys.play();}
     stopAcousticPreview(){if(this.acousticSession==='preview-acoustic'){this.journeys.stop(true);this.acousticSession=undefined;this.acousticStageId=undefined;}}
-    debugState() { return { retiring:this.retiring.size,epoch: this.epoch, context: this.context?.state, generalVoice: this.preferences.guidance.generalVoice, active: this.active ? { ...this.active, scope: { ...this.active.scope } } : null, decoded: [...this.decoded], tracks: [...this.tracks].map(t => ({ cueId: t.cueId, sessionId: t.scope.sessionId, stageId: t.scope.stageId, when: t.when, end: t.end })), now: this.clock.now(), audioNow: this.context?.currentTime }; }
+    previewPracticeTones(config:PracticeConfig,style:RecoveryHoldSound){
+        this.stopPracticeTonePreview();const c=this.context;if(!c||c.state!=='running'||!this.preferences.guidance.breathSounds||!this.preferences.volumes.master||!this.preferences.volumes.breath)return 0;
+        const plan=practicePreviewPlan(config),origin=c.currentTime+.05;
+        for(const p of plan)for(let i=0;i<p.seconds;i++)for(const voice of schedulePracticePulse(c,this.buses.breath!,p.phase,i,p.seconds,origin+p.at+i,p.recovery?style:'ordinary')){this.tonePreview.add(voice);voice.oscillator.onended=()=>{this.tonePreview.delete(voice);voice.oscillator.disconnect();voice.gain.disconnect();this.notify();};}
+        this.notify();return plan.reduce((s,p)=>s+p.seconds,0)+.05;
+    }
+    stopPracticeTonePreview(){for(const v of this.tonePreview){try{v.oscillator.stop();}catch{/* Already ended. */}v.oscillator.disconnect();v.gain.disconnect();}this.tonePreview.clear();}
+    debugState() { return { previewNotes:this.tonePreview.size,retiring:this.retiring.size,epoch: this.epoch, context: this.context?.state, generalVoice: this.preferences.guidance.generalVoice, active: this.active ? { ...this.active, scope: { ...this.active.scope } } : null, decoded: [...this.decoded], tracks: [...this.tracks].map(t => ({ cueId: t.cueId, sessionId: t.scope.sessionId, stageId: t.scope.stageId, when: t.when, end: t.end,hz:t.hz,scale:t.softScale })), now: this.clock.now(), audioNow: this.context?.currentTime }; }
     voiceActive() { if (!this.preferences.volumes.master || !this.preferences.volumes.voice) return false; if(this.journeys.voiceActive())return true; const now = this.context?.currentTime ?? -1; return [...this.tracks].some(track => guidanceCategory(track.cueId) !== 'breath-sound' && now >= track.when && now < track.end); }
 }

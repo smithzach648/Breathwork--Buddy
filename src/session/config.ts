@@ -1,3 +1,4 @@
+import {validRecoverySound,type RecoveryHoldSound} from './recovery-sound';
 import {validNarrationChoice,type PracticeNarrationChoice} from './practice-narration';
 import {validPracticeAudio,type PracticeAudio} from './practice-audio';
 import {HORMESIS_VERSION,hormesisOption} from './hormesis';
@@ -49,9 +50,10 @@ export type ExerciseConfig = {
     presetId: 'settling';
     durationSeconds: number;
 };
-export type PracticeConfig = ((ExerciseConfig | { kind: 'routine'; routine: Routine }) & {guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;practiceNarration?:PracticeNarrationChoice;practiceAudio?:PracticeAudio}) | JourneyConfig;
+export type PracticeConfig = ((ExerciseConfig | { kind: 'routine'; routine: Routine }) & {guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;practiceNarration?:PracticeNarrationChoice;recoveryHoldSound?:RecoveryHoldSound;practiceAudio?:PracticeAudio}) | JourneyConfig;
 export type Phase = 'practice-introduction' | 'journey-preparation' | 'journey-rest' | 'journey-return' | 'natural-settling' | 'meditation' | 'block-transition' | 'prepare-inhale' | 'prepare-exhale' | 'prepare-settle' | 'round-announcement' | 'inhale' | 'hold-in' | 'exhale' | 'hold-out' | 'pre-retention-exhale' | 'retention' | 'recovery-inhale' | 'recovery-hold' | 'recovery-exhale' | 'round-settle';
 export interface PlannedStage {
+    readonly recoveryHoldSound?:RecoveryHoldSound;
     readonly practiceNarration?:PracticeNarrationChoice;
     readonly guidanceProfile?:typeof PRACTICE_GUIDANCE_VERSION;
     readonly holdGuidance?:boolean;
@@ -92,6 +94,7 @@ export function cyclePattern(presetId:PatternId,cycles:number):Extract<ExerciseC
 const phases = ['inhale', 'hold-in', 'exhale', 'hold-out'] as const;
 const labels: Record<Phase, string> = { 'practice-introduction':'Exercise introduction', 'journey-preparation': 'Preparation', 'journey-rest': 'Rest and notice', 'journey-return': 'Return', 'natural-settling': 'Breathe naturally / settle', meditation: 'Meditation', 'block-transition': 'Next block', 'prepare-inhale': 'Prepare · Inhale', 'prepare-exhale': 'Prepare · Exhale', 'prepare-settle': 'Settle', 'round-announcement': 'Round', inhale: 'Inhale', 'hold-in': 'Hold in', exhale: 'Exhale', 'hold-out': 'Hold out', 'pre-retention-exhale': 'Exhale fully', retention: 'Hold', 'recovery-inhale': 'Recovery inhale', 'recovery-hold': 'Recovery hold', 'recovery-exhale': 'Recovery exhale', 'round-settle': 'Settle' };
 export function validateConfig(config: PracticeConfig) {
+    if('recoveryHoldSound' in config&&config.recoveryHoldSound!==undefined&&!validRecoverySound(config.recoveryHoldSound))throw new Error('Choose a supported recovery sound.');
     if('practiceNarration' in config&&config.practiceNarration!==undefined&&(!validNarrationChoice(config.practiceNarration)||!('guidanceProfile' in config)||!config.guidanceProfile))throw new Error('Choose supported practice narration.');
     if('practiceAudio' in config&&config.practiceAudio!==undefined&&!validPracticeAudio(config.practiceAudio))throw new Error('Choose a supported practice background.');
     if('guidanceProfile' in config && config.guidanceProfile!==undefined && config.guidanceProfile!==PRACTICE_GUIDANCE_VERSION)throw new Error('Unsupported breathing guidance version.');
@@ -211,6 +214,7 @@ export function deepFreeze<T>(value: T): T {
 export function createSnapshot(config: PracticeConfig, id: string = crypto.randomUUID(), startedAt = new Date().toISOString(), meditationSound?:FrozenSound): PracticeSnapshot {
     const copy = structuredClone(config);
     let stages = compileStages(copy);
+    if(copy.kind!=='meditation-journey'&&copy.guidanceProfile&&copy.recoveryHoldSound)stages=stages.map(s=>s.phase==='recovery-hold'?{...s,recoveryHoldSound:copy.recoveryHoldSound}:s);
     const practiceAudio=copy.kind==='meditation-journey'?undefined:copy.kind==='routine'?copy.routine.practiceAudio:copy.practiceAudio;
     if(practiceAudio?.holdGuidance)stages=stages.map(s=>s.phase==='retention'?{...s,holdGuidance:true}:s);
     if(copy.kind==='meditation'&&(copy.directStart||meditationSound?.environment?.blocks.standalone?.acoustic)&&stages[0]?.phase==='prepare-inhale')stages=stages.slice(3);

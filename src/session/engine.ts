@@ -179,6 +179,7 @@ export class DeterministicSessionEngine {
         if (this.endReason) result.endReason = this.endReason;
         if (snapshot.config.kind === 'meditation-journey') result.journey = { snapshot: structuredClone(snapshot.config) };
         if('guidanceProfile' in snapshot.config&&snapshot.config.guidanceProfile)result.guidanceProfile=snapshot.config.guidanceProfile;
+        if('recoveryHoldSound' in snapshot.config&&snapshot.config.recoveryHoldSound)result.recoveryHoldSound=snapshot.config.recoveryHoldSound;
         if('practiceNarration' in snapshot.config&&snapshot.config.practiceNarration)result.practiceNarration=structuredClone(snapshot.config.practiceNarration);
         if(snapshot.meditationSound)result.soundProfile=structuredClone(snapshot.meditationSound);
         if (snapshot.config.kind === 'meditation') result.meditation = { plannedDurationSeconds: snapshot.config.durationSeconds, actualDurationSeconds: this.meditationSeconds };

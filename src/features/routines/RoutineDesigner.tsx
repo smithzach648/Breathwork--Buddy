@@ -1,3 +1,5 @@
+import {RecoverySoundPicker,PracticeSoundPreview} from '../practice/PracticeSoundPreview';
+import type {PracticeRuntime} from '../../session/runtime';
 import {withPracticeNarration,type PracticeNarrationMode} from '../../session/practice-narration';
 import {PracticeNarrationControl} from '../practice/PracticeNarrationControl';
 import {useState} from 'react';
@@ -15,7 +17,7 @@ import {AcousticScenePicker} from '../../meditation/AcousticControls';
 import {HormesisDetails} from '../practice/HormesisDetails';
 import {PracticeAudioControls} from '../practice/PracticeAudioControls';
 import {Icon} from '../../components/Icon';
-export function RoutineDesigner({template,preferences,onPreferencesChange,onBack,onSaved,onStart}:{template?:RoutineTemplateId;preferences:Preferences;onPreferencesChange?:(p:Preferences)=>void;onBack:()=>void;onSaved:()=>void;onStart:(c:PracticeConfig)=>Promise<void>}){
+export function RoutineDesigner({template,runtime,preferences,onPreferencesChange,onBack,onSaved,onStart}:{template?:RoutineTemplateId;runtime?:PracticeRuntime;preferences:Preferences;onPreferencesChange?:(p:Preferences)=>void;onBack:()=>void;onSaved:()=>void;onStart:(c:PracticeConfig)=>Promise<void>}){
  const [draft,setDraft]=useState<Routine>(()=>({...templateRoutine(template??'custom','short',preferences),id:crypto.randomUUID(),name:template?templateRoutine(template).name:''}));
  const [variant,setVariant]=useState<RoutineVariant>(template?'short':'custom'),[busy,setBusy]=useState(false),[error,setError]=useState(''),[adding,setAdding]=useState('coherent');
  const [narration,setNarration]=useState<PracticeNarrationMode>(preferences.practiceNarration??'full');
@@ -68,7 +70,7 @@ export function RoutineDesigner({template,preferences,onPreferencesChange,onBack
    <div className="action-row"><button type="button" disabled={busy||index===0} aria-label={'Move block '+(index+1)+' up'} onClick={()=>move(index,-1)}>Move up</button><button type="button" disabled={busy||index===draft.stages.length-1} aria-label={'Move block '+(index+1)+' down'} onClick={()=>move(index,1)}>Move down</button><button type="button" disabled={busy||draft.stages.length===1} aria-label={'Remove block '+(index+1)} onClick={()=>change({...draft,stages:draft.stages.filter((_,i)=>i!==index)})}>Remove</button></div>
   </li>)}</ol>
   <section className="detail-panel"><label className="field"><span>Add to your routine</span><select aria-label="Add to your routine" disabled={busy} value={adding} onChange={e=>setAdding(e.target.value)}>{Object.entries(patterns).map(([id,p])=><option key={id} value={id}>{p.name}</option>)}<option value="hormesis-two">Hormesis · Two rounds</option><option value="hormesis-foundation">Hormesis · Foundation</option><option value="hormesis-advanced">Hormesis · Advanced</option><option value="settling">Natural breathing / settle</option><option value="meditation">Meditation</option></select></label><button disabled={busy||draft.stages.length>=MAX_BLOCKS} onClick={add}>Add block</button></section>
-  </details><PracticeNarrationControl value={narration} disabled={busy} onChange={mode=>{setNarration(mode);onPreferencesChange?.({...preferences,practiceNarration:mode});}}/><PracticeAudioControls narration={narration} value={draft.practiceAudio??defaultPracticeAudio()} hormesis={hormesis} disabled={busy} onChange={practiceAudio=>setDraft({...draft,practiceAudio})}/>
+  </details>{hormesis&&<RecoverySoundPicker value={preferences.recoveryHoldSound??'chords'} disabled={busy} onChange={recoveryHoldSound=>onPreferencesChange?.({...preferences,recoveryHoldSound})}/>}<PracticeSoundPreview runtime={runtime} config={config} preferences={preferences} disabled={busy}/><PracticeNarrationControl value={narration} disabled={busy} onChange={mode=>{setNarration(mode);onPreferencesChange?.({...preferences,practiceNarration:mode});}}/><PracticeAudioControls narration={narration} value={draft.practiceAudio??defaultPracticeAudio()} hormesis={hormesis} disabled={busy} onChange={practiceAudio=>setDraft({...draft,practiceAudio})}/>
   {issue&&<p className="notice" role="alert">{issue}</p>}
   {seconds!==undefined&&<p className="saved-summary" role="status">Total planned time: {formatDuration(seconds)}, including spoken introductions and transitions. Early Release shortens the actual session.</p>}
   <p className="subtext">Your narration choice applies to breathing practice. Meditation begins without repeated preparation; journeys keep their own voice settings.</p>

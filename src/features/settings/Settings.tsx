@@ -1,3 +1,7 @@
+import {APP_RELEASE} from '../../shared/release';
+import {RecoverySoundPicker,PracticeSoundPreview} from '../practice/PracticeSoundPreview';
+import type {PracticeRuntime} from '../../session/runtime';
+import {hormesisConfig} from '../../session/hormesis';
 import {PracticeNarrationControl} from '../practice/PracticeNarrationControl';
 import type { Theme } from '../../settings/preferences';
 import type { LegacyStatus } from '../../storage/legacy';
@@ -7,6 +11,7 @@ import type { BackgroundController } from '../../media/background';
 import {JourneyMixControls} from '../meditation-suite/JourneyMixControls';
 import {normalizeMix,type ListenerMix} from '../../meditation-suite/mix';
 interface Props {
+    runtime?:PracticeRuntime;
     theme: Theme;
     volumes: Preferences['volumes'];
     ready: boolean;
@@ -22,7 +27,7 @@ interface Props {
     liveJourneyMix?:ListenerMix;
     onJourneyMixChange?:(mix:ListenerMix)=>void;
 }
-export function Settings({ theme, volumes, ready, saving, storageFailed, legacy, onThemeChange, onVolumeChange, preferences, onPreferencesChange, background, running,liveJourneyMix,onJourneyMixChange }: Props) {
+export function Settings({ runtime,theme, volumes, ready, saving, storageFailed, legacy, onThemeChange, onVolumeChange, preferences, onPreferencesChange, background, running,liveJourneyMix,onJourneyMixChange }: Props) {
     return <>
     <p className="eyebrow">MAKE YOURSELF AT HOME</p><h1>Settings</h1>
     <section className="panel"><h2>Appearance</h2><p>Choose what feels comfortable.</p>
@@ -41,8 +46,10 @@ export function Settings({ theme, volumes, ready, saving, storageFailed, legacy,
       <fieldset disabled={!ready}>{([['breathSounds', 'Breath sounds'], ['spokenBreath', 'Spoken breath cues'], ['generalVoice', 'General voice guidance'], ['ducking', 'Lower background during voice guidance']] as const).map(([key, label]) => <label className="theme" key={key}><input type="checkbox" checked={preferences.guidance[key]} onChange={e => onPreferencesChange({ ...preferences, guidance: { ...preferences.guidance, [key]: e.target.checked } })}/>{label}</label>)}</fieldset>
     </section>
     <section className="panel"><h2>Breathing practice voice</h2><PracticeNarrationControl value={preferences.practiceNarration??'full'} disabled={!ready} running={running} onChange={practiceNarration=>onPreferencesChange({...preferences,practiceNarration})}/></section>
+    <section className="panel"><h2>Recovery hold sound</h2><RecoverySoundPicker value={preferences.recoveryHoldSound??'chords'} disabled={!ready} onChange={recoveryHoldSound=>onPreferencesChange({...preferences,recoveryHoldSound})}/>{!running&&<PracticeSoundPreview config={hormesisConfig('foundation')} runtime={runtime} preferences={preferences} disabled={!ready}/>}</section>
     <section className="panel suite-setup"><h2>Journey sound balance</h2><p>Adjust Warm, binaural tones, Soft Felt, narration and the bowl while listening. Changes fade in smoothly and are saved for next time.</p><JourneyMixControls mix={liveJourneyMix??normalizeMix(preferences.journeyMix)} disabled={!ready} onChange={journeyMix=>{onJourneyMixChange?.(journeyMix);onPreferencesChange({...preferences,journeyMix});}}/></section>
     {ready && <MediaSettings preferences={preferences} onChange={onPreferencesChange} controller={background} running={running}/>}
+    <section className="panel"><h2>App version</h2><p>Breathward {APP_RELEASE.version} · <time dateTime={APP_RELEASE.date}>November 22, 2026</time></p><details><summary>What changed</summary><p>{APP_RELEASE.title}</p><ul>{APP_RELEASE.changes.map(change=><li key={change}>{change}</li>)}</ul></details></section>
     <section className="panel"><h2>On this device</h2>
       <p>{ready ? 'Preferences are saved locally.' : storageFailed ? 'Local storage is unavailable.' : 'Connecting to local storage…'}</p>
       <p>{legacy === 'present' ? 'Your legacy Breathwork Buddy data was found and remains untouched. Migration will be offered in a later phase.' : legacy === 'unavailable' ? 'Legacy data could not be checked in this browser.' : 'No legacy Breathwork Buddy data was detected on this origin.'}</p>

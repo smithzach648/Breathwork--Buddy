@@ -27,6 +27,7 @@ export interface SessionResult {
     hormesisPractice?:HormesisPracticeResult;
     patternedBreathing?:PatternedBreathingResult;
     guidanceProfile?:'soft-felt-marshall.1';
+    recoveryHoldSound?:import('../session/recovery-sound').RecoveryHoldSound;
     practiceNarration?:import('../session/practice-narration').PracticeNarrationChoice;
     soundMixChanges?:{atSeconds:number;mix:import('../meditation-suite/mix').ListenerMix;blockId?:string}[];
     journey?: { snapshot: import('../meditation-suite/model').JourneyConfig; naturalBreathingAtSeconds?: number };
